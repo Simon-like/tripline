@@ -12,7 +12,7 @@
 - 设计方向已定：**原型 B「弹跳气泡」Expressive Pop**，token 全表在 [CONTEXT.md](CONTEXT.md)。
 - 技术栈已定并记录在 [ADR 0001](adr/0001-tech-stack.md)（Accepted）。
 - **M00 脚手架与基础实现已落地**：Expo SDK 55 monorepo、共享契约、五 Tab 骨架、SQLite/MMKV；详见 [PROGRESS.md](PROGRESS.md) 最新记录。
-- 全部 18 个模块（M00–M17）状态见 [ROADMAP.md](ROADMAP.md) 看板：M00 施工中（Simon 明确授权提前施工，契约待正式复核），其余未起草。
+- 全部 18 个模块（M00–M17）状态见 [ROADMAP.md](ROADMAP.md) 看板：M00–M02 由 Simon 明确授权提前施工，契约待正式复核；M03–M17 尚未施工。
 
 ## 已经有什么资产
 
@@ -26,12 +26,12 @@
 | 设计原型 B | [deliverables/prototypes/B-弹跳气泡/index.html](../deliverables/prototypes/B-弹跳气泡/index.html) | 已选定方向的视觉与交互参考实现（浏览器直接打开） |
 | 行业调研报告 | [deliverables/旅迹TripLine_行业调研与产品报告.html](../deliverables/旅迹TripLine_行业调研与产品报告.html) | 市场调研汇总（另有 01/02 两份细分调研在 research/ 下） |
 
-## 立即要做的事（M00 真机验证）
+## 立即要做的事（基础模块复核与真机验证）
 
-1. 读 [PROGRESS.md](PROGRESS.md) 最新记录和 [modules/M00-foundation.md](modules/M00-foundation.md) 当前实现契约。
-2. 复核 M00 需求与技术方案，取得 Simon 对共享契约的明确评审；当前代码已按其「开始写代码」指示提前施工，但不可把契约视为已冻结。
-3. 配置本地 Android SDK 许可与构建组件，或由 Simon 登录自己的 Expo/EAS 账号；安装 Xcode 或走 EAS iPhone 签名路径。
-4. 生成双端 development build，在真机核验 M00 AC-1～AC-9，并由独立会话/工具填写验收段。
+1. 读 [PROGRESS.md](PROGRESS.md) 最新记录和 M00/M01/M02 模块文档，核对实现与待拍板点。
+2. 复核 M00–M02 需求与技术方案，取得 Simon 对共享契约的明确评审；当前代码按其明确指示提前施工，不可把契约视为已冻结。
+3. Simon 处理部署配置后，安装完整 Xcode 或登录自己的 Expo/EAS 账号；Android SDK 许可仍待其接受。
+4. 生成双端 development build，在真机核验 M00–M02，并由独立会话/工具填写验收段。网页手机尺寸截图在 artifacts/preview/，可先用于外观反馈。
 
 ## 环境与约束
 

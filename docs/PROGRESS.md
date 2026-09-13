@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-09-13 · Codex（基础模块与网页预览）
+
+**现在什么最重要**：M01 旅程管理、M02 行前清单的首版已按 Simon 的明确授权提前施工并可在 Expo Web 手机尺寸预览；下一步是正式评审 M00–M02 契约，以及在部署配置就绪后做 iOS/Android dev build 真机核验。M03–M04 仍为占位页，不应被误认为已完工。
+
+**本会话做了什么**：把首页从静态演示改为真实旅程列表、创建/编辑/二次确认删除、自动状态与倒计时、预算/清单进度联动；新旅程自动生成七类八项行前模板。清单页支持分类、勾选/撤销、增删、进度环和全完成彩带反馈，尊重减弱动态效果。原生继续用 SQLite+MMKV；为用户要求的本地网页预览补了同 API 的浏览器本地存储适配，同一套 Expo 页面渲染，未另做假原型。已起草 M01/M02 需求文档并把待拍板点明示。
+
+**验证证据**：pnpm install、pnpm lint、pnpm typecheck、pnpm test（14 个 shared 测试）和 expo install --check 均通过。Expo Web 导出成功，浏览器 390×844 手机尺寸实测首页/清单；实际完成清单 3/8→4/8→3/8、添加/删除测试条目、创建/删除测试旅程。预览截图位于 artifacts/preview/home-mobile.jpg 与 artifacts/preview/checklist-mobile.jpg。本轮没有双端原生编译或真机通过证据。
+
+**下一步**：Simon 给首页/清单截图反馈，并拍板 M01/M02 模糊点；部署配置由 Simon 稍后处理。再完成 M03 行程与 M04 账本，随后双端 development build 及独立验收。
+
+**坑与提醒**：Expo CLI 自动打开 Chrome 的脚本会在本机卡住；网页开发可用 BROWSER=none pnpm --filter @tripline/mobile web，再手动打开 http://localhost:8081。演示旅程只在首次空库时种入一次；删掉后不会再出现。网页数据只存在浏览器 localStorage，与原生 SQLite 不互通。M01/M02 尚未正式评审冻结。
+
+---
+
 ## 2026-09-13 · Codex
 
 **现在什么最重要**：M00 已按 Simon 在会话中的明确指示提前施工，首要剩余工作是 Android/iOS development build 真机验证，以及让 Simon 复核实际共享契约。M01–M04 尚未开始。

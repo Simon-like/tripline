@@ -15,4 +15,10 @@ export const settings = {
   setSyncCursor(cursor: string): void {
     storage.set('syncCursor', cursor);
   },
+  getDemoSeeded(): boolean {
+    return storage.getBoolean('demoSeeded') === true;
+  },
+  setDemoSeeded(): void {
+    storage.set('demoSeeded', true);
+  },
 };

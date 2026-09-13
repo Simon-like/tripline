@@ -9,7 +9,7 @@ export function useTriplineTheme(): { theme: TriplineTheme; dark: boolean } {
 export const chineseFont = Platform.select({
   ios: 'PingFang SC',
   android: 'HarmonyOS Sans SC',
-  default: 'sans-serif',
+  default: 'MiSans, "HarmonyOS Sans SC", "PingFang SC", sans-serif',
 });
 
 export const numberFont = 'PlusJakartaSans_700Bold';

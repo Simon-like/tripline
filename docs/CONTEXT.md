@@ -134,7 +134,7 @@
 
 ## 当前阶段
 
-M00 工程基座正在施工：Expo monorepo、共享契约、导航骨架、SQLite/MMKV 基础代码已落地；双端原生构建与真机验收仍待完成。详见 [ROADMAP.md](ROADMAP.md) 与 [PROGRESS.md](PROGRESS.md)。
+M00 工程基座与 Wave 1 的 M01 旅程管理、M02 行前清单已按 Simon 明确授权提前施工；Expo 原生 App 同源的网页预览已可操作。双端原生构建、需求及契约评审、独立验收仍待完成；M03–M04 还是占位页。详见 [ROADMAP.md](ROADMAP.md) 与 [PROGRESS.md](PROGRESS.md)。
 
 ## 更新时机（什么变化必须回来改本文档）
 

@@ -7,18 +7,22 @@
     "dev": "expo start --dev-client",
     "android": "expo run:android --device",
     "ios": "expo run:ios --device",
+    "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "test": "node -e \"process.exit(0)\""
   },
   "dependencies": {
     "@expo-google-fonts/plus-jakarta-sans": "catalog:",
+    "@expo/metro-runtime": "catalog:",
     "@tripline/shared": "workspace:*",
     "@tripline/ui": "workspace:*",
     "expo": "catalog:",
     "expo-constants": "catalog:",
+    "expo-crypto": "catalog:",
     "expo-dev-client": "catalog:",
     "expo-font": "catalog:",
+    "expo-haptics": "catalog:",
     "expo-linking": "catalog:",
     "expo-router": "catalog:",
     "expo-splash-screen": "catalog:",
@@ -34,6 +38,8 @@
     "react-native-reanimated": "catalog:",
     "react-native-safe-area-context": "catalog:",
     "react-native-screens": "catalog:",
+    "react-native-svg": "catalog:",
+    "react-native-web": "catalog:",
     "react-native-worklets": "catalog:"
   },
   "devDependencies": {

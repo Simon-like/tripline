@@ -1,8 +1,10 @@
-import { Tabs, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Tabs, useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TripText } from '../../../src/components/TripText';
 import { chineseFont, useTriplineTheme } from '../../../src/theme';
+import { getJourney } from '../../../src/data/database';
 
 const tabItems = [
   ['checklist', '清单', '🧳'],
@@ -14,14 +16,20 @@ const tabItems = [
 
 export default function JourneyLayout() {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [journeyName, setJourneyName] = useState('我的旅程');
   const { theme } = useTriplineTheme();
   const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    if (id) void getJourney(id).then((journey) => setJourneyName(journey?.name ?? '我的旅程'));
+  }, [id]);
 
   return (
     <Tabs
       screenOptions={{
         headerShown: true,
-        headerTitle: '香格里拉 · 5天4晚',
+        headerTitle: journeyName,
         headerStyle: { backgroundColor: theme.bg },
         headerShadowVisible: false,
         headerTitleStyle: { color: theme.text, fontFamily: chineseFont, fontWeight: '700', fontSize: 16 },
