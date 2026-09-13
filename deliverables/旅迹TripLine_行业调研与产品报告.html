@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅迹 TripLine · 行业调研与产品汇报 V2.0</title>
+<style>
+/* ============ 设计令牌（编辑级 · 暖纸报告风） ============ */
+:root{
+  --paper:#FAF6EF;
+  --paper-hi:#F3EDE1;
+  --card:#FFFDF8;
+  --ink:#2C2620;
+  --ink-md:#6E6355;
+  --ink-lo:#A89B8A;
+  --line:#E3D9C7;
+  --line-lo:#EFE8DA;
+  --acc:#C05B33;
+  --acc-deep:#99451F;
+  --acc-soft:#E8B08C;
+  --gold:#C08F2F;
+  --moss:#6E8B5E;
+  --navy:#3E5C76;
+  --navy-soft:#9FB6C9;
+  --neg:#B23A2E;
+  --serif:"Noto Serif SC","Songti SC","STSong","STZhongsong",Georgia,"Times New Roman",serif;
+  --sans:"PingFang SC","Noto Sans SC","MiSans","Microsoft YaHei",-apple-system,"Helvetica Neue",sans-serif;
+  --mono:"SF Mono",Menlo,Consolas,"Liberation Mono","Courier New",monospace;
+  --navw:232px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:16px;line-height:1.85;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:rgba(192,91,51,.22)}
+
+/* ============ 阅读进度条 ============ */
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--acc),var(--gold));z-index:99}
+
+/* ============ 侧边导航 ============ */
+nav#sidenav{
+  position:fixed;top:0;left:0;bottom:0;width:var(--navw);
+  padding:34px 0 24px;z-index:50;
+  border-right:1px solid var(--line-lo);
+  background:var(--paper);
+  display:flex;flex-direction:column;
+}
+#sidenav .brand{padding:0 26px 18px;border-bottom:1px solid var(--line-lo)}
+#sidenav .brand .b-name{font-family:var(--serif);font-weight:700;font-size:19px;letter-spacing:.02em}
+#sidenav .brand .b-sub{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;color:var(--ink-lo);margin-top:4px;text-transform:uppercase}
+#sidenav ul{list-style:none;overflow-y:auto;flex:1;padding:14px 0}
+#sidenav a{
+  display:flex;align-items:baseline;gap:9px;
+  padding:7px 26px;font-size:13px;color:var(--ink-md);text-decoration:none;
+  border-left:3px solid transparent;transition:all .18s;
+}
+#sidenav a .no{font-family:var(--mono);font-size:9.5px;color:var(--ink-lo);letter-spacing:.06em}
+#sidenav a:hover{color:var(--acc);background:rgba(192,91,51,.05)}
+#sidenav a.on{color:var(--acc-deep);border-left-color:var(--acc);background:rgba(192,91,51,.07);font-weight:600}
+#sidenav .foot{padding:14px 26px 0;border-top:1px solid var(--line-lo);font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--ink-lo)}
+
+/* ============ 主栏 ============ */
+main{margin-left:var(--navw)}
+.prose{max-width:740px;margin:0 auto;padding:0 34px}
+.wide{max-width:980px;margin:0 auto;padding:0 34px}
+.wide-xl{max-width:1140px;margin:0 auto;padding:0 34px}
+
+section{padding:84px 0 30px;border-top:1px solid var(--line-lo)}
+section:first-of-type{border-top:none}
+.sec-no{font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--acc);display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.sec-no::before{content:"";display:inline-block;width:26px;height:1.5px;background:var(--acc)}
+h2{font-family:var(--serif);font-size:34px;font-weight:700;line-height:1.3;letter-spacing:.01em;margin-bottom:10px}
+h3{font-family:var(--serif);font-size:21px;font-weight:700;margin:38px 0 12px}
+h4{font-family:var(--sans);font-size:15.5px;font-weight:700;margin:26px 0 8px}
+.dek{font-family:var(--serif);font-size:19px;line-height:1.75;color:var(--ink-md);margin:6px 0 26px}
+p{margin:0 0 16px}
+p.lede{font-size:17.5px}
+b,strong{font-weight:700}
+.mono{font-family:var(--mono)}
+.small{font-size:13px;color:var(--ink-md)}
+
+/* 章节标题入场：下划线描绘（内容本身常显） */
+.sec-under{height:3px;width:64px;background:linear-gradient(90deg,var(--acc),var(--gold));margin:14px 0 24px;transform-origin:left;transform:scaleX(0);transition:transform .9s cubic-bezier(.2,.7,.2,1) .1s}
+.in .sec-under{transform:scaleX(1)}
+
+/* ============ 封面 ============ */
+#cover{
+  position:relative;min-height:100vh;display:flex;align-items:center;
+  overflow:hidden;border-top:none;padding:60px 0;
+  background:
+    radial-gradient(1200px 600px at 85% -10%,rgba(192,143,47,.10),transparent 60%),
+    radial-gradient(900px 500px at 0% 110%,rgba(192,91,51,.09),transparent 55%),
+    var(--paper);
+}
+#cover .c-inner{position:relative;z-index:2;width:100%}
+#cover .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--acc);margin-bottom:26px;animation:cup .9s .15s both}
+#cover h1{font-family:var(--serif);font-size:clamp(46px,7vw,86px);font-weight:700;line-height:1.12;letter-spacing:.015em;animation:cup 1s .3s both}
+#cover h1 .tl{color:var(--acc)}
+#cover .slogan{font-family:var(--serif);font-size:clamp(19px,2.4vw,27px);color:var(--ink-md);margin-top:20px;animation:cup 1s .5s both}
+#cover .rpt{margin-top:44px;display:flex;align-items:center;gap:16px;animation:cup 1s .68s both}
+#cover .rpt .rt{font-family:var(--serif);font-size:17px;font-weight:700;border-top:2px solid var(--ink);border-bottom:1px solid var(--ink);padding:8px 2px}
+#cover .meta{margin-top:30px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--ink-lo);animation:cup 1s .85s both}
+@keyframes cup{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+#cover-svg{position:absolute;inset:0;width:100%;height:100%;z-index:1;opacity:.9}
+#cover .scroll-hint{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--ink-lo);z-index:2;animation:hint 2.4s 2s infinite}
+@keyframes hint{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
+
+/* ============ 图框三件套 ============ */
+.fig{margin:44px 0 50px}
+.fig .f-title{font-family:var(--serif);font-size:19px;font-weight:700;line-height:1.45}
+.fig .f-sub{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--ink-lo);margin:6px 0 18px;text-transform:uppercase;line-height:1.8}
+.fig .f-body{background:var(--card);border:1px solid var(--line);padding:26px 26px 20px}
+.fig .f-src{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--ink-lo);margin-top:14px;padding-top:10px;border-top:1px dashed var(--line);line-height:1.8}
+.fig .f-src b{color:var(--ink-md);font-weight:400}
+
+/* ============ 关键数字 ============ */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:30px 0 10px}
+.stat{
+  background:var(--card);border:1px solid var(--line);padding:22px 20px 18px;cursor:pointer;
+  transition:border-color .2s, transform .2s;position:relative;
+}
+.stat:hover{border-color:var(--acc);transform:translateY(-2px)}
+.stat .s-num{font-family:var(--serif);font-size:44px;font-weight:700;line-height:1;color:var(--acc-deep);letter-spacing:-.01em}
+.stat .s-num small{font-size:20px}
+.stat .s-lab{font-size:13.5px;font-weight:600;margin-top:10px;line-height:1.5}
+.stat .s-src{font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--ink-lo);margin-top:8px}
+.stat::after{content:"＋ 查看依据";position:absolute;right:12px;top:12px;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;color:var(--ink-lo);opacity:0;transition:opacity .2s}
+.stat:hover::after{opacity:1}
+.stats2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+
+/* ============ 引用 / 笔记 ============ */
+.quote-card{border-top:2.5px solid var(--ink);border-bottom:1px solid var(--line);padding:22px 0 18px;margin:34px 0}
+.quote-card::before{content:"FROM THE RECORD · 调研实录";display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--ink-lo);margin-bottom:12px}
+.quote-card .q-text{font-family:var(--serif);font-size:21px;line-height:1.7;color:var(--ink)}
+.quote-card .q-who{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--ink-md);margin-top:12px}
+.note-box{border-top:1px solid var(--ink);border-bottom:1px solid var(--line);padding:18px 0;margin:30px 0;font-size:14.5px;color:var(--ink-md)}
+.note-box::before{content:"ANALYST NOTE · 分析注记";display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;color:var(--acc);margin-bottom:10px}
+.note-box p{margin:0 0 8px;color:var(--ink-md)}
+.note-box p:last-child{margin-bottom:0}
+
+/* ============ 数据表 ============ */
+.twrap{overflow-x:auto;margin:26px 0}
+table.dt{width:100%;border-collapse:collapse;font-size:13px;min-width:820px}
+table.dt th{
+  font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-lo);text-align:left;padding:10px 12px;border-bottom:1.5px solid var(--ink);
+  white-space:nowrap;background:var(--paper);
+}
+table.dt td{padding:11px 12px;border-bottom:1px solid var(--line-lo);vertical-align:top;line-height:1.6}
+table.dt tbody tr{transition:background .15s;cursor:pointer}
+table.dt tbody tr:hover{background:rgba(192,91,51,.08)}
+table.dt tbody tr.pin{background:rgba(192,91,51,.13)}
+table.dt tbody tr.pin td:first-child{box-shadow:inset 3px 0 0 var(--acc)}
+table.dt td.co{font-weight:700;white-space:nowrap}
+.stars{color:var(--acc);letter-spacing:.05em;white-space:nowrap}
+.none{color:var(--ink-lo)}
+.tagline{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:2px 7px;border:1px solid var(--line);color:var(--ink-md);margin-left:6px;vertical-align:1px}
+
+/* ============ 竞品卡片 ============ */
+.co-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:26px 0}
+.co-card{background:var(--card);border:1px solid var(--line);padding:22px 22px 16px;transition:border-color .2s}
+.co-card:hover{border-color:var(--acc-soft)}
+.co-card .c-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line-lo);padding-bottom:10px;margin-bottom:12px}
+.co-card .c-name{font-family:var(--serif);font-size:18px;font-weight:700}
+.co-card .c-tag{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--ink-lo);text-align:right}
+.co-card .c-one{font-size:14px;color:var(--ink-md);margin-bottom:12px}
+.co-card ul{list-style:none;font-size:13px}
+.co-card li{padding:5px 0 5px 16px;position:relative;color:var(--ink-md);line-height:1.65}
+.co-card li::before{content:"·";position:absolute;left:2px;color:var(--acc);font-weight:700}
+.co-card li b{color:var(--ink)}
+.co-card li.good::before{content:"＋";color:var(--moss)}
+.co-card li.bad::before{content:"－";color:var(--neg)}
+.co-card.hero{border-color:var(--acc);box-shadow:0 2px 14px rgba(192,91,51,.10)}
+.co-card.hero .c-name{color:var(--acc-deep)}
+
+/* ============ 洞察列表 ============ */
+.insight{display:flex;gap:18px;padding:20px 0;border-top:1px solid var(--line-lo)}
+.insight:first-of-type{border-top:none}
+.insight .i-no{font-family:var(--serif);font-size:30px;font-weight:700;color:var(--acc-soft);line-height:1.1;flex:0 0 44px}
+.insight .i-body b{font-family:var(--serif);font-size:16.5px}
+.insight .i-body p{margin:6px 0 0;font-size:14.5px;color:var(--ink-md)}
+
+/* ============ 模块卡片矩阵 ============ */
+.mod-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:26px 0}
+.mod{background:var(--card);border:1px solid var(--line);padding:0;overflow:hidden}
+.mod .m-head{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line-lo);background:var(--paper-hi)}
+.mod .m-no{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--acc-deep);font-weight:700}
+.mod .m-name{font-family:var(--serif);font-size:16.5px;font-weight:700;flex:1}
+.badge{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;padding:3px 9px;font-weight:700;white-space:nowrap}
+.badge.p0{background:var(--acc);color:#fff}
+.badge.p1{background:var(--gold);color:#fff}
+.badge.p2{border:1px solid var(--ink-lo);color:var(--ink-md)}
+.badge.new{background:var(--navy);color:#fff;margin-left:4px}
+.mod .m-body{padding:14px 18px 16px;font-size:13px}
+.mod .m-row{margin-bottom:10px}
+.mod .m-row:last-child{margin-bottom:0}
+.mod .m-lab{font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--ink-lo);margin-bottom:4px}
+.mod .m-row p{margin:0;color:var(--ink-md);line-height:1.7}
+.mod .m-row.v2 p{color:var(--ink)}
+.mod .m-row .drv{color:var(--acc-deep);font-size:12px;margin-top:5px;display:block}
+.mod.hot{border-color:var(--acc)}
+.mod.hot .m-head{background:rgba(192,91,51,.08)}
+
+/* ============ 设计方向卡 ============ */
+.dir-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:26px 0}
+.dir{background:var(--card);border:1px solid var(--line);padding:20px 20px 16px}
+.dir .d-no{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--ink-lo)}
+.dir .d-name{font-family:var(--serif);font-size:18px;font-weight:700;margin:4px 0 2px}
+.dir .d-en{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--ink-lo);margin-bottom:10px}
+.dir .d-one{font-size:12.5px;color:var(--ink-md);line-height:1.7;margin-bottom:12px}
+.swatches{display:flex;gap:5px;margin:0 0 12px}
+.sw{flex:1;height:34px;position:relative;cursor:pointer}
+.sw span{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--mono);font-size:8px;letter-spacing:.02em;opacity:0;transition:opacity .15s;background:rgba(255,255,255,.92);padding:1px 4px;white-space:nowrap}
+.sw:hover span{opacity:1}
+.dir dl{font-size:12px;color:var(--ink-md)}
+.dir dt{font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--acc-deep);margin-top:10px}
+.dir dd{margin:3px 0 0;line-height:1.7}
+
+/* ============ 动效原则清单 ============ */
+.principles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px;margin:20px 0}
+.principle{display:flex;gap:14px;padding:13px 0;border-top:1px solid var(--line-lo);font-size:13.5px}
+.principle .p-no{font-family:var(--mono);font-size:10px;color:var(--acc);letter-spacing:.06em;flex:0 0 30px;padding-top:3px}
+.principle b{font-size:14px}
+.principle p{margin:2px 0 0;color:var(--ink-md);font-size:13px}
+
+/* ============ 硬规则 ============ */
+.rules{counter-reset:rl;margin:20px 0}
+.rule{display:flex;gap:16px;padding:12px 0;border-top:1px solid var(--line-lo);font-size:14px;color:var(--ink-md)}
+.rule::before{counter-increment:rl;content:"R" counter(rl);font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--neg);flex:0 0 34px;padding-top:4px;font-weight:700}
+.rule code{font-family:var(--mono);font-size:12px;background:var(--paper-hi);padding:1px 6px;border:1px solid var(--line-lo)}
+
+/* ============ 钻取卡片 ============ */
+#drill{
+  position:fixed;right:26px;bottom:26px;width:340px;z-index:90;
+  background:#221C16;color:#F5EFE4;padding:0 0 16px;
+  border-top:3px solid var(--acc);box-shadow:0 14px 44px rgba(30,22,14,.35);
+  transform:translateY(24px);opacity:0;pointer-events:none;transition:all .28s cubic-bezier(.2,.7,.2,1);
+}
+#drill.show{transform:none;opacity:1;pointer-events:auto}
+#drill .d-top{display:flex;justify-content:space-between;align-items:center;padding:12px 18px 0}
+#drill .d-kick{font-family:var(--mono);font-size:9px;letter-spacing:.22em;color:var(--acc-soft)}
+#drill .d-x{background:none;border:none;color:#A89B8A;font-size:17px;cursor:pointer;padding:2px 4px}
+#drill .d-x:hover{color:#fff}
+#drill .d-val{font-family:var(--serif);font-size:30px;font-weight:700;padding:8px 18px 0;color:#FFD9B8}
+#drill .d-title{font-size:13.5px;font-weight:600;padding:4px 18px 0}
+#drill .d-note{font-size:12px;color:#C7BBAA;padding:8px 18px 0;line-height:1.7}
+#drill .d-src{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:#8D8172;padding:10px 18px 0;border-top:1px dashed #4A4136;margin-top:12px;line-height:1.7}
+[data-drill]{cursor:pointer}
+
+/* ============ 图表通用 SVG ============ */
+svg text{font-family:var(--sans)}
+svg .t-mono{font-family:var(--mono)}
+svg .t-serif{font-family:var(--serif)}
+.clickable{cursor:pointer}
+.clickable:hover{opacity:.82}
+
+/* 图内元素入场：只动装饰，不动文字与布局 */
+.anim-grow{transform-origin:bottom;transform:scaleY(1)}
+.in .anim-grow{animation:grow .8s cubic-bezier(.2,.7,.2,1) both}
+@keyframes grow{from{transform:scaleY(.02)}to{transform:scaleY(1)}}
+.anim-draw{stroke-dasharray:var(--dash,600);stroke-dashoffset:0}
+.in .anim-draw{animation:draw 1.4s ease-out both}
+@keyframes draw{from{stroke-dashoffset:var(--dash,600)}to{stroke-dashoffset:0}}
+.anim-fade{opacity:1}
+.in .anim-fade{animation:fadein .9s .25s both}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+/* ============ 路线图 ============ */
+.phase{border:1px solid var(--line);background:var(--card);padding:20px 22px;margin-bottom:14px;position:relative}
+.phase .ph-tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;color:#fff;background:var(--acc);display:inline-block;padding:3px 10px}
+.phase.v2 .ph-tag{background:var(--gold)}
+.phase.v3 .ph-tag{background:var(--navy)}
+.phase h4{margin:10px 0 6px;font-size:16.5px}
+.phase ul{list-style:none;font-size:13.5px;color:var(--ink-md)}
+.phase li{padding:3px 0 3px 16px;position:relative}
+.phase li::before{content:"—";position:absolute;left:0;color:var(--acc-soft)}
+
+/* ============ 附录 ============ */
+.src-list{font-size:13.5px;color:var(--ink-md)}
+.src-list li{margin-bottom:7px;line-height:1.7}
+.src-list ol{padding-left:22px}
+.src-cat{display:inline-block;font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;padding:1px 7px;margin-right:8px;vertical-align:1px;color:#fff}
+.src-cat.a{background:var(--acc)}
+.src-cat.b{background:var(--navy)}
+.src-cat.c{background:var(--moss)}
+.src-cat.d{background:var(--gold)}
+
+footer{margin-top:70px;border-top:1.5px solid var(--ink);padding:34px 0 60px}
+footer .f-note{font-size:13px;color:var(--ink-md)}
+footer .f-mono{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--ink-lo);margin-top:14px;line-height:2}
+
+/* ============ 响应式 ============ */
+@media (max-width:1180px){
+  :root{--navw:0px}
+  nav#sidenav{
+    position:sticky;top:0;width:100%;height:auto;flex-direction:row;align-items:center;
+    padding:0;border-right:none;border-bottom:1px solid var(--line);z-index:60;
+  }
+  #sidenav .brand{display:none}
+  #sidenav .foot{display:none}
+  #sidenav ul{display:flex;overflow-x:auto;padding:0 8px}
+  #sidenav a{white-space:nowrap;border-left:none;border-bottom:3px solid transparent;padding:12px 12px}
+  #sidenav a.on{border-bottom-color:var(--acc);background:none}
+  main{margin-left:0}
+}
+@media (max-width:900px){
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .co-grid,.mod-grid,.principles{grid-template-columns:1fr}
+  .dir-grid{grid-template-columns:1fr}
+  h2{font-size:27px}
+}
+@media print{
+  nav#sidenav,#progress,#drill,.scroll-hint{display:none!important}
+  main{margin-left:0}
+  body{background:#fff;font-size:12px}
+  #cover{min-height:auto;padding:30px 0}
+  section{padding:30px 0;page-break-inside:avoid}
+  .mod,.co-card,.dir,.phase,.stat{break-inside:avoid}
+  a{color:inherit;text-decoration:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<!-- ================= 侧边导航 ================= -->
+<nav id="sidenav">
+  <div class="brand">
+    <div class="b-name">旅迹 TripLine</div>
+    <div class="b-sub">Industry Research · 2026</div>
+  </div>
+  <ul id="navlist">
+    <li><a href="#cover"><span class="no">00</span>封面</a></li>
+    <li><a href="#summary"><span class="no">01</span>执行摘要</a></li>
+    <li><a href="#market"><span class="no">02</span>市场格局与趋势</a></li>
+    <li><a href="#intl"><span class="no">03</span>国际竞品深析</a></li>
+    <li><a href="#china"><span class="no">04</span>国内市场分析</a></li>
+    <li><a href="#users"><span class="no">05</span>用户洞察与机会</a></li>
+    <li><a href="#positioning"><span class="no">06</span>定位与差异化</a></li>
+    <li><a href="#modules"><span class="no">07</span>功能架构 V2.0</a></li>
+    <li><a href="#design"><span class="no">08</span>设计体系与动效</a></li>
+    <li><a href="#roadmap"><span class="no">09</span>产品路线图</a></li>
+    <li><a href="#business"><span class="no">10</span>商业模式思考</a></li>
+    <li><a href="#risks"><span class="no">11</span>风险与对策</a></li>
+    <li><a href="#appendix"><span class="no">12</span>附录 · 信息来源</a></li>
+  </ul>
+  <div class="foot">TRIPLINE RESEARCH<br>REPORT V2.0</div>
+</nav>
+
+<main>
+<!-- ================= 封面 ================= -->
+<section id="cover">
+  <svg id="cover-svg" viewBox="0 0 1440 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="cg" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#C05B33"/><stop offset="1" stop-color="#C08F2F"/>
+      </linearGradient>
+    </defs>
+    <!-- 经纬线底纹 -->
+    <g stroke="#E3D9C7" stroke-width="1" opacity=".55">
+      <line x1="0" y1="160" x2="1440" y2="160"/><line x1="0" y1="320" x2="1440" y2="320"/>
+      <line x1="0" y1="480" x2="1440" y2="480"/><line x1="0" y1="640" x2="1440" y2="640"/>
+      <line x1="240" y1="0" x2="240" y2="800"/><line x1="480" y1="0" x2="480" y2="800"/>
+      <line x1="720" y1="0" x2="720" y2="800"/><line x1="960" y1="0" x2="960" y2="800"/>
+      <line x1="1200" y1="0" x2="1200" y2="800"/>
+    </g>
+    <!-- 旅程路线：行李 → 出发 → 在路上 → 返程 → 到家 -->
+    <path id="route" d="M 250 700 C 360 700 420 645 520 640 C 640 633 720 690 830 660 C 960 625 1150 480 1340 430"
+      fill="none" stroke="url(#cg)" stroke-width="3" stroke-linecap="round" stroke-dasharray="1400" stroke-dashoffset="1400">
+      <animate attributeName="stroke-dashoffset" from="1400" to="0" dur="3.2s" begin="0.6s" fill="freeze" calcMode="spline" keySplines="0.25 0.6 0.3 1"/>
+    </path>
+    <g id="wps" opacity="0">
+      <animate attributeName="opacity" from="0" to="1" dur="1.2s" begin="2.4s" fill="freeze"/>
+      <g font-family="Menlo,Consolas,monospace" font-size="11" fill="#6E6355" letter-spacing="2">
+        <circle cx="250" cy="700" r="6" fill="#C05B33"/><text x="232" y="734">收拾行李</text>
+        <circle cx="520" cy="640" r="6" fill="#C05B33"/><text x="502" y="614">出发</text>
+        <circle cx="830" cy="660" r="6" fill="#C08F2F"/><text x="800" y="694">游玩中</text>
+        <circle cx="1089" cy="536" r="6" fill="#C08F2F"/><text x="1062" y="510">返程</text>
+        <circle cx="1340" cy="430" r="7" fill="#2C2620"/><text x="1298" y="404">安全回家</text>
+      </g>
+    </g>
+    <!-- 飞行的纸飞机 -->
+    <g id="plane" opacity="0">
+      <animate attributeName="opacity" from="0" to="1" dur="0.4s" begin="0.8s" fill="freeze"/>
+      <path d="M 0 0 L 26 8 L 0 16 L 6 8 Z" fill="#C05B33"/>
+      <animateMotion dur="9s" begin="0.8s" repeatCount="indefinite" rotate="auto">
+        <mpath href="#route"/>
+      </animateMotion>
+    </g>
+    <!-- 印章装饰 -->
+    <g opacity="0">
+      <animate attributeName="opacity" from="0" to=".8" dur="1s" begin="3.4s" fill="freeze"/>
+      <g transform="translate(1210,645) rotate(-12)">
+        <rect x="-64" y="-34" width="128" height="68" fill="none" stroke="#B23A2E" stroke-width="2.5" rx="6"/>
+        <rect x="-58" y="-28" width="116" height="56" fill="none" stroke="#B23A2E" stroke-width="1" rx="4"/>
+        <text x="0" y="-4" text-anchor="middle" font-family="'Noto Serif SC','Songti SC',serif" font-size="17" font-weight="700" fill="#B23A2E">旅迹 · 已验证</text>
+        <text x="0" y="18" text-anchor="middle" font-family="Menlo,monospace" font-size="8.5" letter-spacing="2" fill="#B23A2E">TRIPLINE 2026</text>
+      </g>
+    </g>
+  </svg>
+  <div class="c-inner wide-xl">
+    <div class="kicker">INDUSTRY RESEARCH &amp; PRODUCT REVIEW · 行业调研与产品汇报</div>
+    <h1>旅迹 <span class="tl">TripLine</span></h1>
+    <div class="slogan">从收拾行李，到安全回家。</div>
+    <div class="rpt"><span class="rt">《行业调研与产品汇报》</span></div>
+    <div class="meta">报告日期 2026-09-13 &nbsp;·&nbsp; 版本 V2.0 &nbsp;·&nbsp; 基于 2024–2026 公开调研与产品验证沉淀</div>
+  </div>
+  <div class="scroll-hint">SCROLL ↓</div>
+</section>
+
+<!-- ================= 01 执行摘要 ================= -->
+<section id="summary">
+  <div class="wide">
+    <div class="sec-no">SECTION 01 · EXECUTIVE SUMMARY</div>
+    <h2>执行摘要：先给结论</h2>
+    <div class="sec-under"></div>
+    <p class="dek">市场空档成立，差异化定位成立。剩下要做的，是把「全流程 × 轻量」这两个词同时做穿。</p>
+
+    <p class="lede"><b>结论一 · 市场空档成立。</b>中国市场呈「OTA 管交易 / 内容社区管种草 / 小工具各管一段」的三层割裂：携程不管订单外、圆周旅迹不管行后、片羽集不管行前，规划、记账、记录、清单分散在 4–5 个 App 里，用户靠「截图 + 备忘录 + 微信群」缝合。国际市场同样如此——Wanderlog 弱回忆、Polarsteps 弱行前、Mindtrip 弱行中管理，「全旅程」人人都在讲、无人做好。</p>
+    <p class="lede"><b>结论二 · 差异化定位成立。</b>「从收拾行李，到安全回家」的全流程闭环叙事在中英文市场均无对手占据；最接近的 Lambus 重且缺情感层，圆周旅迹验证了规划段的爆发力却止步于规划。旅迹以轻量方式串起「清单 → 行程 → 账本 → 手账 → 返程」五段，卡位真实。</p>
+    <p class="lede"><b>结论三 · 三大设计方向并行验证。</b>方向 A「纸上旅途」（暖纸手账风，情感记录优先）、方向 B「弹跳气泡」（Expressive Pop，效率与乐趣优先）、方向 C「夜航地图」（Dark Atlas，行程掌控优先）——共享同一信息架构，仅换皮肤与动效语言，满足「可持续拓展」。</p>
+    <p class="lede"><b>结论四 · 路线图建议。</b>V1.1（1 个月）收敛体验与 AA 记账；V2 上云同步 + 短码 + 地图 + AI 抄作业 + 手账骨架；V3 启动商业化，以「免费核心 + Pro 订阅 + 情感变现」三层递进，旅行中刚需功能永不做付费墙。</p>
+
+    <div class="stats" id="stats-main">
+      <div class="stat" data-drill data-dv="近千万" data-dt="圆周旅迹注册用户"
+        data-dn="独立开发者出品的 AI 旅行规划工具，靠「粘贴小红书链接/截图 → 一键抄作业」卡位种草→整理断层，App Store 旅游榜 Top 5 + 编辑精选。免费、无广告、不强制绑手机号带来极佳口碑。"
+        data-ds="来源：调研文件 02 · 圆周旅迹官网 pitravel.cn / 少数派评测（2025–2026）">
+        <div class="s-num">近<small>千万</small></div>
+        <div class="s-lab">圆周旅迹注册用户——「抄作业」需求已被验证</div>
+        <div class="s-src">PI TRAVEL · 2025–2026</div>
+      </div>
+      <div class="stat" data-drill data-dv="≈ 25%" data-dt="规划阶段首选小红书查攻略的用户占比"
+        data-dn="2024Q1 调研显示近 25% 用户在规划阶段首选小红书查攻略，已超越搜索引擎，直接冲击马蜂窝等传统攻略平台。但小红书是「发现层」不是「管理层」，整理成本极高。"
+        data-ds="来源：调研文件 02 · 36氪《2024Q1 旅游消费趋势报告》">
+        <div class="s-num">~25<small>%</small></div>
+        <div class="s-lab">用户规划旅行首选小红书查攻略，超越搜索引擎</div>
+        <div class="s-src">36KR · 2024Q1</div>
+      </div>
+      <div class="stat" data-drill data-dv="90%" data-dt="AI 生成行程至少含一处错误"
+        data-dn="研究显示 90% 的 AI 生成行程至少含一处错误（错误营业时间、不存在的商家）。AI 是草稿生成器而非终稿，「AI 生成 + 用户轻校验」是主流共识。"
+        data-ds="来源：调研文件 01 · 2025–2026 公开研究（转引）">
+        <div class="s-num">90<small>%</small></div>
+        <div class="s-lab">AI 生成的行程至少含一处错误</div>
+        <div class="s-src">RESEARCH · 2025–2026</div>
+      </div>
+      <div class="stat" data-drill data-dv="8%" data-dt="愿意让 AI 直接代订的用户"
+        data-dn="仅 8% 用户愿意让 AI 直接代订。AI 最适合做「草稿 + 灵感」，落地执行仍需结构化工具承接——这是轻量行程 App 的机会而非威胁。"
+        data-ds="来源：调研文件 01 · 2025–2026 公开研究（转引）">
+        <div class="s-num">8<small>%</small></div>
+        <div class="s-lab">用户敢让 AI 直接代订——信任天花板明显</div>
+        <div class="s-src">RESEARCH · 2025–2026</div>
+      </div>
+    </div>
+    <div class="stats stats2">
+      <div class="stat" data-drill data-dv="24%" data-dt="美国人已用生成式 AI 规划旅行"
+        data-dn="Deloitte 2025 调查：约 24% 美国人已用生成式 AI 规划旅行，约为 2022 年的三倍。"
+        data-ds="来源：调研文件 01 · Deloitte 2025 调查（转引）">
+        <div class="s-num">24<small>%</small></div>
+        <div class="s-lab">美国人已用生成式 AI 规划旅行（约为 2022 年三倍）</div>
+        <div class="s-src">DELOITTE · 2025</div>
+      </div>
+      <div class="stat" data-drill data-dv="62%" data-dt="千禧/Z 世代旅行者已用 AI 做规划"
+        data-dn="Amadeus 调查称 62% 千禧/Z 世代旅行者已用 AI 做旅行规划。AI 规划已成 2025–2026 行业标配——是加速器，不是替代品。"
+        data-ds="来源：调研文件 01 · Amadeus 调查（转引）">
+        <div class="s-num">62<small>%</small></div>
+        <div class="s-lab">千禧 / Z 世代旅行者已用 AI 做规划</div>
+        <div class="s-src">AMADEUS · 2025</div>
+      </div>
+    </div>
+
+    <div class="note-box">
+      <p><b>数字怎么读。</b>以上六枚数字共同构成旅迹的机会论证：种草在小红书（25%）但整理无人管、抄作业能做到近千万注册、AI 普及（24% / 62%）但不可信（90% 有错、8% 敢托付）。点击任一数字卡可查看出处与依据。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 02 市场格局与趋势 ================= -->
+<section id="market">
+  <div class="wide-xl">
+    <div class="sec-no">SECTION 02 · MARKET LANDSCAPE</div>
+    <h2>市场格局与趋势：三层割裂，断层即机会</h2>
+    <div class="sec-under"></div>
+    <p class="dek">中国旅行 App 市场三方边界清晰：OTA 握订单、内容社区握灵感、工具小产品各管一段——没有一方愿意或能够覆盖完整旅程。</p>
+  </div>
+
+  <div class="wide-xl fig">
+    <div class="f-title">中国市场三层割裂图：交易、种草、工具互不相通</div>
+    <div class="f-sub">纵向 = 旅程阶段覆盖 · 横向 = 代表玩家 · 红色虚线 = 体验断层 · 点击色块查看依据</div>
+    <div class="f-body">
+      <svg viewBox="0 0 1080 560" style="width:100%;height:auto;display:block">
+        <!-- 背景旅程阶段轴 -->
+        <g font-family="Menlo,Consolas,monospace" font-size="10" fill="#A89B8A" letter-spacing="2">
+          <text x="30" y="24">行前 PRE-TRIP</text>
+          <text x="290" y="24">行中 ON-TRIP</text>
+          <text x="560" y="24">行后 POST-TRIP</text>
+        </g>
+        <g stroke="#EFE8DA" stroke-width="1">
+          <line x1="270" y1="34" x2="270" y2="520" stroke-dasharray="4 5"/>
+          <line x1="540" y1="34" x2="540" y2="520" stroke-dasharray="4 5"/>
+        </g>
+        <!-- 层一：OTA 交易层 -->
+        <g>
+          <rect class="anim-fade" x="30" y="48" width="700" height="112" fill="#FFFDF8" stroke="#3E5C76" stroke-width="1.5"/>
+          <rect x="30" y="48" width="6" height="112" fill="#3E5C76"/>
+          <text x="52" y="76" font-family="Menlo,monospace" font-size="10" letter-spacing="2" fill="#3E5C76">LAYER 01 · OTA 交易层</text>
+          <text x="52" y="100" class="t-serif" font-size="17" font-weight="700" fill="#2C2620">携程 · 飞猪 · 同程</text>
+          <text x="52" y="126" font-size="12.5" fill="#6E6355">握订单与交易；行程功能是「预订的附属品」，只做生态内自动化</text>
+          <text x="52" y="146" font-size="12.5" fill="#6E6355">不做行前清单 / 记账 / 记录——也无动力做</text>
+          <text x="430" y="100" font-family="Menlo,monospace" font-size="10" fill="#3E5C76">携程问道自助解决率 78%</text>
+        </g>
+        <!-- 断层 1 -->
+        <g>
+          <line x1="30" y1="183" x2="730" y2="183" stroke="#B23A2E" stroke-width="1.5" stroke-dasharray="7 5"/>
+          <rect x="296" y="171" width="170" height="24" fill="#FAF6EF"/>
+          <text x="381" y="188" text-anchor="middle" font-family="Menlo,monospace" font-size="10.5" fill="#B23A2E" letter-spacing="1">断层 · 站外预订进不来</text>
+        </g>
+        <!-- 层二：内容种草层 -->
+        <g>
+          <rect class="anim-fade" x="30" y="206" width="700" height="112" fill="#FFFDF8" stroke="#C08F2F" stroke-width="1.5"/>
+          <rect x="30" y="206" width="6" height="112" fill="#C08F2F"/>
+          <text x="52" y="234" font-family="Menlo,monospace" font-size="10" letter-spacing="2" fill="#C08F2F">LAYER 02 · 内容种草层</text>
+          <text x="52" y="258" class="t-serif" font-size="17" font-weight="700" fill="#2C2620">小红书 · 马蜂窝 · 穷游</text>
+          <text x="52" y="284" font-size="12.5" fill="#6E6355">握灵感与攻略；内容 → 可执行行程的转化断层明显</text>
+          <text x="52" y="304" font-size="12.5" fill="#6E6355">马蜂窝 / 穷游图文 UGC 时代落幕，靠 AI 续命</text>
+          <text x="430" y="258" font-family="Menlo,monospace" font-size="10" fill="#C08F2F">~25% 用户首选小红书查攻略</text>
+        </g>
+        <!-- 断层 2 -->
+        <g>
+          <line x1="30" y1="341" x2="730" y2="341" stroke="#B23A2E" stroke-width="1.5" stroke-dasharray="7 5"/>
+          <rect x="296" y="329" width="170" height="24" fill="#FAF6EF"/>
+          <text x="381" y="346" text-anchor="middle" font-family="Menlo,monospace" font-size="10.5" fill="#B23A2E" letter-spacing="1">断层 · 种草无法落地执行</text>
+        </g>
+        <!-- 层三：单点工具层 -->
+        <g>
+          <rect class="anim-fade" x="30" y="364" width="700" height="150" fill="#FFFDF8" stroke="#C05B33" stroke-width="1.5"/>
+          <rect x="30" y="364" width="6" height="150" fill="#C05B33"/>
+          <text x="52" y="392" font-family="Menlo,monospace" font-size="10" letter-spacing="2" fill="#C05B33">LAYER 03 · 单点工具层</text>
+          <text x="52" y="416" class="t-serif" font-size="17" font-weight="700" fill="#2C2620">圆周旅迹 · 十六番 · 片羽集 · 记账 App</text>
+          <text x="52" y="442" font-size="12.5" fill="#6E6355">规划、地图、记录、AA 各管一段，单点极致、口碑高</text>
+          <text x="52" y="462" font-size="12.5" fill="#6E6355">无一覆盖行前—行中—行后全旅程，普遍商业化困难</text>
+          <text x="52" y="496" font-family="Menlo,monospace" font-size="10" fill="#B23A2E">用户现状：截图 + 备忘录 + 微信群 缝合</text>
+        </g>
+        <!-- 旅迹桥 -->
+        <g class="clickable" data-drill data-dv="三层贯通" data-dt="旅迹 TripLine 的卡位"
+          data-dn="不做社区、不做交易，专注「管理 + 记录」：以一次旅程为单位串起清单、行程、账本、手账、返程五段，正好落在三层之间的断层带上。"
+          data-ds="来源：调研文件 02 · 中国市场格局总结（2025–2026）">
+          <rect x="792" y="48" width="58" height="466" fill="none" stroke="#C05B33" stroke-width="2" stroke-dasharray="8 5"/>
+          <text x="821" y="270" text-anchor="middle" font-family="'Noto Serif SC','Songti SC',serif" font-size="19" font-weight="700" fill="#C05B33">旅</text>
+          <text x="821" y="298" text-anchor="middle" font-family="'Noto Serif SC','Songti SC',serif" font-size="19" font-weight="700" fill="#C05B33">迹</text>
+          <text x="821" y="330" text-anchor="middle" font-family="Menlo,monospace" font-size="8.5" fill="#C05B33" letter-spacing="1">BRIDGE</text>
+          <path class="anim-draw" style="--dash:120" d="M 770 260 L 792 260" stroke="#C05B33" stroke-width="2" fill="none"/>
+          <path d="M 780 252 L 794 260 L 780 268" fill="none" stroke="#C05B33" stroke-width="2"/>
+        </g>
+        <!-- 右侧注记 -->
+        <g font-size="12" fill="#6E6355">
+          <text x="890" y="90" font-family="Menlo,monospace" font-size="10" letter-spacing="2" fill="#A89B8A">怎么读</text>
+          <text x="890" y="118">三层各自闭环，互不渗透；</text>
+          <text x="890" y="140">用户在层间搬运信息的成本</text>
+          <text x="890" y="162">无人认领。</text>
+          <text x="890" y="210" font-family="Menlo,monospace" font-size="10" letter-spacing="2" fill="#A89B8A">结论</text>
+          <text x="890" y="238">「以一次旅程为单位的</text>
+          <text x="890" y="260">全流程管理工具」是市场</text>
+          <text x="890" y="282">公认但无人占据的空档。</text>
+        </g>
+      </svg>
+      <div class="f-src">来源：<b>调研文件 02 · 中国市场格局总结（2025–2026）</b>；携程问道自助解决率 78% 转自潮新闻报道</div>
+    </div>
+  </div>
+
+  <div class="wide">
+    <h3>国际市场全景：同样的故事在重演</h3>
+    <p>国际市场由三类玩家构成：以 Wanderlog 为代表的<b>协作式行程工作台</b>（免费慷慨、功能密集），以 Mindtrip / Layla 为代表的<b>对话式 AI 规划</b>（风投与巨头加持，但编辑只能靠对话），以 Polarsteps / Tripsy 为代表的<b>垂直精品</b>（自动轨迹回忆 / 苹果生态设计标杆）。「全旅程」是公认方向，但 Wanderlog 弱回忆、Polarsteps 弱行前、Mindtrip 弱行中管理，每家都有断点。Sygic Travel（已更名 Tripomatic）与 Tripadvisor Trips 的乏力，印证了纯地图/点评系工具向全旅程延伸的困难。</p>
+
+    <h3>AI 旅行规划趋势：是草稿，不是终稿</h3>
+    <p>2025–2026 年，AI 行程规划成为行业标配：Google Gemini 深度整合 Maps/Flights（2025 年 8 月上线自然语言搜票价的 Flight Deals），ChatGPT 接入 Expedia/Booking 应用，Mindtrip 于 2026 年 5 月实现聊天内直接订机票（Sabre + PayPal）；国内携程问道、马蜂窝 AI 路书、飞猪问一问（接 DeepSeek + 通义）、同程程心 AI、小红书点点悉数入场。</p>
+    <p>但用户真实用法是「手搓」：用 AI 出框架、小红书找灵感、再人工拼装。AI 存在幻觉（写错车次、推荐已关闭景点），90% 的 AI 行程至少含一处错误，仅 8% 用户敢让 AI 直接代订。<b>可靠的「结构化行程容器」+ AI 辅助，比纯对话式 AI 更贴近真实工作流</b>——这恰是轻量行程 App 的机会而非威胁。</p>
+
+    <blockquote class="quote-card">
+      <p class="q-text">AI 是加速器不是替代品；AI 是草稿生成器而非终稿，「AI 生成 + 用户轻校验」是主流共识。</p>
+      <p class="q-who">— 调研文件 01 / 02 · 2025–2026 跨产品共识</p>
+    </blockquote>
+  </div>
+</section>
+
+<!-- ================= 03 国际竞品深度分析 ================= -->
+<section id="intl">
+  <div class="wide-xl">
+    <div class="sec-no">SECTION 03 · GLOBAL COMPETITORS</div>
+    <h2>国际竞品深度分析：八家逐一拆解</h2>
+    <div class="sec-under"></div>
+    <p class="dek">八家国际产品的共同教训：功能多不如不出错，付费墙放错位置就是口碑杀手，AI 有信任天花板。</p>
+
+    <div class="co-grid">
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">Wanderlog</span><span class="c-tag">全能工作台 · 免费 + PRO $40–60/年</span></div>
+        <p class="c-one">协作式行程规划 + 地图可视化的「全能工作台」。</p>
+        <ul>
+          <li><b>核心：</b>逐日行程拖拽编排、Google Maps 联动、实时多人协作（类 Google Docs）、费用记账与分摊、行李清单、邮件转发导入订单、自驾路线优化（Pro）</li>
+          <li><b>商业：</b>免费版非常慷慨（无限行程、协作、记账均免费）；Pro $39.99–59.99/年解锁离线、Gmail 自动扫描、路线优化、航班动态</li>
+          <li class="good"><b>可借鉴：</b>地图 + 行程双栏布局；免费功能即够用降低获客门槛；AA 分摊内置</li>
+          <li class="bad"><b>短板：</b>功能密度高令新手 overwhelmed；移动端卡顿是最常见抱怨；AI 弱（免费每行程仅 5 条 AI 消息）；离线锁付费</li>
+        </ul>
+      </div>
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">TripIt / TripIt Pro</span><span class="c-tag">老牌订单整理 · 免费 + $49/年</span></div>
+        <p class="c-one">「邮件转发自动生成行程单」工具，只做整理不做规划。</p>
+        <ul>
+          <li><b>核心：</b>转发确认邮件自动汇总行程、日历同步、行程分享、文档库；Pro 加实时航班提醒、座位监控、票价退款提醒</li>
+          <li><b>商业：</b>免费 + Pro $49/年（30 天试用）</li>
+          <li class="good"><b>可借鉴：</b>邮件 → 结构化行程的「零输入」自动化</li>
+          <li class="bad"><b>短板：</b>界面过时、无主动规划、无 AI、无记账/清单/游记；近期用户投诉行程丢失、同步故障频发，显老态</li>
+        </ul>
+      </div>
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">Mindtrip</span><span class="c-tag">对话式 AI · 免费（佣金变现）</span></div>
+        <p class="c-one">对话式 AI 旅行规划平台，把聊天和地图可视化结合。</p>
+        <ul>
+          <li><b>核心：</b>自然语言生成逐日行程、地点卡片实时呈现、「Start Anywhere」截图/PDF 导入即建行程、协作群聊、2026 年 5 月上线聊天内直接订机票（Sabre + PayPal）</li>
+          <li><b>商业：</b>核心免费，靠预订佣金变现；融资 $22.5M（Amex、Capital One、United Airlines 风投）</li>
+          <li class="good"><b>可借鉴：</b>AI 输出全程地图可视化而非纯文本；行程可分享再创作</li>
+          <li class="bad"><b>短板：</b>仅 iOS + Web；改行程只能继续「求 AI」，无手动拖拽；无记账、无行李清单、无离线；推荐受佣金导向影响</li>
+        </ul>
+      </div>
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">Layla</span><span class="c-tag">视频种草 + AI 旅行社 · 免费 + $49/年</span></div>
+        <p class="c-one">短视频灵感流 + 聊天式 AI 旅行社（前身 Roam Around）。</p>
+        <ul>
+          <li><b>核心：</b>对话生成个性化行程、短视频目的地灵感流、接入 Skyscanner/Booking.com/GetYourGuide 实时价格与预订、PriceLock 降价提醒、人工专家兜底</li>
+          <li><b>商业：</b>2023 年柏林创立，2024 收购 Roam Around，2026 年 7 月被 Expedia 收购；免费 + Premium $49/年</li>
+          <li class="good"><b>可借鉴：</b>用短视频做「梦想阶段」的情感入口；AI + 真人专家混合模式</li>
+          <li class="bad"><b>短板：</b>免费版只能看行程概览，逐日详情锁付费（试用自动续费遭投诉）；仅英文；编辑只能靠对话；评分体量小（Trustpilot 4.0 / 86 条）</li>
+        </ul>
+      </div>
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">Stippl</span><span class="c-tag">年轻玩家 · 免费 + €24.99/年</span></div>
+        <p class="c-one">行程规划 + 社交内容化的年轻玩家。</p>
+        <ul>
+          <li><b>核心：</b>拖拽式行程、AI 两分钟生成行程、多币种记账 + 实时汇率 + AA 分摊、共享行李清单（可分派任务）、3D 行程视频 / 旅行 Reels 自动生成、刮刮地图游戏化、内置 eSIM 购买</li>
+          <li><b>商业：</b>免费 + Pro €24.99/年（$3.99/月），定价仅为头部一半</li>
+          <li class="good"><b>可借鉴：</b>行程一键变可分享的 3D 视频，社交货币属性强；刮刮地图的收集激励</li>
+          <li class="bad"><b>短板：</b>崩溃/bug 多、跨设备同步不稳、地点库不全、交通时间估算不准、客服响应慢</li>
+        </ul>
+      </div>
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">Polarsteps</span><span class="c-tag">自动轨迹回忆 · 免费 + Plus €30/年</span></div>
+        <p class="c-one">自动 GPS 轨迹记录 + 旅行手账，主打「回忆」而非「计划」。</p>
+        <ul>
+          <li><b>核心：</b>后台自动记录路线（离线可用，日均耗电约 4%）、Steps 图文手账、亲友实时跟随、自动 Trip Reel 视频、实体旅行书打印（€36–150）、2025 年新增 Claude 驱动的 AI 行程规划</li>
+          <li><b>商业：</b>核心免费无广告；旅行书 + Plus 订阅（€8.99/月或 €29.99/年）；用户超 2000 万，曾获苹果编辑推荐</li>
+          <li class="good"><b>可借鉴：</b>「无感记录」哲学——用户专注旅行，App 自动留痕；数字旅程 → 实体书的情感变现</li>
+          <li class="bad"><b>短板：</b>不能存机票酒店订单、不做规划；同一行程只能一人贡献内容；GPS 偶发漂移错记</li>
+        </ul>
+      </div>
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">Tripsy</span><span class="c-tag">苹果生态标杆 · $40–60/年 / 买断</span></div>
+        <p class="c-one">苹果生态内设计感最强的行程管理 App（2024 年 App Store 年度应用入围）。</p>
+        <ul>
+          <li><b>核心：</b>逐日行程 + 40 余种分类图标、实时航班动态、多币种记账、10 日天气、自动时区、文档存储、完整离线、Apple Watch/小组件/Siri 深度集成、TripIt 一键迁移</li>
+          <li><b>商业：</b>免费（功能受限）+ Pro $39.99–59.99/年，独有 $199–299 买断制</li>
+          <li class="good"><b>可借鉴：</b>原生 Apple 设计语言、模态卡片交互；买断制选项受订阅疲劳用户欢迎</li>
+          <li class="bad"><b>短板：</b>仅苹果生态（混合设备团体无法协作）；用户集中抱怨卡顿（保存耗时数分钟）、地点搜索经常搜不到；协作弱于 Wanderlog</li>
+        </ul>
+      </div>
+      <div class="co-card hero">
+        <div class="c-head"><span class="c-name">Lambus</span><span class="c-tag">与 TripLine 定位最接近 · 免费 + PRO</span></div>
+        <p class="c-one">德国出品的「瑞士军刀」式全旅程管理工具。</p>
+        <ul>
+          <li><b>核心：</b>路点/路线规划（GPX 导入）、费用管理与分摊、旅行文档集中存储（支持离线）、群聊、照片共享；Pro 加自动行李清单（按旅行类型模板）、实时航班动态、外币换算、PDF 导出、ChatGPT 旅行问答</li>
+          <li><b>商业：</b>免费 + Lambus PRO（年付/月付均可）</li>
+          <li class="good"><b>可借鉴：</b>覆盖「行前-行中-行后」完整链条；行李清单按场景模板化</li>
+          <li class="bad"><b>短板：</b>界面偏「仪表盘」工具感、缺情感化设计；游记/回忆环节薄弱；核心好用功能多在付费墙后</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="wide-xl fig">
+    <div class="f-title">八维对比表：没有一家同时做好「规划 × 记账 × 回忆」</div>
+    <div class="f-sub">点击行可固定高亮 · ★ = 能力档位 · ✗ = 缺失 · 悬停查看行</div>
+    <div class="f-body" style="padding:8px 12px 4px">
+      <div class="twrap">
+        <table class="dt" id="cmp-table">
+          <thead><tr>
+            <th>产品</th><th>行程规划</th><th>费用记账</th><th>行李清单</th><th>游记/回忆</th><th>离线</th><th>协作/分享</th><th>AI 能力</th><th>定价</th>
+          </tr></thead>
+          <tbody>
+            <tr><td class="co">Wanderlog</td><td><span class="stars">★★★</span> 拖拽+地图</td><td><span class="stars">★★</span> 记账+分摊</td><td><span class="stars">★</span> 基础</td><td><span class="stars">★</span> 笔记照片</td><td>仅 Pro</td><td><span class="stars">★★★</span> 实时协作</td><td><span class="stars">★</span> 弱</td><td>免费 + $40–60/年</td></tr>
+            <tr><td class="co">TripIt</td><td><span class="stars">★</span> 仅订单整理</td><td class="none">✗</td><td class="none">✗</td><td class="none">✗</td><td>✓</td><td><span class="stars">★</span> 仅分享</td><td class="none">✗</td><td>免费 + $49/年</td></tr>
+            <tr><td class="co">Mindtrip</td><td><span class="stars">★★★</span> AI 生成</td><td class="none">✗</td><td class="none">✗</td><td class="none">✗</td><td class="none">✗</td><td><span class="stars">★★</span> 群聊协作</td><td><span class="stars">★★★</span> 对话式+预订</td><td>免费（佣金变现）</td></tr>
+            <tr><td class="co">Layla</td><td><span class="stars">★★</span> AI 聊天生成</td><td class="none">✗</td><td class="none">✗</td><td class="none">✗</td><td class="none">✗</td><td><span class="stars">★</span> 分享</td><td><span class="stars">★★★</span> 实时价格</td><td>免费 + $49/年</td></tr>
+            <tr><td class="co">Stippl</td><td><span class="stars">★★</span> 拖拽+AI</td><td><span class="stars">★★</span> 多币种分摊</td><td><span class="stars">★★</span> 共享分派</td><td><span class="stars">★★</span> 3D视频</td><td>弱</td><td><span class="stars">★★</span> 协作+社区</td><td><span class="stars">★★</span> 2分钟生成</td><td>免费 + €25/年</td></tr>
+            <tr><td class="co">Polarsteps</td><td><span class="stars">★</span> 基础</td><td class="none">✗</td><td class="none">✗</td><td><span class="stars">★★★</span> 自动轨迹+实体书</td><td><span class="stars">★★★</span></td><td><span class="stars">★★</span> 跟随分享</td><td><span class="stars">★</span> 新增</td><td>免费 + Plus €30/年</td></tr>
+            <tr><td class="co">Tripsy</td><td><span class="stars">★★★</span> 精修iOS</td><td><span class="stars">★★</span> 多币种</td><td class="none">✗</td><td><span class="stars">★</span> 照片文档</td><td><span class="stars">★★★</span></td><td><span class="stars">★★</span> 苹果内分享</td><td class="none">✗</td><td>免费 + $60/年/买断</td></tr>
+            <tr><td class="co">Lambus</td><td><span class="stars">★★</span> 路点路线</td><td><span class="stars">★★</span> 记账分摊</td><td><span class="stars">★★</span> 模板清单(Pro)</td><td><span class="stars">★</span> 照片</td><td>Pro</td><td><span class="stars">★★</span> 群聊协作</td><td><span class="stars">★</span> ChatGPT问答</td><td>免费 + PRO 订阅</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="f-src">来源：<b>调研文件 01 · 竞品对比表（2025–2026 公开评测与各官网）</b>；订阅价格随地区与促销浮动</div>
+    </div>
+  </div>
+
+  <div class="wide">
+    <h3>七条行业洞察</h3>
+    <div class="insight"><div class="i-no">1</div><div class="i-body"><b>「全旅程」是公认方向，但无人做好。</b><p>每家都声称覆盖行前-行中-行后，实际各有断点——Wanderlog 弱回忆、Polarsteps 弱行前、Mindtrip 弱行中管理。TripLine 的「从打包到平安到家」叙事正好卡位这个缺口。</p></div></div>
+    <div class="insight"><div class="i-no">2</div><div class="i-body"><b>付费墙位置决定口碑。</b><p>把「旅行中才用到的功能」（离线、PDF 导出、完整行程详情）锁付费是最大投诉来源（Wanderlog、Layla、Tripsy 均中招）。用户心智是「规划免费、带走收费」，逆之则遭反感。</p></div></div>
+    <div class="insight"><div class="i-no">3</div><div class="i-body"><b>协作是留存利器但难做。</b><p>实时多人编辑（Wanderlog）是口碑爆点，但混乱编辑、无版本管理也被诟病；Tripsy 因苹果限定被挡在混合设备团体门外。</p></div></div>
+    <div class="insight"><div class="i-no">4</div><div class="i-body"><b>性能与稳定性是隐形生死线。</b><p>Reddit / App Store 上 Wanderlog 卡顿、Stippl 崩溃、Tripsy 保存超时、TripIt 丢行程是各家评分下滑的头号原因——功能多不如不出错。</p></div></div>
+    <div class="insight"><div class="i-no">5</div><div class="i-body"><b>AI 规划的信任天花板明显。</b><p>90% AI 行程有错误、仅 8% 用户敢让 AI 代订。AI 最适合做「草稿 + 灵感」，落地执行仍需结构化工具承接——这恰是轻量行程 App 的机会而非威胁。</p></div></div>
+    <div class="insight"><div class="i-no">6</div><div class="i-body"><b>情感价值是被低估的变现点。</b><p>Polarsteps 实体书（€36–150）、Stippl 的 3D 行程视频、刮刮地图的收集玩法证明「回忆与分享」可独立变现；而规划类 App 几乎集体忽视行后环节。</p></div></div>
+    <div class="insight"><div class="i-no">7</div><div class="i-body"><b>入门负担普遍过重。</b><p>功能密集（Wanderlog）、强制对话（Mindtrip/Layla）、注册即配置（Stippl 酒店日期锁死）都在新手第一步制造摩擦。「零配置即用」存在真实空位。</p></div></div>
+  </div>
+</section>
+
+<!-- ================= 04 国内市场分析 ================= -->
+<section id="china">
+  <div class="wide-xl">
+    <div class="sec-no">SECTION 04 · CHINA MARKET</div>
+    <h2>国内市场分析：圆周旅迹验证了需求，但只做了一段</h2>
+    <div class="sec-under"></div>
+    <p class="dek">从携程的生态内闭环到圆周旅迹的「抄作业」爆发，再到圈子账本停服后的 AA 空档——每一段都验证了一个真实痛点。</p>
+
+    <div class="co-grid">
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">携程「行程」+ AI 行程助手</span><span class="c-tag">OTA 预订闭环 · 2025.09 升级</span></div>
+        <p class="c-one">OTA 巨头的「预订闭环内」行程管理（TripGenie / 携程问道）。</p>
+        <ul>
+          <li><b>核心：</b>订单自动同步生成行程单；AI 按目的地+人群一键生成方案；地图拖拽编辑、一键导出 Excel；实时数据校验；PC/App 双端协同；自助解决率 78%</li>
+          <li class="good"><b>可借鉴：</b>订单 → 行程的「零输入」自动化；「悬浮入口」随时解答、不打断编辑流程</li>
+          <li class="bad"><b>短板：</b>强绑定携程订单，站外预订无法进入行程；服务于转化卖货，不做行前清单/记账/记录；工具感强、无情感化表达</li>
+        </ul>
+      </div>
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">马蜂窝</span><span class="c-tag">攻略社区 → AI 决策助手 · 2025</span></div>
+        <p class="c-one">老牌攻略社区向「AI 行程决策助手」全面转型（AI 小蚂、AI 路书）。</p>
+        <ul>
+          <li><b>核心：</b>「主动提问—需求校准—精准生成」的 AI 路书；旅行性格诊断沉淀偏好标签；目的地智能体；行中服务；15 年 UGC 攻略库</li>
+          <li class="good"><b>可借鉴：</b>AI 先反问再生成，弥补用户「提不出完整需求」的短板——对轻量产品的引导式 onboarding 很有参考价值</li>
+          <li class="bad"><b>短板：</b>AI 路书无地图标注、无图片、不能拖拽调整/导出 PDF；网站端 UGC 明显老化，社区活力被小红书虹吸</li>
+        </ul>
+      </div>
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">穷游行程助手</span><span class="c-tag">自由行元老 · 2025.09 官宣回归</span></div>
+        <p class="c-one">出境自由行规划的「元老」，停更数年后回归，4.0 版年底上线。</p>
+        <ul>
+          <li><b>核心：</b>按天编排行程+地图拖拽；一键导出签证行程单；海量他人行程可「复制抄作业」；行中点评记录；多端同步、离线查看</li>
+          <li class="good"><b>可借鉴：</b>「复制别人的行程再改」的心智至今无人替代——回归时老用户称其为「旅行规划的纯元皇后」，证明真实需求长期存在</li>
+          <li class="bad"><b>短板：</b>2018 年后基本停更，内容过时，UGC 断供是死穴；新增 AI 推荐与市面产品雷同，差异化不足</li>
+        </ul>
+      </div>
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">十六番</span><span class="c-tag">懒人地图开创者</span></div>
+        <p class="c-one">把攻略和地图合成一张可点按的图。</p>
+        <ul>
+          <li><b>核心：</b>城市懒人地图（景点卡片点开即攻略）；推荐路线一键套用；收藏地点自动生成专属地图；约伴/问答社区；汇率、翻译、天气小工具</li>
+          <li class="good"><b>可借鉴：</b>「哪里不会点哪里」的极低认知门槛，是「轻量易上手」的标杆</li>
+          <li class="bad"><b>短板：</b>界面要素过多、操作流程繁杂被普遍吐槽；无个性化定制路线能力；商业化弱、无预订闭环，月活百万级但增长有限</li>
+        </ul>
+      </div>
+      <div class="co-card hero">
+        <div class="c-head"><span class="c-name">圆周旅迹 · 重点对标</span><span class="c-tag">独立开发 · 注册用户近千万</span></div>
+        <p class="c-one">「把全网攻略一键变成可执行行程」的 AI 旅行规划明星新品。</p>
+        <ul>
+          <li><b>核心：</b>粘贴小红书/公众号链接或截图，AI 提取地点「一键抄作业」；目的地+天数 AI 生成行程；魔法棒一键最优路线排序、地图可视化；多人实时协作；行程单/海报分享、口令分享回小红书</li>
+          <li><b>成绩：</b>注册用户近千万，App Store 旅游榜 Top 5 + 编辑精选；免费、无广告、不强制绑手机号带来极佳口碑</li>
+          <li class="good"><b>可借鉴：</b>精准卡位「小红书种草 → 整理成行程」的搬运痛点；情绪文案（「保管每一程的兴奋和躁动」）值得学习</li>
+          <li class="bad"><b>短板：</b>只管「规划」这一段——无记账、无行李清单、无手账/回忆沉淀（这正是旅迹的全流程空档）；盈利模式未验证；竞评中被建议补「票夹、记账」功能</li>
+        </ul>
+      </div>
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">小红书现象</span><span class="c-tag">旅游攻略搜索引擎</span></div>
+        <p class="c-one">近 25% 用户规划阶段首选小红书查攻略，已超越搜索引擎。</p>
+        <ul>
+          <li><b>痛点：</b>信息碎片化、「特种兵式打卡」内容同质化；攻略真假难辨（滤镜诈骗）；看完几十篇笔记仍需手动整理到备忘录/Excel，在小红书、地图、点评、天气之间反复切换——整理成本极高</li>
+          <li class="good"><b>启示：</b>小红书是「发现层」不是「管理层」。从种草到可执行行程之间的断层，正是圆周旅迹和旅迹共同的机会</li>
+        </ul>
+      </div>
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">片羽集</span><span class="c-tag">极简照片日记</span></div>
+        <p class="c-one">「365 天照片日记」，每天一图一文，旅行是高频使用场景。</p>
+        <ul>
+          <li><b>核心：</b>每日照片+心情/地点/天气随笔；月历/热力图回顾、随时补录；一周碎片长图、手账样式月报导出；图墙浏览；桌面小组件「那年今日」随机回顾</li>
+          <li class="good"><b>可借鉴：</b>「记录日历 + 补录 + 随机回顾」组合极大降低「回来懒得整理」的门槛；分享卡片的作品感设计是情绪价值的核心载体</li>
+          <li class="bad"><b>短板：</b>与行程完全脱节（纯记录，无计划、无地点结构化）；免费版一天只能传一张图引发大量差评；无多人共享手账</li>
+        </ul>
+      </div>
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">AA 记账空档</span><span class="c-tag">圈子账本 2022 停服后</span></div>
+        <p class="c-one">「专门为一次旅行建一个轻量 AA 账本」目前没有强势玩家。</p>
+        <ul>
+          <li><b>现状：</b>圈子账本（曾是最受欢迎的 AA 工具，支持微信小程序、替人记账）已于 2022 年停服，豆瓣大量「求替代」帖；用户流向随手记、鲨鱼记账、一木账本、钱迹等通用记账 App 的「共享账本」；Splitwise 无中文、需全员注册，国内水土不服</li>
+          <li class="good"><b>被验证的关键体验：</b>「微信小程序免下载」「替人记账」「一键生成结算方案」</li>
+          <li class="bad"><b>空档：</b>圈子账本停服后，「为一次旅行建一个轻量 AA 账本、行程结束即归档」的产品形态无人占据</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="wide">
+    <h3>六条行业洞察</h3>
+    <div class="insight"><div class="i-no">1</div><div class="i-body"><b>「行前焦虑」是情绪痛点，不只是效率痛点。</b><p>收拾行李怕漏带、怕计划做不全（「开盲盒式旅行」），清单 + 确认感的产品价值被低估。</p></div></div>
+    <div class="insight"><div class="i-no">2</div><div class="i-body"><b>「种草 → 整理」断层已被验证。</b><p>圆周旅迹靠「抄小红书作业」做到近千万注册，证明用户愿意为「省掉整理」买单。</p></div></div>
+    <div class="insight"><div class="i-no">3</div><div class="i-body"><b>AI 规划是标配不是壁垒。</b><p>所有玩家都有 AI，用户最终仍手工拼装；可靠的数据结构 + 轻编辑体验比 AI 话术更重要，警惕 AI 幻觉损害信任。</p></div></div>
+    <div class="insight"><div class="i-no">4</div><div class="i-body"><b>记账是「太重」的刚需。</b><p>AA 结算痛点真实且高频（圈子账本停服后用户至今怀念），但独立记账 App 门槛高；嵌入旅行场景的轻量账本（按次旅行建账、结束自动结算）是空档。</p></div></div>
+    <div class="insight"><div class="i-no">5</div><div class="i-body"><b>「回来懒得整理」是记录的死亡谷。</b><p>片羽集用「补录 + 每天一张图 + 随机回顾」对抗惰性值得借鉴；旅行手账若与行程自动关联（行程即手账骨架），可大幅降低记录启动成本。</p></div></div>
+    <div class="insight"><div class="i-no">6</div><div class="i-body"><b>情绪价值与分享是留存引擎。</b><p>行程海报、一周碎片长图、足迹地图等「可晒资产」既是分享动机也是回流钩子，工具类产品的差异化越来越靠审美与文案。</p></div></div>
+  </div>
+</section>
+
+<!-- ================= 05 用户洞察与机会定位 ================= -->
+<section id="users">
+  <div class="wide">
+    <div class="sec-no">SECTION 05 · USER INSIGHTS</div>
+    <h2>用户洞察与机会定位</h2>
+    <div class="sec-under"></div>
+    <p class="dek">三大真实痛点对应旅程三段：行前焦虑、旅途中嫌记账太重、回来懒得整理——每一段都有调研证据背书。</p>
+
+    <h3>三大真实痛点</h3>
+    <div class="co-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">① 行前焦虑</span><span class="c-tag">准备中</span></div>
+        <p class="c-one">怕漏带、怕计划做不全的「开盲盒式旅行」。清单 + 确认感的产品价值被低估——这是情绪痛点，不只是效率痛点。</p>
+      </div>
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">② 旅途中嫌记账太重</span><span class="c-tag">游玩中</span></div>
+        <p class="c-one">想记账但专业记账软件太重；多人垫付 → 结算复杂是真实高频痛点，圈子账本停服后用户至今怀念。</p>
+      </div>
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">③ 回来懒得整理</span><span class="c-tag">已结束</span></div>
+        <p class="c-one">想留点东西但懒得整理——记录的死亡谷。补录 + 随机回顾 + 行程即手账骨架，可大幅降低启动成本。</p>
+      </div>
+    </div>
+
+    <h3>现状：「截图 + 备忘录 + 微信群」的缝合式旅行</h3>
+    <p>攻略在小红书、打包清单在备忘录、记账在另一个 App、照片躺在相册里、返程注意事项靠脑子记——规划、记账、记录、清单四个环节分散在 4–5 个 App 里，用户靠截图和微信群缝合整个旅程。现有工具都是单点工具，没有一款产品覆盖「从收拾行李到安全回家」的完整旅程。</p>
+  </div>
+
+  <div class="wide fig">
+    <div class="f-title">机会象限：「全流程覆盖 × 轻量易上手」右上角是空的</div>
+    <div class="f-sub">横轴 = 轻量易上手（零配置即用）· 纵轴 = 全流程覆盖（行前—行中—行后）· 坐标为编辑评估 · 点击圆点查看依据</div>
+    <div class="f-body">
+      <svg viewBox="0 0 860 600" style="width:100%;height:auto;display:block">
+        <!-- 象限底色 -->
+        <rect x="90" y="40" width="350" height="230" fill="#F3EDE1" opacity=".55"/>
+        <rect x="440" y="40" width="350" height="230" fill="rgba(192,91,51,.07)"/>
+        <rect x="90" y="270" width="350" height="230" fill="#FAF6EF"/>
+        <rect x="440" y="270" width="350" height="230" fill="#F3EDE1" opacity=".55"/>
+        <!-- 右上高亮 -->
+        <rect x="440" y="40" width="350" height="230" fill="none" stroke="#C05B33" stroke-width="1.5" stroke-dasharray="8 5"/>
+        <text x="615" y="66" text-anchor="middle" font-family="Menlo,monospace" font-size="10" letter-spacing="3" fill="#C05B33">市场空档 · OPPORTUNITY</text>
+        <!-- 轴 -->
+        <line x1="90" y1="500" x2="790" y2="500" stroke="#2C2620" stroke-width="1.5"/>
+        <line x1="90" y1="500" x2="90" y2="40" stroke="#2C2620" stroke-width="1.5"/>
+        <path d="M 790 500 L 778 494 L 778 506 Z" fill="#2C2620"/>
+        <path d="M 90 40 L 84 52 L 96 52 Z" fill="#2C2620"/>
+        <text x="790" y="528" text-anchor="end" font-family="Menlo,monospace" font-size="10.5" letter-spacing="1.5" fill="#6E6355">轻量易上手 →</text>
+        <text x="98" y="34" font-family="Menlo,monospace" font-size="10.5" letter-spacing="1.5" fill="#6E6355">↑ 全流程覆盖</text>
+        <!-- 中线 -->
+        <line x1="440" y1="40" x2="440" y2="500" stroke="#E3D9C7" stroke-width="1"/>
+        <line x1="90" y1="270" x2="790" y2="270" stroke="#E3D9C7" stroke-width="1"/>
+        <!-- 竞品圆点 坐标: x=90+val/10*700, y=500-val/10*460 -->
+        <g class="clickable" data-drill data-dv="覆盖 6 · 轻量 4" data-dt="Wanderlog" data-dn="功能最全的规划工作台，但功能密度高令新手 overwhelmed；弱回忆环节。" data-ds="来源：调研文件 01（编辑评估坐标）">
+          <circle cx="370" cy="224" r="10" fill="#3E5C76"/><text x="370" y="204" text-anchor="middle" font-size="12" fill="#3E5C76">Wanderlog</text></g>
+        <g class="clickable" data-drill data-dv="覆盖 2 · 轻量 6" data-dt="TripIt" data-dn="只做订单整理，无规划/记账/清单/游记。" data-ds="来源：调研文件 01（编辑评估坐标）">
+          <circle cx="510" cy="408" r="10" fill="#3E5C76"/><text x="510" y="430" text-anchor="middle" font-size="12" fill="#3E5C76">TripIt</text></g>
+        <g class="clickable" data-drill data-dv="覆盖 3 · 轻量 5" data-dt="Mindtrip" data-dn="AI 生成行程强，但编辑只能靠对话，无记账/清单/离线。" data-ds="来源：调研文件 01（编辑评估坐标）">
+          <circle cx="440" cy="362" r="10" fill="#3E5C76"/><text x="440" y="342" text-anchor="middle" font-size="12" fill="#3E5C76">Mindtrip</text></g>
+        <g class="clickable" data-drill data-dv="覆盖 5 · 轻量 5" data-dt="Stippl" data-dn="规划+账本+日志都有，但崩溃/bug 多、同步不稳拖垮体验。" data-ds="来源：调研文件 01（编辑评估坐标）">
+          <circle cx="440" cy="270" r="10" fill="#3E5C76"/><text x="440" y="250" text-anchor="middle" font-size="12" fill="#3E5C76">Stippl</text></g>
+        <g class="clickable" data-drill data-dv="覆盖 3 · 轻量 7.5" data-dt="Polarsteps" data-dn="「无感记录」哲学体验极佳，但只管行后回忆，不做规划。" data-ds="来源：调研文件 01（编辑评估坐标）">
+          <circle cx="615" cy="362" r="10" fill="#3E5C76"/><text x="615" y="388" text-anchor="middle" font-size="12" fill="#3E5C76">Polarsteps</text></g>
+        <g class="clickable" data-drill data-dv="覆盖 4.5 · 轻量 6" data-dt="Tripsy" data-dn="苹果生态设计标杆，但跨平台协作缺失，回忆环节薄弱。" data-ds="来源：调研文件 01（编辑评估坐标）">
+          <circle cx="510" cy="293" r="10" fill="#3E5C76"/><text x="522" y="318" text-anchor="middle" font-size="12" fill="#3E5C76">Tripsy</text></g>
+        <g class="clickable" data-drill data-dv="覆盖 7 · 轻量 4" data-dt="Lambus" data-dn="与 TripLine 定位最接近的全旅程工具，但重、仪表盘工具感、缺情感层，核心功能多在付费墙后。" data-ds="来源：调研文件 01（编辑评估坐标）">
+          <circle cx="370" cy="178" r="10" fill="#3E5C76"/><text x="370" y="158" text-anchor="middle" font-size="12" fill="#3E5C76">Lambus</text></g>
+        <g class="clickable" data-drill data-dv="覆盖 3 · 轻量 8" data-dt="圆周旅迹" data-dn="「抄作业」体验极轻、口碑极佳，但只管规划段：无记账、无清单、无手账沉淀。" data-ds="来源：调研文件 02（编辑评估坐标）">
+          <circle cx="650" cy="362" r="10" fill="#C08F2F"/><text x="650" y="342" text-anchor="middle" font-size="12" fill="#2C2620">圆周旅迹</text></g>
+        <g class="clickable" data-drill data-dv="覆盖 3 · 轻量 5" data-dt="携程行程" data-dn="生态内自动化极佳，但强绑定携程订单，不做清单/记账/记录。" data-ds="来源：调研文件 02（编辑评估坐标）">
+          <circle cx="440" cy="408" r="10" fill="#C08F2F"/><text x="424" y="412" text-anchor="end" font-size="12" fill="#2C2620">携程行程</text></g>
+        <g class="clickable" data-drill data-dv="覆盖 1.5 · 轻量 8" data-dt="片羽集" data-dn="极简照片日记体验轻，但与行程完全脱节，无计划无结构化。" data-ds="来源：调研文件 02（编辑评估坐标）">
+          <circle cx="650" cy="431" r="10" fill="#C08F2F"/><text x="668" y="454" text-anchor="middle" font-size="12" fill="#2C2620">片羽集</text></g>
+        <!-- 旅迹：目标位置 -->
+        <g class="clickable" data-drill data-dv="覆盖 9 · 轻量 8.5" data-dt="旅迹 TripLine · 目标卡位"
+          data-dn="全流程闭环（清单→行程→账本→手账→返程）+ 轻量零配置 + 情绪价值。目前市场上没有一款产品以同等轻量方式串起这五段。"
+          data-ds="来源：调研文件 01/02 对 TripLine 的启示（编辑评估坐标）">
+          <circle cx="685" cy="86" r="15" fill="#C05B33"/>
+          <circle cx="685" cy="86" r="22" fill="none" stroke="#C05B33" stroke-width="1.5" opacity=".45">
+            <animate attributeName="r" values="17;26;17" dur="2.6s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values=".5;.1;.5" dur="2.6s" repeatCount="indefinite"/>
+          </circle>
+          <text x="685" y="120" text-anchor="middle" class="t-serif" font-size="15" font-weight="700" fill="#C05B33">旅迹 TripLine</text>
+        </g>
+        <!-- 图例 -->
+        <g font-family="Menlo,monospace" font-size="9.5" fill="#A89B8A" letter-spacing="1">
+          <circle cx="100" cy="545" r="5" fill="#3E5C76"/><text x="112" y="549">国际竞品</text>
+          <circle cx="200" cy="545" r="5" fill="#C08F2F"/><text x="212" y="549">国内玩家</text>
+          <circle cx="288" cy="545" r="5" fill="#C05B33"/><text x="300" y="549">旅迹目标卡位</text>
+          <text x="560" y="549">坐标为定性评估，非计量数据</text>
+        </g>
+      </svg>
+      <div class="f-src">来源：<b>调研文件 01 / 02 综合（坐标为编辑评估）</b>；右上象限「全流程 × 轻量」当前无强势玩家</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 06 产品定位与差异化战略 ================= -->
+<section id="positioning">
+  <div class="wide">
+    <div class="sec-no">SECTION 06 · POSITIONING</div>
+    <h2>产品定位与差异化战略</h2>
+    <div class="sec-under"></div>
+
+    <blockquote class="quote-card">
+      <p class="q-text">从收拾行李，到安全回家——一个以「时间轴 + 旅程状态」为主轴的旅行全流程记录工具。</p>
+      <p class="q-who">— 旅迹 TripLine · 一句话定位（PRD V1.0）</p>
+    </blockquote>
+
+    <p>核心差异化：<b>所有功能挂在「旅程状态」上</b>——用户随时知道自己处于哪一步、下一步该做什么。不做社区、不做交易，专注「管理 + 记录」这一件事。</p>
+  </div>
+
+  <div class="wide fig">
+    <div class="f-title">旅程状态机：⏳ 准备中 → 📍 游玩中 → ✨ 已结束</div>
+    <div class="f-sub">状态基于当前日期自动识别 · 每个状态挂载该阶段专属功能 · 状态推进即产品叙事推进</div>
+    <div class="f-body">
+      <svg viewBox="0 0 860 330" style="width:100%;height:auto;display:block">
+        <!-- 主轴 -->
+        <line x1="120" y1="120" x2="740" y2="120" stroke="#E3D9C7" stroke-width="3"/>
+        <path class="anim-draw" style="--dash:640" d="M 120 120 L 740 120" stroke="#C05B33" stroke-width="3" fill="none"/>
+        <!-- 节点 1 -->
+        <g>
+          <circle cx="180" cy="120" r="26" fill="#FFFDF8" stroke="#C05B33" stroke-width="2.5"/>
+          <text x="180" y="128" text-anchor="middle" font-size="20">⏳</text>
+          <text x="180" y="86" text-anchor="middle" class="t-serif" font-size="16" font-weight="700" fill="#2C2620">准备中</text>
+          <g font-size="11.5" fill="#6E6355" text-anchor="middle">
+            <text x="180" y="176">行前清单 · 打包进度</text>
+            <text x="180" y="196">智能提醒 · 抄作业导入</text>
+            <text x="180" y="216">行程规划 · 预算设置</text>
+          </g>
+          <text x="180" y="252" text-anchor="middle" font-family="Menlo,monospace" font-size="9" letter-spacing="2" fill="#A89B8A">对抗「行前焦虑」</text>
+        </g>
+        <!-- 节点 2 -->
+        <g>
+          <circle cx="430" cy="120" r="26" fill="#FFFDF8" stroke="#C08F2F" stroke-width="2.5"/>
+          <text x="430" y="128" text-anchor="middle" font-size="20">📍</text>
+          <text x="430" y="86" text-anchor="middle" class="t-serif" font-size="16" font-weight="700" fill="#2C2620">游玩中</text>
+          <g font-size="11.5" fill="#6E6355" text-anchor="middle">
+            <text x="430" y="176">每日时间轴 · 三态打卡</text>
+            <text x="430" y="196">记一笔 · AA 分摊</text>
+            <text x="430" y="216">手账记录此刻 · 相册选图</text>
+          </g>
+          <text x="430" y="252" text-anchor="middle" font-family="Menlo,monospace" font-size="9" letter-spacing="2" fill="#A89B8A">对抗「嫌记账太重」</text>
+        </g>
+        <!-- 节点 3 -->
+        <g>
+          <circle cx="680" cy="120" r="26" fill="#FFFDF8" stroke="#6E8B5E" stroke-width="2.5"/>
+          <text x="680" y="128" text-anchor="middle" font-size="20">✨</text>
+          <text x="680" y="86" text-anchor="middle" class="t-serif" font-size="16" font-weight="700" fill="#2C2620">已结束</text>
+          <g font-size="11.5" fill="#6E6355" text-anchor="middle">
+            <text x="680" y="176">返程检查 · 到家待办</text>
+            <text x="680" y="196">一键结算 · 分享海报</text>
+            <text x="680" y="216">旅行总结 · 随机回顾</text>
+          </g>
+          <text x="680" y="252" text-anchor="middle" font-family="Menlo,monospace" font-size="9" letter-spacing="2" fill="#A89B8A">对抗「回来懒得整理」</text>
+        </g>
+        <!-- 箭头 -->
+        <path d="M 300 120 L 320 120 M 312 112 L 322 120 L 312 128" stroke="#C05B33" stroke-width="2" fill="none"/>
+        <path d="M 560 120 L 580 120 M 572 112 L 582 120 L 572 128" stroke="#C05B33" stroke-width="2" fill="none"/>
+      </svg>
+      <div class="f-src">来源：<b>PRD V1.0 · M1 状态自动识别</b>；PRD 五态（准备中/在路上/游玩中/返程中/已回家）在实现层收敛为三态</div>
+    </div>
+  </div>
+
+  <div class="wide">
+    <h3>差异化三支柱</h3>
+    <div class="co-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">Ⅰ 全流程闭环</span></div>
+        <p class="c-one">行李清单 → 时间线 → 账本 → 游记 → 回家清单，五段串成一条旅程时间轴。目前市场上没有一款产品以同等轻量方式串起这五段——Lambus 最接近但重且缺情感层。</p>
+      </div>
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">Ⅱ 轻量零配置</span></div>
+        <p class="c-one">学 Tripsy 的设计语言与 Wanderlog 的免费慷慨，克制功能密度；首屏只做「下一次旅行」，避免 Wanderlog 式信息轰炸。「零配置即用」是被验证的真实空位。</p>
+      </div>
+      <div class="co-card">
+        <div class="c-head"><span class="c-name">Ⅲ 情绪价值与解压动效</span></div>
+        <p class="c-one">对标 Polarsteps 与 Stippl：勾选行李的反馈动画、旅程完成时的「回忆卷轴」自动生成，把工具时刻转化为情感时刻，并为实体/数字纪念品变现留接口。</p>
+      </div>
+    </div>
+
+    <h3>竞品缺口对照</h3>
+    <div class="twrap">
+      <table class="dt">
+        <thead><tr><th>玩家</th><th>管不到的环节</th><th>旅迹的对应卡位</th></tr></thead>
+        <tbody>
+          <tr><td class="co">携程行程</td><td>订单之外：站外预订、行前清单、记账、记录</td><td>与订单解耦的全旅程容器，任何渠道预订都能进</td></tr>
+          <tr><td class="co">圆周旅迹</td><td>行中与行后：无记账、无清单、无手账沉淀</td><td>规划只是旅迹五段中的一段</td></tr>
+          <tr><td class="co">片羽集</td><td>行前与计划：纯记录、与行程完全脱节</td><td>行程即手账骨架，计划与记录同源</td></tr>
+          <tr><td class="co">Lambus</td><td>情感层：工具感强、游记薄弱、核心功能锁付费</td><td>情绪价值优先 + 刚需功能不做付费墙</td></tr>
+          <tr><td class="co">Wanderlog</td><td>回忆环节 + 新手负担过重</td><td>克制功能密度，首屏只做「下一次旅行」</td></tr>
+          <tr><td class="co">圈子账本（已停服）</td><td>服务已终结，用户至今怀念</td><td>旅行场景轻量 AA 账本 + 数据可导出承诺</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 07 功能架构 V2.0 ================= -->
+<section id="modules">
+  <div class="wide-xl">
+    <div class="sec-no">SECTION 07 · FEATURE ARCHITECTURE V2.0</div>
+    <h2>功能架构 V2.0：调研驱动的十二模块升级</h2>
+    <div class="sec-under"></div>
+    <p class="dek">M1–M10 保留已验证的 V1 能力；V2.0 的每一处增强都能指回一条调研证据。新增 M11 灵感导入、M12 多人协作。</p>
+
+    <div class="mod-grid">
+      <div class="mod">
+        <div class="m-head"><span class="m-no">M1</span><span class="m-name">旅程管理</span><span class="badge p0">P0</span></div>
+        <div class="m-body">
+          <div class="m-row"><div class="m-lab">V1 现状 · 保留</div><p>创建/编辑/删除旅程，标签，状态自动识别（⏳ 准备中 / 📍 游玩中 / ✨ 已结束），删除二次确认级联清理。</p></div>
+          <div class="m-row v2"><div class="m-lab">V2.0 增强</div><p>按标签筛选旅程；旅程模板按旅行类型预置。</p></div>
+        </div>
+      </div>
+      <div class="mod">
+        <div class="m-head"><span class="m-no">M2</span><span class="m-name">行前清单</span><span class="badge p0">P0</span></div>
+        <div class="m-body">
+          <div class="m-row"><div class="m-lab">V1 现状 · 保留</div><p>按旅程自动生成分类模板（证件/交通/住宿/电子/药品/衣物/财务），勾选 + 进度条 + 自定义增删。</p></div>
+          <div class="m-row v2"><div class="m-lab">V2.0 增强</div><p>清单模板按旅行类型切换（出境/自驾/徒步/亲子）。<span class="drv">↳ 依据：「行前焦虑」是情绪痛点，清单确认感价值被低估（调研 02 · 洞察 1）</span></p></div>
+        </div>
+      </div>
+      <div class="mod">
+        <div class="m-head"><span class="m-no">M3</span><span class="m-name">智能提醒</span><span class="badge p0">P0</span></div>
+        <div class="m-body">
+          <div class="m-row"><div class="m-lab">V1 现状 · 保留</div><p>默认提醒模板（预约送站、查天气、确认签证、确认返程班次）+ 自定义增删。</p></div>
+          <div class="m-row v2"><div class="m-lab">V2.0 增强</div><p>提醒绑定具体时间 + 本地推送通知。</p></div>
+        </div>
+      </div>
+      <div class="mod hot">
+        <div class="m-head"><span class="m-no">M4</span><span class="m-name">行程规划</span><span class="badge p0">P0</span></div>
+        <div class="m-body">
+          <div class="m-row"><div class="m-lab">V1 现状 · 保留</div><p>每日时间轴、三态打卡（计划 → ✓ 已去 → 已取消）、备注；手动编辑始终是最终手段。</p></div>
+          <div class="m-row v2"><div class="m-lab">V2.0 增强 · 调研驱动</div><p><b>「抄作业导入」（P1）</b>：粘贴小红书链接/截图 → AI 提取地点生成行程草稿；地图视图、交通耗时估算、地点距离过远提醒。<span class="drv">↳ 依据：圆周旅迹近千万注册验证「抄作业」需求（调研 02）；吸取 Mindtrip 只能对话编辑的教训，AI 只出草稿、手动微调保留（调研 01）</span></p></div>
+        </div>
+      </div>
+      <div class="mod hot">
+        <div class="m-head"><span class="m-no">M5</span><span class="m-name">旅行账本</span><span class="badge p0">P0</span></div>
+        <div class="m-body">
+          <div class="m-row"><div class="m-lab">V1 现状 · 保留</div><p>记一笔、预算管控（剩余/百分比/超支警告）、分类占比图、每日趋势图。</p></div>
+          <div class="m-row v2"><div class="m-lab">V2.0 增强 · 调研驱动（提升为 P1）</div><p><b>AA 分摊 + 替人记账 + 结束一键结算分享图</b>；多币种与汇率；小票拍照。<span class="drv">↳ 依据：圈子账本 2022 停服后「为一次旅行建轻量 AA 账本」无人占据；「替人记账」「一键结算」是被验证的关键体验（调研 02）</span></p></div>
+        </div>
+      </div>
+      <div class="mod hot">
+        <div class="m-head"><span class="m-no">M6</span><span class="m-name">旅行手账</span><span class="badge p0">P0</span></div>
+        <div class="m-body">
+          <div class="m-row"><div class="m-lab">V1 现状 · 保留</div><p>文字 + 相册照片 + 标签 + 自动时间戳；照片只存本机、不上传、不需要相机权限。</p></div>
+          <div class="m-row v2"><div class="m-lab">V2.0 增强 · 调研驱动（P1）</div><p><b>行程时间轴自动生成手账骨架</b>——行程即手账骨架，用户只补照片和心情；回来补录 + 随机回顾（「那年今日」式小组件）；语音转文字、定位/天气自动打点。<span class="drv">↳ 依据：片羽集「补录 + 每天一张图 + 随机回顾」对抗惰性（调研 02 · 洞察 5）</span></p></div>
+        </div>
+      </div>
+      <div class="mod">
+        <div class="m-head"><span class="m-no">M7</span><span class="m-name">返程检查</span><span class="badge p0">P0</span></div>
+        <div class="m-body">
+          <div class="m-row"><div class="m-lab">V1 现状 · 保留</div><p>默认模板（行李清点、退房检查、发票、到家待办）+ 勾选/添加/删除。</p></div>
+          <div class="m-row v2"><div class="m-lab">V2.0 增强</div><p>「回家清单」（带纪念品、洗衣服、写回忆）做成独有的情绪收尾，可生成分享传播点。<span class="drv">↳ 依据：情绪价值与分享是留存引擎（调研 02 · 洞察 6）</span></p></div>
+        </div>
+      </div>
+      <div class="mod hot">
+        <div class="m-head"><span class="m-no">M8</span><span class="m-name">旅行总结</span><span class="badge p0">P0</span></div>
+        <div class="m-body">
+          <div class="m-row"><div class="m-lab">V1 现状 · 保留</div><p>自动汇总（完成行程数、总花费对预算、见闻数、照片数）+ 一键复制分享。</p></div>
+          <div class="m-row v2"><div class="m-lab">V2.0 增强（P1）</div><p>升级为<b>一键生成分享海报/长图</b>——可晒资产；远期接口：手账长图/PDF、实体旅行书。<span class="drv">↳ 依据：Polarsteps 实体书 €36–150、Stippl 3D 行程视频证明「回忆与分享」可独立变现（调研 01 · 洞察 6）</span></p></div>
+        </div>
+      </div>
+      <div class="mod">
+        <div class="m-head"><span class="m-no">M9</span><span class="m-name">行程共享</span><span class="badge p0">P0</span></div>
+        <div class="m-body">
+          <div class="m-row"><div class="m-lab">V1 现状 · 保留</div><p>导出码方案：旅程数据编码进带关键词的分享文案，粘贴整段自动识别导入；<b>无需服务器、无需联网、长期有效</b>。</p></div>
+          <div class="m-row v2"><div class="m-lab">V2.0 演进（P1）</div><p>云同步 + 短码（8 位数字兑换码，24 小时有效）替代长码；导出码保留为离线兜底与备份手段。</p></div>
+        </div>
+      </div>
+      <div class="mod">
+        <div class="m-head"><span class="m-no">M10</span><span class="m-name">相册选图</span><span class="badge p0">P0</span></div>
+        <div class="m-body">
+          <div class="m-row"><div class="m-lab">V1 现状 · 保留</div><p>系统相册选择器（非相机，无权限风险）、多选、压缩本地存储、预览放大、存量预警。</p></div>
+          <div class="m-row v2"><div class="m-lab">V2.0 增强（P2）</div><p>智能选图建议（按行程时间地点预筛）、存储清理引导优化。</p></div>
+        </div>
+      </div>
+      <div class="mod hot">
+        <div class="m-head"><span class="m-no">M11</span><span class="m-name">灵感导入</span><span class="badge new">新增</span><span class="badge p1">P1</span></div>
+        <div class="m-body">
+          <div class="m-row v2"><div class="m-lab">V2.0 新增 · 调研驱动</div><p>「Start Anywhere」式入口：粘贴小红书/公众号链接、截图、PDF，AI 提取地点与要点，一键转为行程草稿或清单条目；与 M4 抄作业导入共用提取引擎。<span class="drv">↳ 依据：~25% 用户首选小红书查攻略但整理成本极高（调研 02）；Mindtrip「Start Anywhere」截图导入即建行程（调研 01）</span></p></div>
+        </div>
+      </div>
+      <div class="mod hot">
+        <div class="m-head"><span class="m-no">M12</span><span class="m-name">多人协作</span><span class="badge new">新增</span><span class="badge p1">P1</span></div>
+        <div class="m-body">
+          <div class="m-row"><div class="m-lab">V1 现状 · 保留</div><p>导出码手动同步：改后重新分享，对方导入覆盖；适合 2–5 人小团队。</p></div>
+          <div class="m-row v2"><div class="m-lab">V2.0 演进 · 调研驱动</div><p>V2 实时协作：多人编辑行程 + 共同记账 + 共享手账，直接替代微信群。<span class="drv">↳ 依据：协作是结伴游刚需与留存利器（调研 01 · 洞察 3 / 调研 02 · 启示 5）</span></p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 08 设计体系与动效语言 ================= -->
+<section id="design">
+  <div class="wide-xl">
+    <div class="sec-no">SECTION 08 · DESIGN SYSTEM &amp; MOTION</div>
+    <h2>设计体系与动效语言：一套架构，三副面孔</h2>
+    <div class="sec-under"></div>
+    <p class="dek">三大原型方向共享同一套信息架构，仅换皮肤与动效语言——A 情感记录优先、B 效率与乐趣优先、C 行程掌控优先。</p>
+
+    <div class="dir-grid">
+      <div class="dir">
+        <div class="d-no">DIRECTION A</div>
+        <div class="d-name">纸上旅途</div>
+        <div class="d-en">WARM PAPER JOURNAL · 暖纸手账风</div>
+        <p class="d-one">像一本会呼吸的旅行手账——奶油纸面、手写温度、翻页与贴纸式的轻快乐趣。</p>
+        <div class="swatches">
+          <div class="sw" style="background:#FBF6EE;border:1px solid #EDE3D5"><span>#FBF6EE</span></div>
+          <div class="sw" style="background:#C96F4A"><span>#C96F4A</span></div>
+          <div class="sw" style="background:#E8A87C"><span>#E8A87C</span></div>
+          <div class="sw" style="background:#7D9B76"><span>#7D9B76</span></div>
+          <div class="sw" style="background:#3A322B"><span>#3A322B</span></div>
+        </div>
+        <dl>
+          <dt>字体</dt>
+          <dd>中文标题「思源宋体 Noto Serif SC / 霞鹜文楷」；正文「思源黑体 / PingFang SC」；英文标题 Cormorant Garamond / Lora，正文 Inter；数字用等宽 JetBrains Mono / tabular-nums</dd>
+          <dt>布局</dt>
+          <dd>单栏纵向流 + 大留白；清单项为「纸条」卡片（微倾斜 ±0.5°、纸胶带装饰角）；行程时间轴为左侧手绘竖线 + 圆点邮戳；游记页杂志式首字放大 + 图片贴纸</dd>
+          <dt>标志动效</dt>
+          <dd>勾选清单：对勾手绘笔触一笔画出（stroke-dashoffset 300ms），纸条回弹飘落「印章」；打包完成整页纸屑彩带（1.2s）；翻页式 shared-element 过渡；下拉刷新是纸飞机松手飞走</dd>
+          <dt>组件质感</dt>
+          <dd>圆角 14–18px 纸感卡片 + 极淡投影；「印章盖章」按钮（按下缩放 0.96 + 印记加深）；Tab 栏米白底 + 顶部细缝线纹理</dd>
+        </dl>
+      </div>
+      <div class="dir">
+        <div class="d-no">DIRECTION B</div>
+        <div class="d-name">弹跳气泡</div>
+        <div class="d-en">EXPRESSIVE POP · 大胆现代表现力风</div>
+        <p class="d-one">Material 3 Expressive 基因 + Duolingo 式多巴胺——高饱和色彩、超大字体、万物皆可弹。</p>
+        <div class="swatches">
+          <div class="sw" style="background:#F4F2FB;border:1px solid #E3D9C7"><span>#F4F2FB</span></div>
+          <div class="sw" style="background:#5B4FE9"><span>#5B4FE9</span></div>
+          <div class="sw" style="background:#FF6B4A"><span>#FF6B4A</span></div>
+          <div class="sw" style="background:#FFC93C"><span>#FFC93C</span></div>
+          <div class="sw" style="background:#17132B"><span>#17132B</span></div>
+        </div>
+        <dl>
+          <dt>字体</dt>
+          <dd>全篇无衬线、超粗字重：中文「MiSans / HarmonyOS Sans SC / PingFang SC」Semibold–Bold；英文 Plus Jakarta Sans / Satoshi Bold–ExtraBold；大数字可变字重做 weight 动画</dd>
+          <dt>布局</dt>
+          <dd>Bento 网格首页（行程卡、天气卡、倒计时卡、账本摘要卡拼贴）；超大号标题（32–40px）+ 圆角胶囊标签；时间轴节点为大号彩色圆球</dd>
+          <dt>标志动效</dt>
+          <dd>全面弹簧物理（stiffness≈300, damping≈20，带轻过冲）；勾选时圆点 morph 成对勾 + 粒子迸发；长按抖动编辑态；打卡/记账触发 600ms 全屏庆祝；Tab 图标形状变形 + 指示器弹性滑动；卡片 40ms 级联弹入</dd>
+          <dt>组件质感</dt>
+          <dd>胶囊按钮（圆角 999px）、24px 大圆角 Bento 卡、彩色填充 FAB；Tab 栏悬浮圆角药丸形（毛玻璃底 + 彩色激活态）</dd>
+        </dl>
+      </div>
+      <div class="dir">
+        <div class="d-no">DIRECTION C</div>
+        <div class="d-name">夜航地图</div>
+        <div class="d-en">DARK ATLAS · 暗夜沉浸地图风</div>
+        <p class="d-one">Flighty 式的暗夜驾驶舱——深海军蓝底、发光航线、数据仪表盘般的精准与冷静解压。</p>
+        <div class="swatches">
+          <div class="sw" style="background:#0D1526"><span>#0D1526</span></div>
+          <div class="sw" style="background:#16203A"><span>#16203A</span></div>
+          <div class="sw" style="background:#4EA8FF"><span>#4EA8FF</span></div>
+          <div class="sw" style="background:#FFB454"><span>#FFB454</span></div>
+          <div class="sw" style="background:#3DDC97"><span>#3DDC97</span></div>
+        </div>
+        <dl>
+          <dt>字体</dt>
+          <dd>中文「思源黑体 / PingFang SC」Regular–Medium（避免粗黑暗底糊边）；英文 Space Grotesk（标题）+ Inter（正文）；数字全部 tabular-nums，大数字等宽呼应航空感</dd>
+          <dt>布局</dt>
+          <dd>地图优先——首页下半部迷你暗色地图（发光航线），上半部航班/行程「仪表卡」；时间轴为垂直航线图（节点 = 机场代码徽章）；账本页仪表盘式环形图 + 大数字</dd>
+          <dt>标志动效</dt>
+          <dd>航线 1.5s stroke 绘制逐段点亮（类 Flighty 飞行进度）；打卡节点「雷达脉冲」涟漪；地图缩放式 zoom 过渡；记账数字滚动（odometer 300ms）+ 环形图弹性填充；下拉刷新「雷达扫描」</dd>
+          <dt>组件质感</dt>
+          <dd>16px 圆角深色卡 + 1px 半透明描边 rgba(78,168,255,.15) + 内发光；琥珀实底或蓝边幽灵按钮；Tab 栏暗色毛玻璃（blur 20px）+ 发光激活指示线</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="wide">
+    <h3>动效原则清单（12 条 · 可执行）</h3>
+    <div class="principles">
+      <div class="principle"><span class="p-no">01</span><div><b>弹簧优先</b><p>用户触发的微交互用弹簧物理（带过冲），不用线性/纯 ease；入场轻过冲、出场干净收束。</p></div></div>
+      <div class="principle"><span class="p-no">02</span><div><b>时长预算</b><p>即时反馈 100–150ms，常规过渡 200–350ms，展开/收起 300–400ms，庆祝上限 600ms–1.2s。</p></div></div>
+      <div class="principle"><span class="p-no">03</span><div><b>进入 ease-out / 离开 ease-in</b><p>位移 8–16px + 透明度即可，不做大距离飞行。</p></div></div>
+      <div class="principle"><span class="p-no">04</span><div><b>动效即语义</b><p>上滑=出现、下滑=关闭、缩放=层级进入；同一动作永远同一种动效。</p></div></div>
+      <div class="principle"><span class="p-no">05</span><div><b>动效 + 触感配对</b><p>勾选、盖章、打卡等「确认时刻」配一次轻 haptic；常规点击不配，避免轰炸。</p></div></div>
+      <div class="principle"><span class="p-no">06</span><div><b>级联入场 stagger</b><p>列表以 30–50ms 间隔错峰入场；超过 10 项的批量操作降级为瞬时变色。</p></div></div>
+      <div class="principle"><span class="p-no">07</span><div><b>动画不阻塞输入</b><p>过渡中界面保持可交互；任何动画可被新手势打断并平滑接管。</p></div></div>
+      <div class="principle"><span class="p-no">08</span><div><b>进度庆祝分级</b><p>单项完成=对勾描绘+轻弹跳；整清单=印章/彩带；整趟旅程=全屏庆祝+可分享成就卡。</p></div></div>
+      <div class="principle"><span class="p-no">09</span><div><b>骨架屏 → 内容变形</b><p>加载用骨架屏，内容到达时骨架块 morph 成真实卡片，不用生硬替换或转圈。</p></div></div>
+      <div class="principle"><span class="p-no">10</span><div><b>创意下拉刷新</b><p>下拉手势绑定角色化动画（纸飞机/雷达/气球）——成本最低的记忆点。</p></div></div>
+      <div class="principle"><span class="p-no">11</span><div><b>性能红线</b><p>只动画 transform 与 opacity；禁用宽高/边距动画；中端安卓实机 60fps；复杂庆祝用 Lottie/Rive 资产。</p></div></div>
+      <div class="principle"><span class="p-no">12</span><div><b>尊重减弱动效</b><p>prefers-reduced-motion：把位移/弹跳换成瞬时但可见的状态跳变，保留反馈信号。</p></div></div>
+    </div>
+
+    <h3>设计硬规则（所有原型必须遵守）</h3>
+    <div class="rules">
+      <div class="rule">页面含中文时字体栈必须显式包含中文字体（<code>PingFang SC</code>、<code>Noto Sans SC</code>、<code>MiSans</code>、<code>Microsoft YaHei</code>），禁止用纯拉丁展示字体渲染中文标题。</div>
+      <div class="rule">中文禁用斜体（<code>font-style: italic</code>）。</div>
+      <div class="rule">图标优先内联 SVG 或 Emoji，不用 Font Awesome 彩色圆角方块。</div>
+      <div class="rule">图片用代码绘制（SVG/CSS 渐变占位）或可靠外链；禁止空白图区。</div>
+      <div class="rule">单文件 HTML（内联 CSS/JS），可直接双击打开；Google Fonts 需带系统字体兜底。</div>
+      <div class="rule">主内容首屏立即可见，不做登录墙、不做滚动触发才显现的内容。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 09 产品路线图 ================= -->
+<section id="roadmap">
+  <div class="wide-xl">
+    <div class="sec-no">SECTION 09 · ROADMAP</div>
+    <h2>产品路线图：V1.1 收敛体验，V2 上云，V3 商业化</h2>
+    <div class="sec-under"></div>
+  </div>
+
+  <div class="wide-xl fig">
+    <div class="f-title">版本时间轴与技术演进双轨</div>
+    <div class="f-sub">上轨 = 版本里程碑 · 下轨 = 技术架构演进 · 实线 = 已交付 · 虚线 = 规划</div>
+    <div class="f-body">
+      <svg viewBox="0 0 1080 380" style="width:100%;height:auto;display:block">
+        <!-- 版本轨 -->
+        <line x1="60" y1="120" x2="1020" y2="120" stroke="#E3D9C7" stroke-width="3"/>
+        <line x1="60" y1="120" x2="250" y2="120" stroke="#C05B33" stroke-width="3"/>
+        <line x1="250" y1="120" x2="1020" y2="120" stroke="#C05B33" stroke-width="2" stroke-dasharray="8 6"/>
+        <!-- MVP 已交付 -->
+        <g>
+          <circle cx="130" cy="120" r="12" fill="#C05B33"/>
+          <text x="130" y="92" text-anchor="middle" class="t-serif" font-size="15" font-weight="700" fill="#2C2620">MVP · 已交付</text>
+          <text x="130" y="152" text-anchor="middle" font-size="11.5" fill="#6E6355">单文件 Demo · RN 工程</text>
+          <text x="130" y="170" text-anchor="middle" font-size="11.5" fill="#6E6355">8 轮真实反馈迭代</text>
+        </g>
+        <!-- V1.1 -->
+        <g>
+          <circle cx="380" cy="120" r="12" fill="#FFFDF8" stroke="#C05B33" stroke-width="2.5"/>
+          <text x="380" y="92" text-anchor="middle" class="t-serif" font-size="15" font-weight="700" fill="#C05B33">V1.1 · 1 个月</text>
+          <text x="380" y="152" text-anchor="middle" font-size="11.5" fill="#6E6355">标签筛选 · 清单模板切换</text>
+          <text x="380" y="170" text-anchor="middle" font-size="11.5" fill="#6E6355">提醒推送 · AA + 支付人</text>
+        </g>
+        <!-- V2 -->
+        <g>
+          <circle cx="660" cy="120" r="12" fill="#FFFDF8" stroke="#C08F2F" stroke-width="2.5"/>
+          <text x="660" y="92" text-anchor="middle" class="t-serif" font-size="15" font-weight="700" fill="#C08F2F">V2 · 正式立项（需后端）</text>
+          <text x="660" y="152" text-anchor="middle" font-size="11.5" fill="#6E6355">云同步 · 短码 · 地图视图</text>
+          <text x="660" y="170" text-anchor="middle" font-size="11.5" fill="#6E6355">AI 抄作业 · 手账骨架 · 长图/PDF · 商店上线</text>
+        </g>
+        <!-- V3 -->
+        <g>
+          <circle cx="950" cy="120" r="12" fill="#FFFDF8" stroke="#3E5C76" stroke-width="2.5"/>
+          <text x="950" y="92" text-anchor="middle" class="t-serif" font-size="15" font-weight="700" fill="#3E5C76">V3 · 商业化</text>
+          <text x="950" y="152" text-anchor="middle" font-size="11.5" fill="#6E6355">Pro 订阅 · 情感变现</text>
+          <text x="950" y="170" text-anchor="middle" font-size="11.5" fill="#6E6355">实体旅行书接口</text>
+        </g>
+        <!-- 技术轨 -->
+        <line x1="60" y1="290" x2="1020" y2="290" stroke="#E3D9C7" stroke-width="3"/>
+        <line x1="60" y1="290" x2="250" y2="290" stroke="#3E5C76" stroke-width="3"/>
+        <line x1="250" y1="290" x2="1020" y2="290" stroke="#3E5C76" stroke-width="2" stroke-dasharray="8 6"/>
+        <g font-family="Menlo,monospace" font-size="10" letter-spacing="1" fill="#3E5C76">
+          <rect x="80" y="268" width="180" height="44" fill="#F3EDE1" stroke="#3E5C76" stroke-width="1"/>
+          <text x="170" y="294" text-anchor="middle">单文件 HTML · 已交付</text>
+          <rect x="320" y="268" width="220" height="44" fill="#F3EDE1" stroke="#3E5C76" stroke-width="1"/>
+          <text x="430" y="294" text-anchor="middle">RN / Expo · 工程已交付</text>
+          <rect x="580" y="268" width="340" height="44" fill="#FAF6EF" stroke="#3E5C76" stroke-width="1" stroke-dasharray="6 4"/>
+          <text x="750" y="294" text-anchor="middle">Node.js + PostgreSQL · 云同步 / 短码 / 推送</text>
+        </g>
+        <text x="60" y="248" font-family="Menlo,monospace" font-size="9.5" letter-spacing="2" fill="#A89B8A">TECH TRACK · 技术演进</text>
+        <text x="60" y="52" font-family="Menlo,monospace" font-size="9.5" letter-spacing="2" fill="#A89B8A">PRODUCT TRACK · 版本里程碑</text>
+      </svg>
+      <div class="f-src">来源：<b>PRD V1.0 · 拓展要求（Roadmap）</b>；V2 内容合并调研驱动新增项（AI 抄作业、手账骨架）</div>
+    </div>
+  </div>
+
+  <div class="wide">
+    <div class="phase">
+      <span class="ph-tag">V1.1 · 验证后 1 个月</span>
+      <h4>收敛体验，补齐被验证的刚需</h4>
+      <ul>
+        <li>按标签筛选旅程</li>
+        <li>清单模板按旅行类型切换（出境/自驾/亲子）</li>
+        <li>提醒绑定时间 + 本地推送</li>
+        <li>消费支持多人 AA 与支付人记录（V2.0 提升为 P1 的前置落地）</li>
+      </ul>
+    </div>
+    <div class="phase v2">
+      <span class="ph-tag">V2 · 正式立项（需要后端）</span>
+      <h4>上云 + 地图 + AI 辅助 + 手账骨架</h4>
+      <ul>
+        <li>云同步 + 多人实时协作（替代手动导出码同步）</li>
+        <li>短码分享（8 位数字兑换码，24 小时有效，替代长码）</li>
+        <li>地图视图与路线规划（接入高德/腾讯地图）</li>
+        <li>AI 抄作业：粘贴小红书链接/截图 → 行程草稿（AI 只做草稿，手动微调保留）</li>
+        <li>手账骨架：行程时间轴自动生成手账，补录 + 随机回顾</li>
+        <li>语音转文字、自动天气/定位打点；手账导出长图/PDF；多币种与汇率</li>
+        <li>定制图标 + 应用商店上线</li>
+      </ul>
+    </div>
+    <div class="phase v3">
+      <span class="ph-tag">V3 · 商业化</span>
+      <h4>免费核心 + Pro 订阅 + 情感变现</h4>
+      <ul>
+        <li>Pro 订阅（价格带参考竞品 $25–60/年）</li>
+        <li>情感变现：手账长图/PDF、实体旅行书（参考 Polarsteps €36–150）</li>
+        <li>底线：旅行中刚需功能不做付费墙（学 Wanderlog/Layla 的教训）</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 10 商业模式思考 ================= -->
+<section id="business">
+  <div class="wide">
+    <div class="sec-no">SECTION 10 · BUSINESS MODEL</div>
+    <h2>商业模式思考：免费核心 + Pro 订阅 + 情感变现</h2>
+    <div class="sec-under"></div>
+    <p class="dek">用户心智是「规划免费、带走收费」——旅行中才用到的刚需功能做付费墙，就是口碑杀手。</p>
+    <p><b>三层递进：</b>① 免费核心功能足够好用（学 Wanderlog 的免费慷慨与圆周旅迹的免费口碑），获客与传播全靠产品力；② Pro 订阅承接重度需求（云同步容量、多设备、高级导出），价格带落在竞品验证过的区间；③ 情感变现面向「想留下点什么」的时刻——手账长图/PDF、实体旅行书，参考 Polarsteps 已被验证的 €36–150 定价。</p>
+  </div>
+
+  <div class="wide fig">
+    <div class="f-title">竞品订阅价格带：$25–60/年 是被市场验证的区间</div>
+    <div class="f-sub">年付订阅折算美元 · 范围条 = 官方价格区间 · 点击条查看明细 · 订阅价格随地区与促销浮动</div>
+    <div class="f-body">
+      <svg viewBox="0 0 860 420" style="width:100%;height:auto;display:block">
+        <!-- 刻度轴 -->
+        <g font-family="Menlo,monospace" font-size="10" fill="#A89B8A">
+          <line x1="200" y1="360" x2="200" y2="40" stroke="#EFE8DA"/>
+          <line x1="340" y1="360" x2="340" y2="40" stroke="#EFE8DA"/>
+          <line x1="480" y1="360" x2="480" y2="40" stroke="#EFE8DA"/>
+          <line x1="620" y1="360" x2="620" y2="40" stroke="#EFE8DA"/>
+          <line x1="760" y1="360" x2="760" y2="40" stroke="#EFE8DA"/>
+          <text x="200" y="378" text-anchor="middle">$0</text>
+          <text x="340" y="378" text-anchor="middle">$20</text>
+          <text x="480" y="378" text-anchor="middle">$40</text>
+          <text x="620" y="378" text-anchor="middle">$60</text>
+          <text x="760" y="378" text-anchor="middle">$80</text>
+        </g>
+        <!-- Stippl €24.99 ≈ $27 -->
+        <g class="clickable" data-drill data-dv="€24.99/年" data-dt="Stippl Pro" data-dn="或 $3.99/月；定价仅为头部一半。" data-ds="来源：调研文件 01 · stippl.io（2025–2026）">
+          <text x="30" y="76" font-size="12.5" fill="#2C2620">Stippl</text>
+          <rect class="anim-grow" x="200" y="58" width="189" height="22" fill="#3E5C76" style="transform-origin:left;transform:scaleX(1)"/>
+          <text x="397" y="74" font-family="Menlo,monospace" font-size="10.5" fill="#6E6355">≈$27</text>
+        </g>
+        <!-- Polarsteps €29.99 ≈ $32 -->
+        <g class="clickable" data-drill data-dv="€29.99/年" data-dt="Polarsteps Plus" data-dn="或 €8.99/月；核心免费无广告，另有实体旅行书 €36–150 情感变现。" data-ds="来源：调研文件 01 · polarsteps.com（2025–2026）">
+          <text x="30" y="122" font-size="12.5" fill="#2C2620">Polarsteps</text>
+          <rect x="200" y="104" width="224" height="22" fill="#3E5C76"/>
+          <text x="432" y="120" font-family="Menlo,monospace" font-size="10.5" fill="#6E6355">≈$32</text>
+        </g>
+        <!-- Wanderlog $39.99–59.99 -->
+        <g class="clickable" data-drill data-dv="$39.99–59.99/年" data-dt="Wanderlog Pro" data-dn="解锁离线访问、Gmail 自动扫描、路线优化、航班动态；免费版已含无限行程、协作、记账。" data-ds="来源：调研文件 01 · wanderlog.com（2025–2026）">
+          <text x="30" y="168" font-size="12.5" fill="#2C2620">Wanderlog</text>
+          <rect x="479" y="150" width="140" height="22" fill="#C05B33"/>
+          <rect x="479" y="150" width="140" height="22" fill="none" stroke="#99451F" stroke-width="1"/>
+          <text x="628" y="166" font-family="Menlo,monospace" font-size="10.5" fill="#6E6355">$40–60</text>
+        </g>
+        <!-- TripIt $49 -->
+        <g class="clickable" data-drill data-dv="$49/年" data-dt="TripIt Pro" data-dn="30 天试用；实时航班提醒、座位监控、票价退款提醒。" data-ds="来源：调研文件 01 · tripit.com（2025–2026）">
+          <text x="30" y="214" font-size="12.5" fill="#2C2620">TripIt</text>
+          <rect x="200" y="196" width="343" height="22" fill="#3E5C76"/>
+          <text x="551" y="212" font-family="Menlo,monospace" font-size="10.5" fill="#6E6355">$49</text>
+        </g>
+        <!-- Layla $49 -->
+        <g class="clickable" data-drill data-dv="$49/年" data-dt="Layla Premium" data-dn="免费版只能看行程概览，逐日详情锁付费；试用自动续费遭投诉——付费墙位置的反面教材。" data-ds="来源：调研文件 01 · layla.ai（2025–2026）">
+          <text x="30" y="260" font-size="12.5" fill="#2C2620">Layla</text>
+          <rect x="200" y="242" width="343" height="22" fill="#3E5C76"/>
+          <text x="551" y="258" font-family="Menlo,monospace" font-size="10.5" fill="#6E6355">$49</text>
+        </g>
+        <!-- Tripsy $39.99–59.99 + 买断 -->
+        <g class="clickable" data-drill data-dv="$39.99–59.99/年 + $199–299 买断" data-dt="Tripsy Pro" data-dn="独有买断制选项，受订阅疲劳用户欢迎。" data-ds="来源：调研文件 01 · tripsy.app（2025–2026）">
+          <text x="30" y="306" font-size="12.5" fill="#2C2620">Tripsy</text>
+          <rect x="479" y="288" width="140" height="22" fill="#C05B33"/>
+          <rect x="479" y="288" width="140" height="22" fill="none" stroke="#99451F" stroke-width="1"/>
+          <text x="628" y="304" font-family="Menlo,monospace" font-size="10.5" fill="#6E6355">$40–60 · 买断 $199–299</text>
+        </g>
+        <!-- 旅迹建议带 -->
+        <g class="clickable" data-drill data-dv="建议落在 $25–40/年" data-dt="旅迹 Pro · 建议价格带" data-dn="对标 Stippl/Polarsteps 的亲和力定价而非头部溢价；买断制选项可参考 Tripsy 承接订阅疲劳用户。" data-ds="来源：本报告综合判断（编辑建议，非调研数据）">
+          <rect x="340" y="330" width="140" height="16" fill="none" stroke="#C05B33" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <text x="30" y="343" font-size="12.5" font-weight="700" fill="#C05B33">旅迹建议带</text>
+          <text x="490" y="343" font-family="Menlo,monospace" font-size="10.5" fill="#C05B33">$25–40（建议，随地区浮动）</text>
+        </g>
+      </svg>
+      <div class="f-src">来源：<b>调研文件 01 · 各官网 2025–2026 公开定价</b>；欧元按约 1.08 折算仅作量级参考；订阅价格随地区与促销浮动</div>
+    </div>
+  </div>
+
+  <div class="wide">
+    <h3>付费墙原则：三条铁律</h3>
+    <div class="principles" style="grid-template-columns:1fr">
+      <div class="principle"><span class="p-no">A</span><div><b>旅行中刚需功能不做付费墙。</b><p>离线、完整行程详情、数据导出是旅行场景刚需，用作口碑点而非付费墙——Wanderlog、Layla、Tripsy 把这类功能锁付费均是最大投诉来源。</p></div></div>
+      <div class="principle"><span class="p-no">B</span><div><b>免费版本身要「够用」。</b><p>学 Wanderlog：无限行程、协作、记账均免费，降低获客门槛；免费、无广告、不强制绑手机号是圆周旅迹口碑爆发的原因之一。</p></div></div>
+      <div class="principle"><span class="p-no">C</span><div><b>情感变现独立于功能订阅。</b><p>手账长图/PDF、实体旅行书（参考 Polarsteps €36–150）面向「想留下点什么」的时刻收费——为回忆付费的意愿与为工具付费的意愿是两回事。</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 11 风险与对策 ================= -->
+<section id="risks">
+  <div class="wide">
+    <div class="sec-no">SECTION 11 · RISKS</div>
+    <h2>风险与对策</h2>
+    <div class="sec-under"></div>
+    <p class="dek">前六条沿用 PRD V1.0 风险表；后三条来自本轮调研新发现——每一条都对应一个竞品的真实教训。</p>
+    <div class="twrap">
+      <table class="dt">
+        <thead><tr><th style="width:34%">风险</th><th>对策</th><th style="width:14%">来源</th></tr></thead>
+        <tbody>
+          <tr><td>手动同步体验有损耗</td><td>文案引导「修改后重新分享」；V2 上云同步彻底解决</td><td class="mono small">PRD V1.0</td></tr>
+          <tr><td>照片占存储</td><td>强制压缩 + 存储预警 + 引导清理</td><td class="mono small">PRD V1.0</td></tr>
+          <tr><td>免安装版数据易丢</td><td>引导用户尽快迁移到 RN App；导出码即备份手段</td><td class="mono small">PRD V1.0</td></tr>
+          <tr><td>RN 工程首次运行可能有环境小问题</td><td>已准备远程调试支持，按报错逐条修复</td><td class="mono small">PRD V1.0</td></tr>
+          <tr><td>单人项目维护精力</td><td>功能边界严格收敛，不做社区/交易等重功能</td><td class="mono small">PRD V1.0</td></tr>
+          <tr><td>性能与稳定性是隐形生死线</td><td>竞品大量差评源于卡顿与同步故障；轻量架构 + 本地优先是天然优势，应在传播中显性强调</td><td class="mono small">调研 01 · 洞察 4</td></tr>
+          <tr><td><b>独立工具停服信任危机</b>（穷游停更、圈子账本停服、氢气球下线——用户被「伤过」）</td><td><b>数据可导出（行程单/手账 PDF）与「永不清空回忆」的承诺本身成为信任卖点</b></td><td class="mono small">调研 02 · 启示 6</td></tr>
+          <tr><td><b>AI 幻觉损害信任</b>（90% AI 行程有错）</td><td><b>AI 只做草稿</b>：交付物必须可手动微调，校验责任留给用户；不把 AI 当主角宣传</td><td class="mono small">调研 01/02</td></tr>
+          <tr><td><b>付费墙位置错误招致反感</b>（Layla/Wanderlog/Tripsy 中招）</td><td>「规划免费、带走收费」；旅行中刚需功能（离线、导出）免费</td><td class="mono small">调研 01 · 洞察 2</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 12 附录 ================= -->
+<section id="appendix">
+  <div class="wide">
+    <div class="sec-no">SECTION 12 · APPENDIX</div>
+    <h2>附录 · 信息来源</h2>
+    <div class="sec-under"></div>
+    <p class="dek">以下来源整合自三份调研文件；类别标注：A 官方/一手 · B 媒体报道 · C 第三方评测 · D 行业报告/调查。</p>
+
+    <h3>国际竞品（调研文件 01）</h3>
+    <div class="src-list"><ol>
+      <li><span class="src-cat a">A</span>Wanderlog — wanderlog.com</li>
+      <li><span class="src-cat a">A</span>TripIt — tripit.com</li>
+      <li><span class="src-cat a">A</span>Mindtrip — mindtrip.ai</li>
+      <li><span class="src-cat a">A</span>Layla — layla.ai</li>
+      <li><span class="src-cat a">A</span>Stippl — stippl.io</li>
+      <li><span class="src-cat a">A</span>Polarsteps — polarsteps.com</li>
+      <li><span class="src-cat a">A</span>Tripsy — tripsy.app</li>
+      <li><span class="src-cat a">A</span>Lambus — lambus.com</li>
+      <li><span class="src-cat a">A</span>Tripomatic（原 Sygic Travel）— tripomatic.com</li>
+      <li><span class="src-cat a">A</span>Tripadvisor — tripadvisor.com</li>
+      <li><span class="src-cat d">D</span>Deloitte 2025 调查（生成式 AI 旅行规划渗透率，转引）；Amadeus 调查（千禧/Z 世代 AI 使用率，转引）</li>
+    </ol></div>
+
+    <h3>国内市场（调研文件 02）</h3>
+    <div class="src-list"><ol>
+      <li><span class="src-cat b">B</span>携程 AI 行程助手 — 潮新闻报道、新浪财经·酒旅 AI 入口分析</li>
+      <li><span class="src-cat b">B</span>马蜂窝 AI — 中国日报网·2025 数博会、北京商报</li>
+      <li><span class="src-cat b">B</span>穷游行程助手回归 — 潮新闻、新浪财经</li>
+      <li><span class="src-cat c">C</span>十六番 — 人人都是产品经理·产品分析、应用宝官网页</li>
+      <li><span class="src-cat a">A</span>圆周旅迹 — 官网 pitravel.cn；<span class="src-cat c">C</span>少数派评测、人人都是产品经理·竞品分析</li>
+      <li><span class="src-cat d">D</span>小红书攻略现象 — 36 氪·2024Q1 旅游消费趋势报告、财新周刊</li>
+      <li><span class="src-cat b">B</span>AI 旅行规划实测 — 中国旅游新闻网、东方财富网</li>
+      <li><span class="src-cat a">A</span>片羽集 — App Store / 应用宝产品页</li>
+      <li><span class="src-cat c">C</span>AA 记账 — 少数派·多人记账 App 对比、豆瓣·圈子账本停服讨论</li>
+    </ol></div>
+
+    <h3>设计与动效（调研文件 03）</h3>
+    <div class="src-list"><ol>
+      <li><span class="src-cat a">A</span>Google The Keyword / Android Developers Blog — Material 3 Expressive 发布与设计原则（2025.05 / 2025.08）</li>
+      <li><span class="src-cat a">A</span>Apple Developer「Behind the Design: Flighty」及 The Points Guy Flighty 评测 — Apple Design Award 2023</li>
+      <li><span class="src-cat c">C</span>CreativeAlive「Micro-interactions in 2026」等 — 弹簧/时长/触感原则</li>
+      <li><span class="src-cat a">A</span>Rive Blog（Duolingo 创意技术团队）、Mobbin Awards（Duolingo）— 庆祝动画与触感</li>
+      <li><span class="src-cat c">C</span>SolGuruz / Line25 等 2026 趋势报告 — Bento、玻璃拟态 2.0、超大字体、暗色优先</li>
+      <li><span class="src-cat c">C</span>Figma 100 Color Combinations、McGuinness Media — 大地色/暖中性色/衬线复兴</li>
+      <li><span class="src-cat c">C</span>Sorom、FlowTrip、Wandrly 2025–2026 旅行 App 横评 — Wanderlog / TripIt / Polarsteps / Stippl 格局</li>
+    </ol></div>
+
+    <h3>产品文档</h3>
+    <div class="src-list"><ol>
+      <li><span class="src-cat a">A</span>旅迹 TripLine PRD V1.0（产品验证沉淀：三轮验证、8 轮真实使用反馈迭代）</li>
+      <li><span class="src-cat a">A</span>旅迹 TripLine 产品简报（定位、信息架构、设计硬规则）</li>
+    </ol></div>
+
+    <footer>
+      <p class="f-note">数据来源：2025–2026 公开资料，订阅价格随地区浮动。本报告为内部产品汇报文档，竞品坐标与建议价格带为编辑评估，引用前建议二次核实。</p>
+      <div class="f-mono">旅迹 TRIPLINE · 行业调研与产品汇报 V2.0 · 2026-09-13 · 从收拾行李，到安全回家</div>
+    </footer>
+  </div>
+</section>
+</main>
+
+<!-- ================= 钻取卡片 ================= -->
+<div id="drill" role="dialog" aria-label="数据依据">
+  <div class="d-top"><span class="d-kick">DRILL-DOWN · 数据依据</span><button class="d-x" id="drill-x" aria-label="关闭">✕</button></div>
+  <div class="d-val" id="drill-val"></div>
+  <div class="d-title" id="drill-title"></div>
+  <div class="d-note" id="drill-note"></div>
+  <div class="d-src" id="drill-src"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- 阅读进度条 ---------- */
+var prog = document.getElementById("progress");
+function onScrollProg(){
+  var h = document.documentElement;
+  var max = h.scrollHeight - h.clientHeight;
+  prog.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + "%";
+}
+document.addEventListener("scroll", onScrollProg, {passive:true});
+onScrollProg();
+
+/* ---------- 滚动高亮导航 ---------- */
+var links = Array.prototype.slice.call(document.querySelectorAll("#navlist a"));
+var secs = links.map(function(a){ return document.querySelector(a.getAttribute("href")); });
+var spy = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(!e.isIntersecting) return;
+    var id = "#" + e.target.id;
+    links.forEach(function(a){ a.classList.toggle("on", a.getAttribute("href") === id); });
+  });
+}, {rootMargin:"-20% 0px -70% 0px", threshold:0});
+secs.forEach(function(s){ if(s) spy.observe(s); });
+
+/* ---------- 章节入场（仅装饰性强调，内容常显） ---------- */
+var io = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); }
+  });
+}, {threshold:0.08});
+document.querySelectorAll("section, .fig").forEach(function(el){ io.observe(el); });
+
+/* ---------- 钻取卡片 ---------- */
+var drill = document.getElementById("drill");
+var dVal = document.getElementById("drill-val");
+var dTitle = document.getElementById("drill-title");
+var dNote = document.getElementById("drill-note");
+var dSrc = document.getElementById("drill-src");
+function showDrill(el){
+  dVal.textContent = el.getAttribute("data-dv") || "";
+  dTitle.textContent = el.getAttribute("data-dt") || "";
+  dNote.textContent = el.getAttribute("data-dn") || "";
+  dSrc.textContent = el.getAttribute("data-ds") || "";
+  drill.classList.add("show");
+}
+function hideDrill(){ drill.classList.remove("show"); }
+document.querySelectorAll("[data-drill]").forEach(function(el){
+  el.addEventListener("click", function(ev){ ev.stopPropagation(); showDrill(el); });
+});
+document.getElementById("drill-x").addEventListener("click", hideDrill);
+document.addEventListener("click", function(ev){
+  if(drill.classList.contains("show") && !drill.contains(ev.target)) hideDrill();
+});
+document.addEventListener("keydown", function(ev){ if(ev.key === "Escape") hideDrill(); });
+
+/* ---------- 竞品对比表：点击行固定高亮 ---------- */
+document.querySelectorAll("#cmp-table tbody tr").forEach(function(tr){
+  tr.addEventListener("click", function(){
+    var was = tr.classList.contains("pin");
+    document.querySelectorAll("#cmp-table tbody tr").forEach(function(r){ r.classList.remove("pin"); });
+    if(!was) tr.classList.add("pin");
+  });
+});
+})();
+</script>
+</body>
+</html>

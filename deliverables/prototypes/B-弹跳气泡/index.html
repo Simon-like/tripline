@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅迹 TripLine · 方向 B「弹跳气泡」Expressive Pop 原型</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   设计方向 B：「弹跳气泡」Expressive Pop
+   Material 3 Expressive 基因 + Duolingo 式多巴胺
+   ============================================================ */
+:root{
+  --bg:#F4F2FB;            /* 淡紫白 */
+  --primary:#5B4FE9;       /* 电紫罗兰 */
+  --primary-deep:#4536c9;
+  --orange:#FF6B4A;        /* 日落橙 */
+  --yellow:#FFC93C;        /* 明黄 · 庆祝专用 */
+  --green:#22C55E;         /* 完成绿 */
+  --ink:#17132B;
+  --muted:#6E6A85;
+  --card:#FFFFFF;
+  --line:#E7E3F5;
+  --pink:#F472B6;
+  --blue:#3B82F6;
+  --spring:cubic-bezier(.34,1.56,.64,1);   /* 弹簧 · 带过冲 */
+  --spring-soft:cubic-bezier(.2,1,.2,1);   /* 受控回弹 */
+  --snap:cubic-bezier(1,0,0,1);            /* 急收 */
+  --font:'Plus Jakarta Sans','MiSans','HarmonyOS Sans SC','PingFang SC','Noto Sans SC','Source Han Sans SC','Microsoft YaHei',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;overflow:hidden;
+  font-style:normal;
+}
+/* 页面背景装饰：多巴胺色块 + 网点 */
+.bgfx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bgfx .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5}
+.bgfx .b1{width:520px;height:520px;background:#DCD5FA;top:-160px;left:-120px}
+.bgfx .b2{width:420px;height:420px;background:#FFD9CE;bottom:-140px;right:8%}
+.bgfx .b3{width:300px;height:300px;background:#FFF0C8;top:20%;right:-100px}
+.bgfx .dots{position:absolute;inset:0;
+  background-image:radial-gradient(#D9D2F0 1.4px,transparent 1.4px);
+  background-size:26px 26px;opacity:.5}
+.bgfx .ring{position:absolute;border:3px solid rgba(91,79,233,.14);border-radius:50%}
+.bgfx .r1{width:180px;height:180px;left:6%;bottom:10%}
+.bgfx .r2{width:90px;height:90px;right:14%;top:8%;border-color:rgba(255,107,74,.18)}
+
+.stage{position:relative;z-index:1;display:flex;align-items:center;gap:56px;flex-wrap:wrap;justify-content:center;padding:24px}
+
+/* ============ 手机框 ============ */
+.phone{
+  width:414px;height:876px;flex:none;
+  background:linear-gradient(160deg,#221d3a,#0e0c1a);
+  border-radius:56px;padding:12px;
+  box-shadow:0 40px 90px -20px rgba(23,19,43,.45),0 0 0 2px rgba(255,255,255,.06) inset;
+  position:relative;
+}
+.phone::after{ /* 侧边按键 */
+  content:"";position:absolute;right:-3px;top:180px;width:4px;height:84px;
+  background:#0e0c1a;border-radius:0 4px 4px 0;
+}
+.phone::before{
+  content:"";position:absolute;left:-3px;top:150px;width:4px;height:52px;
+  background:#0e0c1a;border-radius:4px 0 0 4px;
+}
+.screen{
+  position:relative;width:390px;height:852px;
+  background:var(--bg);border-radius:44px;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.notch{
+  position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  width:118px;height:32px;background:#0e0c1a;border-radius:20px;z-index:80;
+}
+.statusbar{
+  height:52px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 30px 6px;font-size:14px;font-weight:800;letter-spacing:.02em;z-index:70;
+  position:relative;
+}
+.statusbar .sic{display:flex;gap:6px;align-items:center}
+
+/* ============ 视图切换 ============ */
+.view{
+  position:absolute;inset:52px 0 0 0;display:flex;flex-direction:column;
+  transition:transform .5s var(--spring),opacity .3s ease;
+}
+#view-home{transform:translateX(0);opacity:1}
+#view-detail{transform:translateX(100%);opacity:0;pointer-events:none}
+body.in-detail #view-home{transform:translateX(-14%);opacity:0;pointer-events:none}
+body.in-detail #view-detail{transform:translateX(0);opacity:1;pointer-events:auto}
+
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 18px 120px;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+
+/* ============ 通用组件 ============ */
+.pill{
+  display:inline-flex;align-items:center;gap:5px;
+  border-radius:999px;padding:5px 12px;font-size:12px;font-weight:800;
+  line-height:1;
+}
+.btn{
+  border:none;cursor:pointer;font-family:var(--font);font-weight:800;
+  border-radius:999px;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  transition:transform .18s var(--spring),box-shadow .25s ease,background .2s ease;
+  user-select:none;
+}
+.btn:active{transform:scale(.93)}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 8px 20px -6px rgba(91,79,233,.55)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 26px -8px rgba(91,79,233,.6)}
+.btn-ghost{background:#fff;color:var(--primary);border:2px solid var(--line)}
+.btn-ghost:hover{border-color:var(--primary)}
+
+/* 级联弹入 */
+@keyframes popIn{
+  0%{opacity:0;transform:translateY(18px) scale(.82)}
+  60%{opacity:1;transform:translateY(-3px) scale(1.03)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+.pop{animation:popIn .55s var(--spring) both}
+
+/* 长按抖动编辑态 */
+@keyframes jiggle{
+  0%{transform:rotate(-1.4deg) scale(1.01)}
+  50%{transform:rotate(1.2deg) scale(1.02)}
+  100%{transform:rotate(-1.4deg) scale(1.01)}
+}
+.jiggling .bcard{animation:jiggle .18s ease-in-out infinite}
+.jiggling .bcard:nth-child(2n){animation-delay:-.06s}
+.jiggling .bcard:nth-child(3n){animation-delay:-.11s}
+
+/* ============ 首页 ============ */
+.home-head{padding:14px 4px 16px}
+.home-head .hi{font-size:14px;font-weight:700;color:var(--muted)}
+.home-head h1{font-size:34px;font-weight:800;letter-spacing:-.01em;margin-top:4px;display:flex;align-items:center;gap:10px}
+.home-head h1 .logo-dot{
+  width:34px;height:34px;border-radius:12px;background:var(--primary);color:#fff;
+  display:inline-grid;place-items:center;font-size:17px;
+  animation:logobounce 3.2s var(--spring) infinite;
+}
+@keyframes logobounce{0%,88%,100%{transform:rotate(0) scale(1)}92%{transform:rotate(-8deg) scale(1.12)}96%{transform:rotate(5deg) scale(1.05)}}
+
+.bento{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bcard{
+  background:var(--card);border-radius:24px;padding:16px;position:relative;
+  cursor:pointer;overflow:hidden;
+  transition:transform .25s var(--spring),box-shadow .25s ease;
+  box-shadow:0 2px 10px -4px rgba(23,19,43,.08);
+}
+.bcard:hover{transform:translateY(-3px) scale(1.015);box-shadow:0 14px 30px -12px rgba(91,79,233,.28)}
+.bcard:active{transform:scale(.97)}
+.bcard .cap{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.06em}
+.span2{grid-column:span 2}
+
+/* 大旅程卡 */
+.trip-hero{
+  grid-column:span 2;min-height:172px;color:#fff;border-radius:28px;
+  background:linear-gradient(135deg,#6a5cf0 0%,#5B4FE9 45%,#4330c8 100%);
+  display:flex;flex-direction:column;justify-content:flex-end;
+}
+.trip-hero .scene{position:absolute;inset:0;pointer-events:none}
+.trip-hero .th-top{position:absolute;top:14px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:center}
+.trip-hero .pill-status{background:rgba(255,255,255,.2);color:#fff;backdrop-filter:blur(4px)}
+.trip-hero .pill-date{background:var(--yellow);color:var(--ink)}
+.trip-hero h2{font-size:26px;font-weight:800;position:relative;letter-spacing:-.01em}
+.trip-hero .sub{font-size:13px;font-weight:700;opacity:.85;margin-top:5px;position:relative}
+.trip-hero .go{
+  position:absolute;right:16px;bottom:16px;width:42px;height:42px;border-radius:50%;
+  background:#fff;color:var(--primary);display:grid;place-items:center;font-size:19px;font-weight:800;
+  transition:transform .3s var(--spring);
+}
+.trip-hero:hover .go{transform:scale(1.15) rotate(-8deg)}
+
+/* 倒计时卡 */
+.count-card{background:linear-gradient(160deg,#FF7A59,#FF6B4A 60%,#f0512f);color:#fff}
+.count-card .cap{color:rgba(255,255,255,.85)}
+.count-card .bignum{font-size:56px;font-weight:800;line-height:1;letter-spacing:-.03em;margin:8px 0 2px}
+.count-card .unit{font-size:15px;font-weight:800;opacity:.9}
+.count-card .plane{position:absolute;right:-6px;top:8px;font-size:34px;opacity:.9;transform:rotate(12deg)}
+
+/* 清单环形进度卡 */
+.ring-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.ring-wrap{position:relative;width:88px;height:88px}
+.ring-wrap svg{transform:rotate(-90deg)}
+.ring-wrap .rc{fill:none;stroke-width:9;stroke-linecap:round}
+.ring-wrap .rbg{stroke:#EDEAF8}
+.ring-wrap .rfg{stroke:var(--green);transition:stroke-dashoffset .7s var(--spring-soft)}
+.ring-num{position:absolute;inset:0;display:grid;place-items:center;font-size:21px;font-weight:800}
+.ring-card .cap{text-align:center}
+
+/* 账本摘要卡 */
+.money-card .row{display:flex;align-items:baseline;gap:6px;margin:6px 0 10px}
+.money-card .spent{font-size:30px;font-weight:800;letter-spacing:-.02em}
+.money-card .budget{font-size:14px;font-weight:700;color:var(--muted)}
+.mbar{height:12px;border-radius:999px;background:#EDEAF8;overflow:hidden;position:relative}
+.mbar>i{
+  display:block;height:100%;border-radius:999px;
+  background:linear-gradient(90deg,var(--primary),#8a7bff);
+  transition:width .7s var(--spring-soft);
+}
+.money-card .foot{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;font-weight:800;color:var(--muted)}
+
+.home-actions{display:flex;gap:12px;margin-top:14px;padding:0 2px}
+.home-actions .btn{flex:1;height:52px;font-size:15px}
+
+/* ============ 详情页头部 ============ */
+.detail-head{
+  flex:none;display:flex;align-items:center;gap:10px;padding:8px 16px 12px;z-index:20;
+}
+.back-btn{
+  width:40px;height:40px;border-radius:50%;background:#fff;border:2px solid var(--line);
+  font-size:18px;font-weight:800;color:var(--ink);cursor:pointer;flex:none;
+  transition:transform .2s var(--spring),border-color .2s;
+}
+.back-btn:hover{border-color:var(--primary);color:var(--primary)}
+.back-btn:active{transform:scale(.88)}
+.detail-head .tt{flex:1;min-width:0}
+.detail-head .tt h2{font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.detail-head .tt p{font-size:11px;font-weight:700;color:var(--muted);margin-top:1px}
+.pill-status.h{background:#EFE9FF;color:var(--primary)}
+
+/* ============ Tab 页 ============ */
+.tabpage{display:none;flex-direction:column;flex:1;min-height:0}
+.tabpage.on{display:flex}
+.page-title{padding:6px 4px 14px}
+.page-title h3{font-size:30px;font-weight:800;letter-spacing:-.01em}
+.page-title p{font-size:13px;font-weight:700;color:var(--muted);margin-top:3px}
+
+/* ---- 清单 Tab ---- */
+.ck-progress{
+  background:linear-gradient(120deg,#5B4FE9,#7c6bff);border-radius:22px;color:#fff;
+  padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:14px;
+}
+.ck-progress .cknum{font-size:32px;font-weight:800;line-height:1;letter-spacing:-.02em}
+.ck-progress .cklab{font-size:12px;font-weight:800;opacity:.85}
+.ck-progress .ckbar{flex:1;height:10px;border-radius:999px;background:rgba(255,255,255,.25);overflow:hidden}
+.ck-progress .ckbar>i{display:block;height:100%;background:var(--yellow);border-radius:999px;transition:width .6s var(--spring-soft)}
+.ck-cat{background:#fff;border-radius:22px;padding:14px 14px 8px;margin-bottom:12px}
+.ck-cat-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ck-cat-h .ce{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;font-size:17px;flex:none}
+.ck-cat-h b{font-size:15px;font-weight:800}
+.ck-cat-h .cnt{margin-left:auto;font-size:11px;font-weight:800;color:var(--muted);background:#F3F1FA;border-radius:999px;padding:4px 10px}
+.ck-item{
+  display:flex;align-items:center;gap:12px;padding:11px 2px;cursor:pointer;user-select:none;
+  border-bottom:1.5px dashed #EFEDF8;
+}
+.ck-item:last-of-type{border-bottom:none}
+.ck-box{
+  width:27px;height:27px;border-radius:50%;border:2.5px solid #C9C3E4;flex:none;
+  display:grid;place-items:center;background:#fff;position:relative;
+  transition:background .25s var(--spring),border-color .25s,transform .3s var(--spring);
+}
+.ck-box svg{width:14px;height:14px}
+.ck-box svg path{stroke:#fff;stroke-width:3.4;fill:none;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:22;stroke-dashoffset:22;transition:stroke-dashoffset .3s ease .05s}
+.ck-item.done .ck-box{background:var(--green);border-color:var(--green);transform:scale(1.08)}
+.ck-item.done .ck-box svg path{stroke-dashoffset:0}
+.ck-item .ct{font-size:14.5px;font-weight:700;transition:color .25s}
+.ck-item.done .ct{color:var(--muted);text-decoration:line-through;text-decoration-color:#C9C3E4;text-decoration-thickness:2px}
+.ck-add{
+  display:flex;gap:8px;margin:8px 0 6px;
+}
+.ck-add input{
+  flex:1;border:2px solid var(--line);border-radius:999px;padding:9px 16px;font-family:var(--font);
+  font-size:13px;font-weight:700;outline:none;background:#FBFAFE;transition:border-color .2s;
+}
+.ck-add input:focus{border-color:var(--primary)}
+.ck-add .btn{padding:0 18px;font-size:13px}
+.ck-add-toggle{
+  width:100%;border:none;background:none;color:var(--primary);font-family:var(--font);
+  font-weight:800;font-size:13px;padding:9px 0 10px;cursor:pointer;text-align:left;
+}
+
+/* ---- 行程 Tab ---- */
+.day-pills{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.day-pill{
+  border:2px solid var(--line);background:#fff;border-radius:999px;padding:8px 16px;
+  font-family:var(--font);font-weight:800;font-size:13px;color:var(--muted);cursor:pointer;
+  transition:all .3s var(--spring);
+}
+.day-pill.on{background:var(--ink);border-color:var(--ink);color:#fff;transform:scale(1.05)}
+.timeline{position:relative;padding-left:34px}
+.timeline::before{
+  content:"";position:absolute;left:15px;top:14px;bottom:14px;width:4px;border-radius:4px;
+  background:repeating-linear-gradient(180deg,#DAD4F0 0 8px,transparent 8px 14px);
+}
+.tl-item{position:relative;margin-bottom:14px}
+.tl-ball{
+  position:absolute;left:-34px;top:12px;width:34px;height:34px;border-radius:50%;
+  display:grid;place-items:center;color:#fff;font-size:15px;font-weight:800;z-index:2;
+  border:3.5px solid var(--bg);box-shadow:0 4px 10px -3px rgba(23,19,43,.25);
+  transition:transform .35s var(--spring),background .3s;
+}
+.tl-item.done .tl-ball{transform:scale(1.12)}
+.tl-item.cancelled .tl-ball{background:#B9B4CC!important;transform:scale(.92)}
+.tl-card{
+  background:#fff;border-radius:20px;padding:13px 14px;display:flex;align-items:center;gap:12px;
+  transition:transform .25s var(--spring),opacity .3s;
+}
+.tl-item.cancelled .tl-card{opacity:.55}
+.tl-time{font-size:13px;font-weight:800;color:var(--primary);flex:none;width:44px}
+.tl-name{flex:1;font-size:14.5px;font-weight:800}
+.tl-item.cancelled .tl-name{text-decoration:line-through;color:var(--muted)}
+.tl-state{
+  border:none;cursor:pointer;font-family:var(--font);font-weight:800;font-size:11.5px;
+  border-radius:999px;padding:7px 13px;flex:none;transition:all .3s var(--spring);white-space:nowrap;
+}
+.tl-state:active{transform:scale(.9)}
+.tl-state.s0{background:#EFE9FF;color:var(--primary)}
+.tl-state.s1{background:var(--green);color:#fff;transform:scale(1.06)}
+.tl-state.s2{background:#EFEDF6;color:var(--muted)}
+.tl-empty{
+  background:#fff;border:2.5px dashed #DAD4F0;border-radius:22px;padding:26px;text-align:center;
+  color:var(--muted);font-weight:800;font-size:14px;
+}
+.tl-empty .big{font-size:32px;display:block;margin-bottom:6px}
+
+/* ---- 账本 Tab ---- */
+.ledger-hero{
+  background:linear-gradient(135deg,#17132B,#2d2650);color:#fff;border-radius:26px;
+  padding:18px;margin-bottom:12px;position:relative;overflow:hidden;
+}
+.ledger-hero .coin{position:absolute;right:-14px;top:-18px;font-size:86px;opacity:.16;transform:rotate(-14deg)}
+.ledger-hero .lab{font-size:11px;font-weight:800;letter-spacing:.08em;opacity:.7}
+.ledger-hero .big{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+.ledger-hero .sub{font-size:13px;font-weight:700;opacity:.8;font-variant-numeric:tabular-nums}
+.ledger-hero .mbar{background:rgba(255,255,255,.18);margin-top:12px}
+.ledger-hero .mbar>i{background:linear-gradient(90deg,var(--yellow),var(--orange))}
+.cat-bars{background:#fff;border-radius:22px;padding:16px;margin-bottom:12px}
+.cat-bars h4{font-size:14px;font-weight:800;margin-bottom:12px}
+.cat-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.cat-row .cl{font-size:12px;font-weight:800;width:58px;flex:none;white-space:nowrap}
+.cat-row .ctr{flex:1;height:16px;border-radius:999px;background:#F3F1FA;overflow:hidden}
+.cat-row .ctr>i{display:block;height:100%;border-radius:999px;transition:width .7s var(--spring-soft)}
+.cat-row .cv{font-size:12px;font-weight:800;width:52px;text-align:right;font-variant-numeric:tabular-nums}
+.entries{background:#fff;border-radius:22px;padding:14px 16px;margin-bottom:12px}
+.entries h4{font-size:14px;font-weight:800;margin-bottom:4px}
+.entry{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1.5px dashed #EFEDF8}
+.entry:last-child{border-bottom:none}
+.entry .ei{width:36px;height:36px;border-radius:13px;display:grid;place-items:center;font-size:16px;flex:none}
+.entry .en{flex:1}
+.entry .en b{font-size:14px;font-weight:800;display:block}
+.entry .en span{font-size:11px;font-weight:700;color:var(--muted)}
+.entry .ea{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+.add-money{
+  width:100%;height:56px;font-size:16px;margin-bottom:10px;
+  background:var(--orange);color:#fff;box-shadow:0 10px 22px -8px rgba(255,107,74,.6);
+}
+.add-money:hover{transform:translateY(-2px)}
+.money-form{background:#fff;border-radius:22px;padding:16px;margin-bottom:12px;display:none}
+.money-form.open{display:block;animation:popIn .45s var(--spring) both}
+.money-form h4{font-size:14px;font-weight:800;margin-bottom:10px}
+.mf-amt{display:flex;align-items:center;gap:6px;border:2px solid var(--line);border-radius:18px;padding:10px 16px;margin-bottom:10px}
+.mf-amt span{font-size:22px;font-weight:800;color:var(--muted)}
+.mf-amt input{border:none;outline:none;font-family:var(--font);font-size:26px;font-weight:800;width:100%;font-variant-numeric:tabular-nums}
+.mf-cats{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.mf-cat{
+  border:2px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;
+  font-family:var(--font);font-weight:800;font-size:12px;color:var(--muted);cursor:pointer;transition:all .25s var(--spring);
+}
+.mf-cat.on{background:var(--primary);border-color:var(--primary);color:#fff;transform:scale(1.06)}
+.mf-note{
+  width:100%;border:2px solid var(--line);border-radius:16px;padding:10px 14px;font-family:var(--font);
+  font-size:13px;font-weight:700;outline:none;margin-bottom:12px;background:#FBFAFE;
+}
+.mf-note:focus{border-color:var(--primary)}
+.mf-actions{display:flex;gap:10px}
+.mf-actions .btn{flex:1;height:46px;font-size:14px}
+
+/* ---- 手账 Tab ---- */
+.composer{background:#fff;border-radius:22px;padding:14px;margin-bottom:14px}
+.composer textarea{
+  width:100%;border:none;outline:none;resize:none;font-family:var(--font);
+  font-size:15px;font-weight:700;min-height:64px;background:transparent;color:var(--ink);
+}
+.composer textarea::placeholder{color:#B9B4CC}
+.tag-row{display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap}
+.tag-chip{
+  border:2px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px;
+  font-family:var(--font);font-weight:800;font-size:12px;color:var(--muted);cursor:pointer;transition:all .25s var(--spring);
+}
+.tag-chip.on{transform:scale(1.07)}
+.tag-chip.on[data-tag="推荐"]{background:#E8FAF0;border-color:var(--green);color:#0f9d4e}
+.tag-chip.on[data-tag="避雷"]{background:#FFEDE8;border-color:var(--orange);color:var(--orange)}
+.tag-chip.on[data-tag="美食"]{background:#FFF6DE;border-color:var(--yellow);color:#b98a00}
+.publish-btn{margin-left:auto;padding:9px 20px;font-size:13px;background:var(--primary);color:#fff}
+.jnote{background:#fff;border-radius:22px;padding:15px;margin-bottom:12px}
+.jnote .jh{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.jnote .jt{font-size:11px;font-weight:800;color:var(--muted)}
+.jnote .jtag{font-size:10.5px;font-weight:800;border-radius:999px;padding:3px 10px}
+.jtag.tj{background:#E8FAF0;color:#0f9d4e}
+.jtag.lb{background:#FFEDE8;color:var(--orange)}
+.jtag.ms{background:#FFF6DE;color:#b98a00}
+.jnote .jb{font-size:14.5px;font-weight:700;line-height:1.55}
+.jimgs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.jimg{border-radius:16px;height:104px;overflow:hidden;position:relative}
+.jimg svg{display:block;width:100%;height:100%}
+.jimg .cap{
+  position:absolute;left:8px;bottom:8px;background:rgba(23,19,43,.55);color:#fff;
+  font-size:10px;font-weight:800;border-radius:999px;padding:3px 9px;backdrop-filter:blur(3px);
+}
+
+/* ---- 返程 Tab ---- */
+.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.sum-card{border-radius:22px;padding:16px;color:#fff;position:relative;overflow:hidden}
+.sum-card .sv{font-size:32px;font-weight:800;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+.sum-card .sl{font-size:12px;font-weight:800;opacity:.85;margin-top:3px}
+.sum-card .se{position:absolute;right:10px;top:10px;font-size:24px;opacity:.85}
+.sc1{background:linear-gradient(140deg,#5B4FE9,#8a7bff)}
+.sc2{background:linear-gradient(140deg,#FF6B4A,#ff8f6b)}
+.sc3{background:linear-gradient(140deg,#22C55E,#4ade80)}
+.sc4{background:linear-gradient(140deg,#f0b429,#FFC93C)}
+.share-btn{
+  width:100%;height:58px;font-size:16px;margin-top:4px;
+  background:linear-gradient(120deg,var(--primary),#8a7bff);color:#fff;
+  box-shadow:0 12px 26px -8px rgba(91,79,233,.6);
+}
+
+/* ============ 悬浮药丸 Tab 栏 ============ */
+.tabbar{
+  position:absolute;left:16px;right:16px;bottom:16px;height:70px;z-index:50;
+  background:rgba(255,255,255,.78);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-radius:999px;display:flex;align-items:center;padding:0 8px;
+  box-shadow:0 14px 34px -10px rgba(23,19,43,.22),0 0 0 1.5px rgba(255,255,255,.7) inset;
+}
+.tab{
+  flex:1;border:none;background:none;cursor:pointer;font-family:var(--font);
+  display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;position:relative;
+}
+.tab .ico{
+  width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:18px;
+  transition:border-radius .45s var(--spring),background .3s,transform .45s var(--spring),color .2s;
+  color:var(--muted);
+}
+.tab .tl{font-size:10px;font-weight:800;color:var(--muted);transition:color .25s}
+.tab.active .ico{border-radius:14px;transform:scale(1.1) rotate(-4deg);color:#fff}
+.tab.active .tl{color:var(--ink)}
+.tab-glide{
+  position:absolute;bottom:7px;left:0;width:14px;height:5px;border-radius:999px;
+  background:var(--ink);transition:transform .5s var(--spring);opacity:0;
+}
+#view-detail .tab-glide{opacity:1}
+
+/* ============ 弹层 / Toast / 特效层 ============ */
+.overlay{
+  position:absolute;inset:0;z-index:90;background:rgba(23,19,43,.42);backdrop-filter:blur(4px);
+  display:none;align-items:flex-end;justify-content:center;
+}
+.overlay.show{display:flex}
+.sheet{
+  width:100%;background:#fff;border-radius:30px 30px 0 0;padding:22px 20px 30px;
+  animation:sheetUp .5s var(--spring) both;max-height:78%;overflow-y:auto;
+}
+@keyframes sheetUp{
+  0%{transform:translateY(60%) scale(.94);opacity:0}
+  60%{transform:translateY(-2%) scale(1.01);opacity:1}
+  100%{transform:translateY(0) scale(1);opacity:1}
+}
+.sheet h3{font-size:22px;font-weight:800;margin-bottom:4px}
+.sheet .sh-sub{font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:14px}
+.share-text{
+  background:#F6F4FD;border:2px dashed #DAD4F0;border-radius:18px;padding:14px;
+  font-size:13px;font-weight:700;line-height:1.7;margin-bottom:10px;
+}
+.export-code{
+  background:var(--ink);color:var(--yellow);border-radius:14px;padding:12px 14px;
+  font-size:13px;font-weight:800;letter-spacing:.06em;text-align:center;margin-bottom:16px;
+  font-variant-numeric:tabular-nums;
+}
+.sheet .btn{width:100%;height:50px;font-size:15px}
+.sheet textarea{
+  width:100%;border:2px solid var(--line);border-radius:16px;padding:12px;font-family:var(--font);
+  font-size:13px;font-weight:700;min-height:96px;outline:none;resize:none;background:#FBFAFE;margin-bottom:14px;
+}
+.sheet textarea:focus{border-color:var(--primary)}
+
+#toast{
+  position:absolute;left:50%;bottom:104px;transform:translateX(-50%) translateY(20px) scale(.9);
+  background:var(--ink);color:#fff;font-size:13px;font-weight:800;border-radius:999px;
+  padding:11px 20px;z-index:95;opacity:0;pointer-events:none;white-space:nowrap;
+  transition:transform .4s var(--spring),opacity .25s;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+
+#fx{position:absolute;inset:0;pointer-events:none;z-index:85;overflow:hidden}
+/* 粒子迸发（勾选） */
+.pt{position:absolute;width:8px;height:8px;border-radius:3px;opacity:1;animation:ptFly var(--dur,.6s) var(--spring-soft) forwards}
+@keyframes ptFly{
+  0%{transform:translate(0,0) rotate(0) scale(1);opacity:1}
+  70%{opacity:1}
+  100%{transform:translate(var(--tx),var(--ty)) rotate(var(--rot)) scale(.15);opacity:0}
+}
+/* 彩带（庆祝） */
+.cf{position:absolute;top:-24px;width:9px;height:15px;border-radius:2.5px;animation:cfall var(--dur,1s) cubic-bezier(.25,.6,.4,1) forwards}
+@keyframes cfall{
+  0%{transform:translate(0,0) rotate(0);opacity:1}
+  85%{opacity:1}
+  100%{transform:translate(var(--dx),var(--fall)) rotate(var(--rot));opacity:0}
+}
+
+/* 数字滚动 */
+.rolling{font-variant-numeric:tabular-nums}
+
+/* ============ 设计 token 标注 ============ */
+.tokens{width:280px;flex:none}
+.tokens h2{font-size:20px;font-weight:800;letter-spacing:-.01em;margin-bottom:4px}
+.tokens .dir{font-size:12px;font-weight:800;color:var(--primary);letter-spacing:.1em;margin-bottom:16px}
+.tok-card{
+  background:rgba(255,255,255,.75);backdrop-filter:blur(10px);border:1.5px solid #fff;
+  border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0 8px 24px -12px rgba(23,19,43,.15);
+}
+.tok-card h5{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.12em;margin-bottom:10px}
+.swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sw{display:flex;flex-direction:column;gap:5px}
+.sw i{height:34px;border-radius:11px;display:block;box-shadow:inset 0 0 0 1.5px rgba(23,19,43,.06)}
+.sw span{font-size:9.5px;font-weight:700;color:var(--muted);line-height:1.3}
+.tok-font{font-size:12px;font-weight:700;line-height:1.7;color:var(--ink)}
+.tok-font b{font-weight:800}
+.tok-motion{font-size:12px;font-weight:700;line-height:1.8}
+.tok-motion code{
+  background:#EFE9FF;color:var(--primary);border-radius:6px;padding:1px 6px;font-size:10.5px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700;
+}
+.tok-motion .mt{display:flex;align-items:center;gap:8px;margin-top:6px}
+.tok-motion .mt i{
+  width:26px;height:26px;border-radius:50%;background:var(--orange);flex:none;
+  animation:demoBounce 1.6s var(--spring) infinite;
+}
+@keyframes demoBounce{0%,100%{transform:translateY(0) scale(1)}30%{transform:translateY(-12px) scale(1.08,.92)}55%{transform:translateY(0) scale(.94,1.06)}70%{transform:translateY(-4px) scale(1)}}
+
+/* ============ 减弱动效降级 ============ */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important;transition-delay:0ms!important;
+  }
+  .jiggling .bcard{animation:none;outline:3px solid var(--orange)}
+}
+</style>
+</head>
+<body>
+
+<div class="bgfx">
+  <div class="dots"></div>
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+  <div class="ring r1"></div><div class="ring r2"></div>
+</div>
+
+<div class="stage">
+  <!-- ================= 手机框 ================= -->
+  <div class="phone">
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="statusbar">
+        <span>9:41</span>
+        <span class="sic">
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="2.5" width="3" height="9.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="15" height="8" rx="2" fill="currentColor"/><path d="M23.5 4v4c1-.3 1.5-1 1.5-2s-.5-1.7-1.5-2z" fill="currentColor" opacity=".5"/></svg>
+        </span>
+      </div>
+
+      <!-- ========== 首页 ========== -->
+      <section class="view" id="view-home">
+        <div class="scroll" id="home-scroll">
+          <div class="home-head pop">
+            <p class="hi">晚上好，准备好出发了吗 👋</p>
+            <h1><span class="logo-dot">✦</span>我的旅程</h1>
+          </div>
+
+          <div class="bento" id="bento">
+            <!-- 大旅程卡 -->
+            <div class="bcard trip-hero" id="trip-hero">
+              <div class="scene">
+                <svg viewBox="0 0 360 172" preserveAspectRatio="none" style="width:100%;height:100%">
+                  <circle cx="308" cy="42" r="22" fill="#FFC93C" opacity=".95"/>
+                  <path d="M0 132 L70 70 L120 118 L180 56 L250 124 L310 84 L360 130 L360 172 L0 172 Z" fill="#4536c9" opacity=".55"/>
+                  <path d="M0 150 L60 104 L130 148 L210 96 L290 150 L360 118 L360 172 L0 172 Z" fill="#33268f" opacity=".7"/>
+                  <path d="M168 66 L180 56 L192 66 L186 62 L180 66 L174 62 Z" fill="#fff" opacity=".9"/>
+                  <path d="M58 82 L70 70 L82 82 L75 77 L70 81 L64 77 Z" fill="#fff" opacity=".75"/>
+                </svg>
+              </div>
+              <div class="th-top">
+                <span class="pill pill-status">⏳ 准备中</span>
+                <span class="pill pill-date">10.02 – 10.06</span>
+              </div>
+              <h2>香格里拉 · 5天4晚</h2>
+              <p class="sub">👫 和阿 May 同行 · 预算 ¥4,500</p>
+              <span class="go">→</span>
+            </div>
+
+            <!-- 倒计时卡 -->
+            <div class="bcard count-card" id="count-card">
+              <span class="plane">✈️</span>
+              <p class="cap">距出发还有</p>
+              <p class="bignum" id="countdown-num">12</p>
+              <p class="unit">天 · 冲鸭！</p>
+            </div>
+
+            <!-- 清单进度卡 -->
+            <div class="bcard ring-card" id="ring-card">
+              <div class="ring-wrap">
+                <svg width="88" height="88" viewBox="0 0 88 88">
+                  <circle class="rc rbg" cx="44" cy="44" r="38"></circle>
+                  <circle class="rc rfg" id="home-ring" cx="44" cy="44" r="38" stroke-dasharray="238.8" stroke-dashoffset="238.8"></circle>
+                </svg>
+                <div class="ring-num" id="home-ring-num">0%</div>
+              </div>
+              <p class="cap">打包进度<br><b id="home-ring-left" style="color:var(--ink);font-size:12px">还差 – 项</b></p>
+            </div>
+
+            <!-- 账本摘要卡 -->
+            <div class="bcard money-card span2" id="money-card">
+              <p class="cap">旅行账本</p>
+              <div class="row">
+                <span class="spent">¥<span class="rolling" id="home-spent">0</span></span>
+                <span class="budget">/ 预算 ¥<span id="home-budget">4,500</span></span>
+              </div>
+              <div class="mbar"><i id="home-mbar" style="width:0%"></i></div>
+              <div class="foot"><span id="home-mpct">已用 0%</span><span>3 笔记账</span></div>
+            </div>
+          </div>
+
+          <div class="home-actions">
+            <button class="btn btn-primary" id="btn-new-trip">＋ 新建旅程</button>
+            <button class="btn btn-ghost" id="btn-import">📋 粘贴导入</button>
+          </div>
+          <p style="text-align:center;font-size:11px;font-weight:700;color:var(--muted);margin-top:16px">
+            长按卡片试试「抖动编辑态」· 点击大卡片进入旅程
+          </p>
+        </div>
+      </section>
+
+      <!-- ========== 旅程详情 ========== -->
+      <section class="view" id="view-detail">
+        <div class="detail-head">
+          <button class="back-btn" id="btn-back">‹</button>
+          <div class="tt">
+            <h2>香格里拉 · 5天4晚</h2>
+            <p>10.02 – 10.06 · 和阿 May 同行</p>
+          </div>
+          <span class="pill pill-status h">⏳ 准备中</span>
+        </div>
+
+        <!-- 清单 Tab -->
+        <div class="tabpage on" id="tab-checklist">
+          <div class="scroll">
+            <div class="page-title pop"><h3>行前清单 🧳</h3><p>逐项勾选，收拾行李不焦虑</p></div>
+            <div class="ck-progress pop">
+              <div>
+                <div class="cknum"><span id="ck-done">0</span>/<span id="ck-total">0</span></div>
+                <div class="cklab" id="ck-left">还差 – 项</div>
+              </div>
+              <div class="ckbar"><i id="ck-bar" style="width:0%"></i></div>
+            </div>
+            <div id="ck-list"></div>
+          </div>
+        </div>
+
+        <!-- 行程 Tab -->
+        <div class="tabpage" id="tab-plan">
+          <div class="scroll">
+            <div class="page-title"><h3>每日行程 🗺️</h3><p>点状态胶囊打卡：计划 → 已去 → 已取消</p></div>
+            <div class="day-pills" id="day-pills"></div>
+            <div class="timeline" id="timeline"></div>
+          </div>
+        </div>
+
+        <!-- 账本 Tab -->
+        <div class="tabpage" id="tab-ledger">
+          <div class="scroll">
+            <div class="page-title"><h3>旅行账本 💰</h3><p>轻量记账，不超支就是胜利</p></div>
+            <div class="ledger-hero pop">
+              <span class="coin">🪙</span>
+              <p class="lab">剩余可用</p>
+              <p class="big">¥<span class="rolling" id="lg-left">0</span></p>
+              <p class="sub">已花 ¥<span class="rolling" id="lg-spent">0</span> / 预算 ¥4,500</p>
+              <div class="mbar"><i id="lg-bar" style="width:0%"></i></div>
+            </div>
+            <div class="cat-bars">
+              <h4>分类占比</h4>
+              <div id="cat-bars"></div>
+            </div>
+            <div class="entries">
+              <h4>流水</h4>
+              <div id="entry-list"></div>
+            </div>
+            <div class="money-form" id="money-form">
+              <h4>记一笔 ✍️</h4>
+              <div class="mf-amt"><span>¥</span><input id="mf-amt" type="number" min="0" step="1" placeholder="0"></div>
+              <div class="mf-cats" id="mf-cats"></div>
+              <input class="mf-note" id="mf-note" placeholder="备注一下，比如「牦牛肉干」">
+              <div class="mf-actions">
+                <button class="btn btn-ghost" id="mf-cancel">取消</button>
+                <button class="btn btn-primary" id="mf-save" style="background:var(--orange);box-shadow:0 8px 18px -6px rgba(255,107,74,.55)">保存 ✓</button>
+              </div>
+            </div>
+            <button class="btn add-money" id="btn-add-money">＋ 记一笔</button>
+          </div>
+        </div>
+
+        <!-- 手账 Tab -->
+        <div class="tabpage" id="tab-journal">
+          <div class="scroll">
+            <div class="page-title"><h3>旅行手账 📔</h3><p>记录此刻，照片只存本机</p></div>
+            <div class="composer pop">
+              <textarea id="jr-input" placeholder="此刻在想什么？记下这瞬间…"></textarea>
+              <div class="tag-row" id="jr-tags">
+                <button class="tag-chip on" data-tag="推荐">👍 推荐</button>
+                <button class="tag-chip" data-tag="避雷">⚡ 避雷</button>
+                <button class="tag-chip" data-tag="美食">🍜 美食</button>
+                <button class="btn publish-btn" id="jr-publish">发布 ✦</button>
+              </div>
+            </div>
+            <div id="jr-feed"></div>
+          </div>
+        </div>
+
+        <!-- 返程 Tab -->
+        <div class="tabpage" id="tab-return">
+          <div class="scroll">
+            <div class="page-title"><h3>返程准备 ✈️</h3><p>从收拾行李，到安全回家</p></div>
+            <div class="ck-cat pop">
+              <div class="ck-cat-h">
+                <span class="ce" style="background:#EFE9FF">🏠</span><b>返程检查清单</b>
+                <span class="cnt" id="rt-cnt">0/5</span>
+              </div>
+              <div id="rt-list"></div>
+            </div>
+            <div class="page-title" style="padding-top:8px"><h3 style="font-size:22px">旅行总结 ✨</h3></div>
+            <div class="sum-grid" id="sum-grid">
+              <div class="sum-card sc1 pop"><span class="se">🗺️</span><p class="sv" id="sum-plan">0</p><p class="sl">完成行程</p></div>
+              <div class="sum-card sc2 pop"><span class="se">💰</span><p class="sv">¥<span id="sum-cost">0</span></p><p class="sl">总花费</p></div>
+              <div class="sum-card sc3 pop"><span class="se">📔</span><p class="sv" id="sum-notes">0</p><p class="sl">见闻记录</p></div>
+              <div class="sum-card sc4 pop"><span class="se">📷</span><p class="sv" id="sum-photos">0</p><p class="sl">照片</p></div>
+            </div>
+            <button class="btn share-btn" id="btn-share">✦ 生成分享文案</button>
+            <p style="text-align:center;font-size:11px;font-weight:700;color:var(--muted);margin:14px 0 4px">
+              分享文案内嵌导出码 · 朋友粘贴整段即可导入
+            </p>
+          </div>
+        </div>
+
+        <!-- 悬浮药丸 Tab 栏 -->
+        <nav class="tabbar" id="tabbar">
+          <div class="tab-glide" id="tab-glide"></div>
+          <button class="tab active" data-tab="checklist" style="--c:var(--primary)"><span class="ico">🧳</span><span class="tl">清单</span></button>
+          <button class="tab" data-tab="plan" style="--c:var(--orange)"><span class="ico">🗺️</span><span class="tl">行程</span></button>
+          <button class="tab" data-tab="ledger" style="--c:var(--yellow)"><span class="ico">💰</span><span class="tl">账本</span></button>
+          <button class="tab" data-tab="journal" style="--c:var(--pink)"><span class="ico">📔</span><span class="tl">手账</span></button>
+          <button class="tab" data-tab="return" style="--c:var(--green)"><span class="ico">✈️</span><span class="tl">返程</span></button>
+        </nav>
+      </section>
+
+      <!-- 弹层：分享文案 -->
+      <div class="overlay" id="ov-share">
+        <div class="sheet">
+          <h3>分享这趟旅程 ✦</h3>
+          <p class="sh-sub">朋友复制整段文案，在首页「粘贴导入」即可看到同款旅程</p>
+          <div class="share-text" id="share-text"></div>
+          <div class="export-code" id="export-code"></div>
+          <button class="btn btn-primary" id="btn-copy-share">📋 复制文案</button>
+          <button class="btn btn-ghost" id="btn-close-share" style="margin-top:10px">关闭</button>
+        </div>
+      </div>
+
+      <!-- 弹层：粘贴导入 -->
+      <div class="overlay" id="ov-import">
+        <div class="sheet">
+          <h3>粘贴导入 📋</h3>
+          <p class="sh-sub">粘贴朋友分享的整段文案，自动识别内嵌导出码</p>
+          <textarea id="import-input" placeholder="把分享文案粘贴到这里…"></textarea>
+          <button class="btn btn-primary" id="btn-do-import">识别并导入</button>
+          <button class="btn btn-ghost" id="btn-close-import" style="margin-top:10px">取消</button>
+        </div>
+      </div>
+
+      <div id="fx"></div>
+      <div id="toast"></div>
+    </div>
+  </div>
+
+  <!-- ================= 设计 token 标注 ================= -->
+  <aside class="tokens">
+    <p class="dir">DIRECTION B · 弹跳气泡</p>
+    <h2>Expressive Pop<br>设计令牌</h2>
+    <div class="tok-card">
+      <h5>COLOR · 色板</h5>
+      <div class="swatches">
+        <div class="sw"><i style="background:#5B4FE9"></i><span>#5B4FE9<br>电紫罗兰</span></div>
+        <div class="sw"><i style="background:#FF6B4A"></i><span>#FF6B4A<br>日落橙</span></div>
+        <div class="sw"><i style="background:#FFC93C"></i><span>#FFC93C<br>明黄·庆祝</span></div>
+        <div class="sw"><i style="background:#22C55E"></i><span>#22C55E<br>完成绿</span></div>
+        <div class="sw"><i style="background:#F4F2FB"></i><span>#F4F2FB<br>淡紫白底</span></div>
+        <div class="sw"><i style="background:#17132B"></i><span>#17132B<br>墨色文字</span></div>
+      </div>
+    </div>
+    <div class="tok-card">
+      <h5>TYPE · 字体</h5>
+      <p class="tok-font">
+        中文 <b>MiSans / HarmonyOS Sans SC / PingFang SC</b> Semibold–Bold<br>
+        西文 <b>Plus Jakarta Sans</b> Bold / ExtraBold<br>
+        标题 30–34px 超粗 · 数字 tabular-nums
+      </p>
+    </div>
+    <div class="tok-card">
+      <h5>MOTION · 动效签名</h5>
+      <p class="tok-motion">
+        弹簧缓动 <code>cubic-bezier(.34,1.56,.64,1)</code><br>
+        级联弹入 40ms 间隔 · 庆祝上限 600ms<br>
+        勾选 morph + 粒子迸发 · 彩带庆祝<br>
+        Tab 图标形状变形 圆 ↔ 圆角方<br>
+        长按卡片抖动编辑态 · 数字滚动
+      </p>
+      <div class="mt"><i></i><span>万物皆可弹，强度匹配重要性</span></div>
+    </div>
+  </aside>
+</div>
+
+<script>
+/* ============================================================
+   旅迹 TripLine · 方向 B 原型逻辑
+   状态由 JS 内存对象管理，所有交互即时联动
+   ============================================================ */
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+/* ---------------- 状态 ---------------- */
+const state = {
+  checklist: [
+    { cat:'证件', emoji:'🪪', bg:'#EFE9FF', items:[
+      {t:'身份证', done:true}, {t:'学生证 · 门票优惠', done:false}, {t:'银行卡', done:true} ]},
+    { cat:'交通', emoji:'🚄', bg:'#E3F0FF', items:[
+      {t:'机票值机', done:true}, {t:'昆明转机接驳确认', done:false} ]},
+    { cat:'电子', emoji:'🔌', bg:'#FFF6DE', items:[
+      {t:'充电宝', done:true}, {t:'相机 + 存储卡', done:false}, {t:'转换插头', done:false} ]},
+    { cat:'药品', emoji:'💊', bg:'#FFEDE8', items:[
+      {t:'防晒霜 SPF50+', done:false}, {t:'氧气瓶预订', done:true}, {t:'感冒药 · 肠胃药', done:false} ]},
+    { cat:'衣物', emoji:'🧥', bg:'#E8FAF0', items:[
+      {t:'冲锋衣', done:false}, {t:'保暖内衣', done:false} ]},
+  ],
+  days: [
+    { label:'Day 1', date:'10.02', items:[
+      {time:'09:30', name:'飞昆明转机', state:0},
+      {time:'14:00', name:'抵达香格里拉', state:0},
+      {time:'16:00', name:'独克宗古城', state:0},
+      {time:'19:00', name:'藏餐 · 牦牛火锅', state:0} ]},
+    { label:'Day 2', date:'10.03', items:[
+      {time:'08:30', name:'松赞林寺 · 晨雾', state:0},
+      {time:'13:00', name:'普达措国家公园', state:0},
+      {time:'18:30', name:'古城夜市扫街', state:0} ]},
+    { label:'Day 3', date:'10.04', items:[] },
+    { label:'Day 4', date:'10.05', items:[] },
+    { label:'Day 5 · 返程', date:'10.06', items:[] },
+  ],
+  curDay: 0,
+  ledger: {
+    budget: 4500,
+    entries: [
+      { name:'机票预付', cat:'交通', amt:860 },
+      { name:'客栈定金', cat:'住宿', amt:300 },
+      { name:'氧气瓶 ×2', cat:'其他', amt:120 },
+    ]
+  },
+  mfCat: '餐饮',
+  journal: [
+    { text:'转经筒下许了个愿 ✨ 风很大，经幡的声音像海浪。', tag:'推荐', time:'10.03 17:42', imgs:2 },
+  ],
+  jrTag: '推荐',
+  returnList: [
+    {t:'充电器 · 充电宝别落客栈', done:false},
+    {t:'房卡退还 · 押金拿回', done:false},
+    {t:'发票收好（机票/住宿）', done:false},
+    {t:'脏衣服单独装袋', done:false},
+    {t:'导照片 · 备份到电脑', done:false},
+  ],
+  celebrated: false,
+};
+
+const CATS = ['交通','住宿','餐饮','门票','购物','其他'];
+const CAT_STYLE = {
+  '交通':{c:'#5B4FE9', bg:'#EFE9FF', e:'🚄'},
+  '住宿':{c:'#3B82F6', bg:'#E3F0FF', e:'🏨'},
+  '餐饮':{c:'#FF6B4A', bg:'#FFEDE8', e:'🍜'},
+  '门票':{c:'#22C55E', bg:'#E8FAF0', e:'🎫'},
+  '购物':{c:'#F472B6', bg:'#FDE9F4', e:'🛍️'},
+  '其他':{c:'#f0b429', bg:'#FFF6DE', e:'🧺'},
+};
+const TL_COLORS = ['#5B4FE9','#FF6B4A','#22C55E','#f0b429','#F472B6','#3B82F6'];
+const TL_STATE_LABEL = ['计划','✓ 已去','已取消'];
+
+/* ---------------- 特效：粒子 + 彩带 ---------------- */
+const fx = $('#fx');
+const PT_COLORS = ['#5B4FE9','#FF6B4A','#FFC93C','#22C55E','#F472B6','#3B82F6'];
+
+function screenPos(el){
+  const s = $('.screen').getBoundingClientRect();
+  const r = el.getBoundingClientRect();
+  return { x: r.left - s.left + r.width/2, y: r.top - s.top + r.height/2 };
+}
+
+/* 勾选粒子迸发：CSS 变量驱动轨迹 + 旋转（translate/rotate 分离关键帧） */
+function burst(el, n = 9){
+  if (REDUCED) return;
+  const {x, y} = screenPos(el);
+  for (let i = 0; i < n; i++){
+    const p = document.createElement('i');
+    p.className = 'pt';
+    const ang = (Math.PI * 2 * i) / n + Math.random() * .7;
+    const dist = 26 + Math.random() * 30;
+    p.style.left = x - 4 + 'px';
+    p.style.top = y - 4 + 'px';
+    p.style.background = PT_COLORS[i % PT_COLORS.length];
+    p.style.borderRadius = i % 2 ? '50%' : '3px';
+    p.style.setProperty('--tx', Math.cos(ang) * dist + 'px');
+    p.style.setProperty('--ty', Math.sin(ang) * dist + 'px');
+    p.style.setProperty('--rot', (Math.random() * 400 - 200) + 'deg');
+    p.style.setProperty('--dur', (.45 + Math.random() * .25) + 's');
+    fx.appendChild(p);
+    setTimeout(() => p.remove(), 800);
+  }
+}
+
+/* 彩带庆祝：全屏飘落 600ms–1s；short 模式为打卡小彩带 */
+function confetti(short = false){
+  if (REDUCED) { toast(short ? '打卡成功 ✓' : '🎉 全部打包完成！'); return; }
+  const n = short ? 26 : 80;
+  const W = 390;
+  for (let i = 0; i < n; i++){
+    const c = document.createElement('i');
+    c.className = 'cf';
+    c.style.left = Math.random() * W + 'px';
+    c.style.background = PT_COLORS[i % PT_COLORS.length];
+    c.style.width = (6 + Math.random() * 6) + 'px';
+    c.style.height = (10 + Math.random() * 8) + 'px';
+    c.style.borderRadius = Math.random() > .5 ? '50%' : '2.5px';
+    c.style.setProperty('--dx', (Math.random() * 140 - 70) + 'px');
+    c.style.setProperty('--fall', (short ? 300 + Math.random() * 260 : 620 + Math.random() * 300) + 'px');
+    c.style.setProperty('--rot', (Math.random() * 900 - 450) + 'deg');
+    const dur = short ? .6 + Math.random() * .2 : .9 + Math.random() * .5;
+    c.style.setProperty('--dur', dur + 's');
+    c.style.animationDelay = (Math.random() * (short ? .06 : .22)) + 's';
+    fx.appendChild(c);
+    setTimeout(() => c.remove(), (dur + .4) * 1000);
+  }
+}
+
+/* ---------------- 数字滚动 ---------------- */
+function roll(el, to, prefix = '', dur = 550){
+  const from = parseInt(el.dataset.v || '0', 10);
+  el.dataset.v = to;
+  if (REDUCED || from === to){ el.textContent = prefix + to.toLocaleString(); return; }
+  const t0 = performance.now();
+  function tick(t){
+    const k = Math.min(1, (t - t0) / dur);
+    const e = 1 - Math.pow(1 - k, 3); /* ease-out cubic */
+    el.textContent = prefix + Math.round(from + (to - from) * e).toLocaleString();
+    if (k < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ---------------- Toast ---------------- */
+let toastTimer = null;
+function toast(msg){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+/* ---------------- 级联入场 ---------------- */
+function cascade(container){
+  const kids = container.querySelectorAll('.bcard, .ck-cat, .tl-item, .jnote, .sum-card, .pop-item');
+  kids.forEach((el, i) => {
+    el.classList.remove('pop');
+    el.style.animationDelay = '';
+    void el.offsetWidth;
+    if (!REDUCED){
+      el.style.animationDelay = Math.min(i * 40, 400) + 'ms';
+      el.classList.add('pop');
+    }
+  });
+}
+
+/* ============================================================
+   首页
+   ============================================================ */
+function checklistStats(){
+  let done = 0, total = 0;
+  state.checklist.forEach(c => c.items.forEach(it => { total++; if (it.done) done++; }));
+  return {done, total, left: total - done};
+}
+function ledgerStats(){
+  const spent = state.ledger.entries.reduce((s, e) => s + e.amt, 0);
+  return { spent, left: state.ledger.budget - spent, pct: Math.round(spent / state.ledger.budget * 100) };
+}
+
+function renderHome(){
+  const {done, total, left} = checklistStats();
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const ring = $('#home-ring');
+  ring.style.strokeDashoffset = (238.8 * (1 - pct / 100)).toFixed(1);
+  $('#home-ring-num').textContent = pct + '%';
+  $('#home-ring-left').textContent = left > 0 ? '还差 ' + left + ' 项' : '全部完成 🎉';
+  const {spent, pct: mpct} = ledgerStats();
+  roll($('#home-spent'), spent);
+  $('#home-mbar').style.width = mpct + '%';
+  $('#home-mpct').textContent = '已用 ' + mpct + '%';
+}
+
+$('#trip-hero').addEventListener('click', () => {
+  if ($('#bento').classList.contains('jiggling')) return;
+  document.body.classList.add('in-detail');
+  renderAll();
+  setTimeout(() => cascade($('#tab-checklist')), 120);
+});
+
+/* 长按进入抖动编辑态 */
+let pressTimer = null;
+$('#bento').addEventListener('pointerdown', e => {
+  if ($('#bento').classList.contains('jiggling')) return;
+  pressTimer = setTimeout(() => {
+    $('#bento').classList.add('jiggling');
+    toast('编辑态 · 再点一下退出');
+  }, 550);
+});
+['pointerup','pointerleave','pointercancel'].forEach(ev =>
+  $('#bento').addEventListener(ev, () => clearTimeout(pressTimer))
+);
+$('#bento').addEventListener('click', () => {
+  if ($('#bento').classList.contains('jiggling')){
+    $('#bento').classList.remove('jiggling');
+  }
+}, true);
+
+$('#btn-new-trip').addEventListener('click', () => toast('演示版：先逛逛香格里拉吧 ✈️'));
+$('#btn-import').addEventListener('click', () => $('#ov-import').classList.add('show'));
+$('#btn-close-import').addEventListener('click', () => $('#ov-import').classList.remove('show'));
+$('#btn-do-import').addEventListener('click', () => {
+  const v = $('#import-input').value;
+  if (v.includes('TL-')){ toast('识别到导出码，旅程已导入 ✓'); }
+  else { toast('未识别到导出码，检查是否复制完整'); }
+  $('#ov-import').classList.remove('show');
+  $('#import-input').value = '';
+});
+
+/* ============================================================
+   详情页 · Tab 切换（图标形状变形 + 指示器弹性滑动）
+   ============================================================ */
+const tabs = $$('#tabbar .tab');
+tabs.forEach((tab, i) => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const name = tab.dataset.tab;
+    $$('.tabpage').forEach(p => p.classList.remove('on'));
+    const page = $('#tab-' + name);
+    page.classList.add('on');
+    /* 指示器弹性滑动 */
+    const g = $('#tab-glide');
+    const w = tab.offsetWidth;
+    g.style.transform = 'translateX(' + (tab.offsetLeft + w / 2 - 15) + 'px)';
+    g.style.background = getComputedStyle(tab).getPropertyValue('--c');
+    if (name === 'return') renderReturn();
+    if (name === 'ledger') renderLedger(false);
+    cascade(page);
+  });
+});
+$('#btn-back').addEventListener('click', () => document.body.classList.remove('in-detail'));
+
+/* ============================================================
+   清单 Tab
+   ============================================================ */
+function renderChecklist(){
+  const box = $('#ck-list');
+  box.innerHTML = '';
+  state.checklist.forEach((cat, ci) => {
+    const done = cat.items.filter(i => i.done).length;
+    const div = document.createElement('div');
+    div.className = 'ck-cat';
+    div.innerHTML =
+      '<div class="ck-cat-h"><span class="ce" style="background:' + cat.bg + '">' + cat.emoji + '</span>' +
+      '<b>' + cat.cat + '</b><span class="cnt">' + done + '/' + cat.items.length + '</span></div>';
+    cat.items.forEach((it, ii) => {
+      const row = document.createElement('div');
+      row.className = 'ck-item' + (it.done ? ' done' : '');
+      row.innerHTML =
+        '<span class="ck-box"><svg viewBox="0 0 16 16"><path d="M2.5 8.5 L6.2 12 L13.5 4"/></svg></span>' +
+        '<span class="ct">' + it.t + '</span>';
+      row.addEventListener('click', () => toggleCheck(ci, ii, row));
+      div.appendChild(row);
+    });
+    /* 添加条目 */
+    const toggle = document.createElement('button');
+    toggle.className = 'ck-add-toggle';
+    toggle.textContent = '＋ 添加条目';
+    const addRow = document.createElement('div');
+    addRow.className = 'ck-add';
+    addRow.style.display = 'none';
+    addRow.innerHTML = '<input placeholder="新增「' + cat.cat + '」物品…"><button class="btn btn-primary">添加</button>';
+    toggle.addEventListener('click', () => {
+      addRow.style.display = addRow.style.display === 'none' ? 'flex' : 'none';
+      if (addRow.style.display === 'flex') addRow.querySelector('input').focus();
+    });
+    const doAdd = () => {
+      const inp = addRow.querySelector('input');
+      const v = inp.value.trim();
+      if (!v){ toast('先写点内容再添加'); return; }
+      cat.items.push({t: v, done: false});
+      renderChecklist(); renderHome();
+      toast('已加入「' + cat.cat + '」✓');
+    };
+    addRow.querySelector('button').addEventListener('click', doAdd);
+    addRow.querySelector('input').addEventListener('keydown', e => { if (e.key === 'Enter') doAdd(); });
+    div.appendChild(toggle);
+    div.appendChild(addRow);
+    box.appendChild(div);
+  });
+  updateCkProgress();
+}
+
+function updateCkProgress(){
+  const {done, total, left} = checklistStats();
+  $('#ck-done').textContent = done;
+  $('#ck-total').textContent = total;
+  $('#ck-left').textContent = left > 0 ? '还差 ' + left + ' 项' : '全部打包完成 🎉';
+  $('#ck-bar').style.width = (total ? done / total * 100 : 0) + '%';
+}
+
+function toggleCheck(ci, ii, row){
+  const it = state.checklist[ci].items[ii];
+  it.done = !it.done;
+  row.classList.toggle('done', it.done);
+  const cnt = row.closest('.ck-cat').querySelector('.cnt');
+  const cat = state.checklist[ci];
+  cnt.textContent = cat.items.filter(x => x.done).length + '/' + cat.items.length;
+  if (it.done){
+    burst(row.querySelector('.ck-box'));
+  }
+  updateCkProgress(); renderHome();
+  const {left} = checklistStats();
+  if (left === 0 && !state.celebrated){
+    state.celebrated = true;
+    setTimeout(() => { confetti(false); toast('🎉 行李全部打包完成！'); }, 250);
+  }
+  if (left > 0) state.celebrated = false;
+}
+
+/* ============================================================
+   行程 Tab
+   ============================================================ */
+function renderDayPills(){
+  const box = $('#day-pills');
+  box.innerHTML = '';
+  state.days.forEach((d, i) => {
+    const b = document.createElement('button');
+    b.className = 'day-pill' + (i === state.curDay ? ' on' : '');
+    b.textContent = d.label + ' · ' + d.date;
+    b.addEventListener('click', () => { state.curDay = i; renderDayPills(); renderTimeline(); });
+    box.appendChild(b);
+  });
+}
+
+function renderTimeline(){
+  const box = $('#timeline');
+  box.innerHTML = '';
+  const day = state.days[state.curDay];
+  if (!day.items.length){
+    box.innerHTML = '<div class="tl-empty pop"><span class="big">🌤️</span>' + day.label + ' 是留白日<br><span style="font-size:12px">睡到自然醒，自由探索古城</span></div>';
+    return;
+  }
+  day.items.forEach((it, i) => {
+    const div = document.createElement('div');
+    div.className = 'tl-item ' + (it.state === 1 ? 'done' : it.state === 2 ? 'cancelled' : '');
+    div.innerHTML =
+      '<span class="tl-ball" style="background:' + TL_COLORS[i % TL_COLORS.length] + '">' +
+        (it.state === 1 ? '✓' : it.state === 2 ? '✕' : (i + 1)) + '</span>' +
+      '<div class="tl-card">' +
+        '<span class="tl-time">' + it.time + '</span>' +
+        '<span class="tl-name">' + it.name + '</span>' +
+        '<button class="tl-state s' + it.state + '">' + TL_STATE_LABEL[it.state] + '</button>' +
+      '</div>';
+    const btn = div.querySelector('.tl-state');
+    btn.addEventListener('click', () => {
+      it.state = (it.state + 1) % 3;
+      if (it.state === 1){ confetti(true); }
+      renderTimeline(); renderReturnSummary();
+    });
+    box.appendChild(div);
+  });
+  cascade(box);
+}
+
+/* ============================================================
+   账本 Tab
+   ============================================================ */
+function renderLedger(animate = true){
+  const {spent, left, pct} = ledgerStats();
+  roll($('#lg-spent'), spent);
+  roll($('#lg-left'), left);
+  $('#lg-bar').style.width = Math.min(pct, 100) + '%';
+
+  /* 分类占比 */
+  const sums = {};
+  CATS.forEach(c => sums[c] = 0);
+  state.ledger.entries.forEach(e => sums[e.cat] += e.amt);
+  const max = Math.max(1, ...Object.values(sums));
+  $('#cat-bars').innerHTML = CATS.filter(c => sums[c] > 0).map(c =>
+    '<div class="cat-row"><span class="cl">' + CAT_STYLE[c].e + ' ' + c + '</span>' +
+    '<div class="ctr"><i style="width:0%;background:' + CAT_STYLE[c].c + '" data-w="' + Math.round(sums[c] / max * 100) + '"></i></div>' +
+    '<span class="cv">¥' + sums[c].toLocaleString() + '</span></div>'
+  ).join('') || '<p style="font-size:12px;font-weight:700;color:var(--muted)">还没有记账</p>';
+  requestAnimationFrame(() => requestAnimationFrame(() =>
+    $$('#cat-bars .ctr > i').forEach(el => el.style.width = el.dataset.w + '%')
+  ));
+
+  /* 流水 */
+  $('#entry-list').innerHTML = state.ledger.entries.map((e, i) =>
+    '<div class="entry"><span class="ei" style="background:' + CAT_STYLE[e.cat].bg + '">' + CAT_STYLE[e.cat].e + '</span>' +
+    '<div class="en"><b>' + e.name + '</b><span>' + e.cat + ' · 第 ' + (i + 1) + ' 笔</span></div>' +
+    '<span class="ea">-¥' + e.amt.toLocaleString() + '</span></div>'
+  ).reverse().join('');
+  if (animate) renderHome();
+}
+
+$('#btn-add-money').addEventListener('click', () => {
+  const f = $('#money-form');
+  f.classList.add('open');
+  $('#btn-add-money').style.display = 'none';
+  $('#mf-amt').focus();
+});
+$('#mf-cancel').addEventListener('click', closeMoneyForm);
+function closeMoneyForm(){
+  $('#money-form').classList.remove('open');
+  $('#btn-add-money').style.display = '';
+  $('#mf-amt').value = ''; $('#mf-note').value = '';
+}
+/* 分类选择 */
+(function(){
+  const box = $('#mf-cats');
+  CATS.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'mf-cat' + (c === state.mfCat ? ' on' : '');
+    b.textContent = CAT_STYLE[c].e + ' ' + c;
+    b.addEventListener('click', () => {
+      state.mfCat = c;
+      box.querySelectorAll('.mf-cat').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+    });
+    box.appendChild(b);
+  });
+})();
+$('#mf-save').addEventListener('click', () => {
+  const amt = parseFloat($('#mf-amt').value);
+  if (!amt || amt <= 0){ toast('先填一个金额吧'); return; }
+  const note = $('#mf-note').value.trim() || state.mfCat + '消费';
+  state.ledger.entries.push({ name: note, cat: state.mfCat, amt: Math.round(amt) });
+  closeMoneyForm();
+  renderLedger();
+  renderReturnSummary();
+  confetti(true);
+  toast('记账成功，剩余预算已更新 ✓');
+  const {left, pct} = ledgerStats();
+  if (left < 0) toast('⚠️ 已超支 ¥' + Math.abs(left).toLocaleString());
+  else if (pct > 80) toast('⚠️ 预算已用 ' + pct + '%，悠着点花');
+});
+
+/* ============================================================
+   手账 Tab
+   ============================================================ */
+const TAG_CLASS = { '推荐':'tj', '避雷':'lb', '美食':'ms' };
+const TAG_EMOJI = { '推荐':'👍', '避雷':'⚡', '美食':'🍜' };
+
+/* 代码绘制的图片占位：经幡 / 雪山日落 */
+function codeImg(kind){
+  if (kind === 0){
+    return '<svg viewBox="0 0 200 120" preserveAspectRatio="none">' +
+      '<rect width="200" height="120" fill="#7EA8F0"/>' +
+      '<rect y="70" width="200" height="50" fill="#5B4FE9"/>' +
+      '<path d="M0 78 L50 40 L90 72 L130 34 L170 70 L200 48 L200 120 L0 120Z" fill="#4536c9"/>' +
+      '<path d="M124 42 L130 34 L137 42 L132 39 L130 42 L127 39Z" fill="#fff"/>' +
+      '<path d="M10 20 Q60 34 110 22 T200 30" stroke="#FFC93C" stroke-width="3" fill="none"/>' +
+      '<g>' +
+      ['#FF6B4A','#FFC93C','#22C55E','#3B82F6','#F472B6','#FF6B4A','#22C55E','#FFC93C'].map((c,i) =>
+        '<path d="M' + (14 + i * 23) + ' ' + (21 + (i % 3)) + ' l8 1 l-4 9 z" fill="' + c + '"/>'
+      ).join('') + '</g></svg>';
+  }
+  return '<svg viewBox="0 0 200 120" preserveAspectRatio="none">' +
+    '<defs><linearGradient id="gs" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0" stop-color="#FFC93C"/><stop offset=".55" stop-color="#FF6B4A"/><stop offset="1" stop-color="#B03A8C"/></linearGradient></defs>' +
+    '<rect width="200" height="120" fill="url(#gs)"/>' +
+    '<circle cx="150" cy="38" r="17" fill="#FFF3D6"/>' +
+    '<path d="M0 92 L45 56 L85 88 L125 50 L165 86 L200 64 L200 120 L0 120Z" fill="#3A2270"/>' +
+    '<path d="M119 58 L125 50 L131 58 L127 55 L125 57 L122 55Z" fill="#fff"/></svg>';
+}
+
+function renderJournal(){
+  const feed = $('#jr-feed');
+  feed.innerHTML = '';
+  state.journal.forEach(j => {
+    const div = document.createElement('div');
+    div.className = 'jnote';
+    let imgs = '';
+    if (j.imgs){
+      imgs = '<div class="jimgs">' +
+        '<div class="jimg">' + codeImg(0) + '<span class="cap">独克宗 · 经幡</span></div>' +
+        '<div class="jimg">' + codeImg(1) + '<span class="cap">日落 · 雪山</span></div></div>';
+    }
+    div.innerHTML =
+      '<div class="jh"><span class="jtag ' + TAG_CLASS[j.tag] + '">' + TAG_EMOJI[j.tag] + ' ' + j.tag + '</span>' +
+      '<span class="jt">' + j.time + '</span></div>' +
+      '<p class="jb">' + j.text + '</p>' + imgs;
+    feed.appendChild(div);
+  });
+}
+
+$('#jr-tags').addEventListener('click', e => {
+  const chip = e.target.closest('.tag-chip');
+  if (!chip) return;
+  state.jrTag = chip.dataset.tag;
+  $$('#jr-tags .tag-chip').forEach(c => c.classList.remove('on'));
+  chip.classList.add('on');
+});
+$('#jr-publish').addEventListener('click', () => {
+  const v = $('#jr-input').value.trim();
+  if (!v){ toast('写点什么再发布吧'); return; }
+  const now = new Date();
+  const time = '10.0' + (2 + state.curDay) + ' ' +
+    String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  state.journal.unshift({ text: v, tag: state.jrTag, time, imgs: 0 });
+  $('#jr-input').value = '';
+  renderJournal();
+  const first = $('#jr-feed .jnote');
+  if (first && !REDUCED){
+    first.style.animationDelay = '0ms';
+    first.classList.add('pop');
+  }
+  burst($('#jr-publish'), 12);
+  renderReturnSummary();
+  toast('已收录进手账 📔');
+});
+
+/* ============================================================
+   返程 Tab
+   ============================================================ */
+function renderReturn(){
+  /* 返程清单 */
+  const list = $('#rt-list');
+  list.innerHTML = '';
+  state.returnList.forEach((it, i) => {
+    const row = document.createElement('div');
+    row.className = 'ck-item' + (it.done ? ' done' : '');
+    row.innerHTML =
+      '<span class="ck-box"><svg viewBox="0 0 16 16"><path d="M2.5 8.5 L6.2 12 L13.5 4"/></svg></span>' +
+      '<span class="ct">' + it.t + '</span>';
+    row.addEventListener('click', () => {
+      it.done = !it.done;
+      row.classList.toggle('done', it.done);
+      if (it.done) burst(row.querySelector('.ck-box'), 7);
+      const d = state.returnList.filter(x => x.done).length;
+      $('#rt-cnt').textContent = d + '/' + state.returnList.length;
+      if (d === state.returnList.length){ confetti(false); toast('🏠 安心回家！'); }
+    });
+    list.appendChild(row);
+  });
+  const d = state.returnList.filter(x => x.done).length;
+  $('#rt-cnt').textContent = d + '/' + state.returnList.length;
+  renderReturnSummary();
+}
+
+function renderReturnSummary(){
+  let done = 0, total = 0;
+  state.days.forEach(dy => dy.items.forEach(it => { total++; if (it.state === 1) done++; }));
+  const {spent} = ledgerStats();
+  const photos = state.journal.reduce((s, j) => s + (j.imgs || 0), 0);
+  $('#sum-plan').textContent = done + '/' + total;
+  $('#sum-cost').textContent = spent.toLocaleString();
+  $('#sum-notes').textContent = state.journal.length;
+  $('#sum-photos').textContent = photos;
+}
+
+$('#btn-share').addEventListener('click', () => {
+  let done = 0, total = 0;
+  state.days.forEach(dy => dy.items.forEach(it => { total++; if (it.state === 1) done++; }));
+  const {spent} = ledgerStats();
+  $('#share-text').textContent =
+    '【旅迹 TripLine】我刚完成了「香格里拉 · 5天4晚」✨ 打卡 ' + done + '/' + total +
+    ' 个行程，花费 ¥' + spent.toLocaleString() + '，记录 ' + state.journal.length +
+    ' 条见闻。复制本段文案，在旅迹 App 首页点「粘贴导入」，即可查看我的完整旅程 👇';
+  $('#export-code').textContent = '导出码 · TL-SGR-5D4N-' + done + 'P-' + spent + 'C-XY7Q';
+  $('#ov-share').classList.add('show');
+});
+$('#btn-close-share').addEventListener('click', () => $('#ov-share').classList.remove('show'));
+$('#btn-copy-share').addEventListener('click', () => {
+  const text = $('#share-text').textContent + '\n' + $('#export-code').textContent;
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(() => toast('文案已复制 📋')).catch(() => toast('已备好文案，请手动长按复制'));
+  } else {
+    toast('已备好文案，请手动长按复制');
+  }
+});
+$$('.overlay').forEach(ov => ov.addEventListener('click', e => {
+  if (e.target === ov) ov.classList.remove('show');
+}));
+
+/* ============================================================
+   初始化
+   ============================================================ */
+function renderAll(){
+  renderChecklist();
+  renderDayPills();
+  renderTimeline();
+  renderLedger(false);
+  renderJournal();
+  renderReturn();
+  renderHome();
+}
+renderAll();
+cascade($('#bento'));
+/* Tab 指示器初始位置 */
+requestAnimationFrame(() => {
+  const active = $('#tabbar .tab.active');
+  if (active) $('#tab-glide').style.transform =
+    'translateX(' + (active.offsetLeft + active.offsetWidth / 2 - 15) + 'px)';
+});
+</script>
+</body>
+</html>

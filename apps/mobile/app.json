@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "旅迹 TripLine",
+    "slug": "tripline",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "scheme": "tripline",
+    "platforms": ["ios", "android"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.tripline.mobile"
+    },
+    "android": {
+      "package": "app.tripline.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#F4F2FB",
+        "foregroundImage": "./assets/android-icon-foreground.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#F4F2FB",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#151221"
+          },
+          "imageWidth": 180
+        }
+      ]
+    ]
+  }
+}

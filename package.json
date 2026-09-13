@@ -1,0 +1,17 @@
+{
+  "name": "tripline",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.4",
+  "scripts": {
+    "dev": "turbo run dev",
+    "start": "pnpm --filter @tripline/mobile start",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test"
+  },
+  "devDependencies": {
+    "turbo": "catalog:",
+    "typescript": "catalog:"
+  }
+}

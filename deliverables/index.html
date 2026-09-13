@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅迹 TripLine · 交付总览</title>
+<style>
+  :root{
+    --paper:#FAF7F2; --card:#FFFFFF; --ink:#2B241D; --ink-md:#6E6255; --ink-lo:#A2937F;
+    --acc:#C96F4A; --acc-deep:#A8532F; --gold:#C9A227; --line:#E9DFCF;
+    --serif:"Noto Serif SC","Songti SC","STSong",serif;
+    --sans:-apple-system,"PingFang SC","Noto Sans SC","MiSans","Microsoft YaHei",sans-serif;
+    --mono:"SF Mono","JetBrains Mono",ui-monospace,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);min-height:100vh;
+    background-image:radial-gradient(rgba(201,111,74,.05) 1px,transparent 1px);background-size:26px 26px}
+  .wrap{max-width:880px;margin:0 auto;padding:72px 32px 80px}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.28em;color:var(--acc-deep);margin-bottom:18px}
+  h1{font-family:var(--serif);font-size:clamp(34px,5vw,52px);font-weight:900;line-height:1.2}
+  h1 em{font-style:normal;color:var(--acc)}
+  .sub{margin-top:14px;font-size:16px;color:var(--ink-md);line-height:1.8}
+  .rule{height:3px;width:72px;background:linear-gradient(90deg,var(--acc),var(--gold));margin:26px 0 40px}
+  .group{margin-bottom:44px}
+  .g-title{display:flex;align-items:baseline;gap:12px;margin-bottom:16px}
+  .g-title .no{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--ink-lo)}
+  .g-title h2{font-family:var(--serif);font-size:22px;font-weight:700}
+  a.card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:22px 24px;margin-bottom:12px;position:relative;
+    transition:transform .28s cubic-bezier(.34,1.56,.64,1),box-shadow .28s ease,border-color .2s ease}
+  a.card:hover{transform:translateY(-3px);border-color:var(--acc);box-shadow:0 14px 34px -14px rgba(168,83,47,.28)}
+  a.card:active{transform:scale(.985)}
+  .c-tag{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--acc-deep);
+    border:1px solid var(--acc);border-radius:999px;padding:2px 10px;margin-bottom:10px}
+  .c-name{font-family:var(--serif);font-size:19px;font-weight:700;margin-bottom:6px}
+  .c-desc{font-size:13.5px;color:var(--ink-md);line-height:1.7}
+  .c-go{position:absolute;right:22px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--ink-lo);transition:transform .25s ease,color .2s}
+  a.card:hover .c-go{transform:translateY(-50%) translateX(4px);color:var(--acc)}
+  .proto-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+  .proto-grid a.card{margin-bottom:0;padding:20px}
+  .swatches{display:flex;gap:4px;margin:10px 0 8px}
+  .swatches i{flex:1;height:18px;border-radius:4px}
+  .files{list-style:none}
+  .files li{margin-bottom:8px}
+  .files a{color:var(--ink-md);font-size:13.5px;text-decoration:none;border-bottom:1px dashed var(--ink-lo);padding-bottom:1px}
+  .files a:hover{color:var(--acc-deep);border-color:var(--acc)}
+  .files .fm{font-family:var(--mono);font-size:10px;color:var(--ink-lo);margin-right:8px;letter-spacing:.08em}
+  footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);font-family:var(--mono);
+    font-size:10.5px;letter-spacing:.12em;color:var(--ink-lo);line-height:2}
+  @media (prefers-reduced-motion:reduce){a.card,a.card .c-go{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">TRIPLINE · DELIVERABLES · 2026-09-13</div>
+  <h1>旅迹 <em>TripLine</em><br>交付总览</h1>
+  <p class="sub">从收拾行李，到安全回家。本页汇总本次产出的全部成果：一份行业调研与产品汇报，三份不同设计语言的高保真可交互原型，以及背后的调研底稿。</p>
+  <div class="rule"></div>
+
+  <div class="group">
+    <div class="g-title"><span class="no">01</span><h2>主报告 · 行业调研与产品汇报</h2></div>
+    <a class="card" href="./旅迹TripLine_行业调研与产品报告.html">
+      <span class="c-tag">HTML · 13 章节 · 可交互图表</span>
+      <div class="c-name">旅迹 TripLine 行业调研与产品报告 V2.0</div>
+      <div class="c-desc">执行摘要 / 市场格局 / 国际八竞品深析 / 国内市场分析 / 用户洞察与 2×2 机会象限 / 定位与差异化 / 功能架构 V2.0（M1–M12，每项增强附调研依据）/ 设计体系与动效 / 路线图 / 商业模式 / 风险对策 / 信息来源。</div>
+      <span class="c-go">→</span>
+    </a>
+  </div>
+
+  <div class="group">
+    <div class="g-title"><span class="no">02</span><h2>原型 · 同一架构，三副面孔</h2></div>
+    <div class="proto-grid">
+      <a class="card" href="./prototypes/A-纸上旅途/index.html">
+        <span class="c-tag">方向 A</span>
+        <div class="c-name">纸上旅途</div>
+        <div class="swatches"><i style="background:#FBF6EE"></i><i style="background:#C96F4A"></i><i style="background:#E8A87C"></i><i style="background:#7D9B76"></i><i style="background:#3A322B"></i></div>
+        <div class="c-desc">暖纸手账风 · 情感记录优先。奶油纸面、衬线标题、手绘打勾、盖章回弹、纸屑庆祝。</div>
+        <span class="c-go">→</span>
+      </a>
+      <a class="card" href="./prototypes/B-弹跳气泡/index.html">
+        <span class="c-tag">方向 B</span>
+        <div class="c-name">弹跳气泡</div>
+        <div class="swatches"><i style="background:#F4F2FB"></i><i style="background:#5B4FE9"></i><i style="background:#FF6B4A"></i><i style="background:#FFC93C"></i><i style="background:#22C55E"></i></div>
+        <div class="c-desc">Expressive Pop · 效率与乐趣优先。Bento 网格、超大字体、弹簧物理、粒子迸发、彩带庆祝。</div>
+        <span class="c-go">→</span>
+      </a>
+      <a class="card" href="./prototypes/C-夜航地图/index.html">
+        <span class="c-tag">方向 C</span>
+        <div class="c-name">夜航地图</div>
+        <div class="swatches"><i style="background:#0D1526"></i><i style="background:#16203A"></i><i style="background:#4EA8FF"></i><i style="background:#FFB454"></i><i style="background:#3DDC97"></i></div>
+        <div class="c-desc">Dark Atlas · 行程掌控优先。深海军蓝、发光航线逐段点亮、雷达脉冲打卡、仪表盘账本。</div>
+        <span class="c-go">→</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="g-title"><span class="no">03</span><h2>调研底稿（Markdown）</h2></div>
+    <ul class="files">
+      <li><span class="fm">BRIEF</span><a href="./research/00-产品简报.md">产品简报 —— 定位 / 信息架构 / 演示数据 / 设计硬规则</a></li>
+      <li><span class="fm">INTL</span><a href="./research/01-国际竞品调研.md">国际竞品调研 —— Wanderlog / TripIt / Mindtrip / Polarsteps 等八家</a></li>
+      <li><span class="fm">CN</span><a href="./research/02-国内市场调研.md">国内市场调研 —— 携程 / 圆周旅迹 / 穷游 / 小红书现象 / AA 记账空档</a></li>
+      <li><span class="fm">DESIGN</span><a href="./research/03-设计与动效趋势.md">设计与动效趋势 —— 三大方向设定 + 12 条动效原则</a></li>
+    </ul>
+  </div>
+
+  <div class="group">
+    <div class="g-title"><span class="no">04</span><h2>工程协作文档系统（移交 Codex 施工）</h2></div>
+    <a class="card" href="../AGENTS.md">
+      <span class="c-tag">入口协议 · 所有 agent 必读</span>
+      <div class="c-name">AGENTS.md · 仓库操作手册</div>
+      <div class="c-desc">技术栈速览、文档地图、七条施工铁律、禁区清单、设计红线速查。CLAUDE.md 已指向它，单一事实来源。</div>
+      <span class="c-go">→</span>
+    </a>
+    <ul class="files" style="margin-top:14px">
+      <li><span class="fm">START</span><a href="../docs/HANDOFF.md">HANDOFF —— 交接文档：现在什么情况、立即要做的事（M00 需求评审）</a></li>
+      <li><span class="fm">CTX</span><a href="../docs/CONTEXT.md">CONTEXT —— 项目上下文唯一事实源（定位 / 方向 B token 全表 / 术语表）</a></li>
+      <li><span class="fm">MOD</span><a href="../docs/MODULES.md">MODULES —— 需求模块五波拆解（M00–M17，核心优先）</a></li>
+      <li><span class="fm">ARCH</span><a href="../docs/ARCHITECTURE.md">ARCHITECTURE —— Monorepo 架构 / 数据层 / 双端兼容 10 条红线</a></li>
+      <li><span class="fm">PLAN</span><a href="../docs/ROADMAP.md">ROADMAP —— 五波施工图景 + 模块状态看板（唯一状态源）</a></li>
+      <li><span class="fm">FLOW</span><a href="../docs/WORKFLOW.md">WORKFLOW —— 多 agent 协作方案：评审门 / 防卡死九条 / 并行规则</a></li>
+      <li><span class="fm">LOG</span><a href="../docs/PROGRESS.md">PROGRESS —— 追加式交接日志（每会话结束必写）</a></li>
+      <li><span class="fm">TPL</span><a href="../docs/modules/README.md">modules/README —— 模块文档六段式模板（需求/调研/方案/任务/施工/验收）</a></li>
+      <li><span class="fm">M00</span><a href="../docs/modules/M00-foundation.md">M00 工程基座 —— 首个模块文档（需求段已预填，含 9 条 EARS）</a></li>
+      <li><span class="fm">ADR</span><a href="../docs/adr/0001-tech-stack.md">ADR 0001 —— 技术栈决策记录（Accepted，只增不改）</a></li>
+    </ul>
+  </div>
+
+  <footer>
+    旅迹 TRIPLINE · 行业调研与产品汇报 · V2.0<br>
+    数据来源：2025–2026 公开资料，订阅价格随地区与促销浮动 · 全部页面离线可开
+  </footer>
+</div>
+</body>
+</html>

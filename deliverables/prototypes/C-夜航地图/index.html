@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅迹 TripLine · 方向 C「夜航地图」Dark Atlas</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --bg:#0D1526;
+  --card:#16203A;
+  --card-hi:#1B2647;
+  --blue:#4EA8FF;
+  --amber:#FFB454;
+  --mint:#3DDC97;
+  --text:#EEF2FA;
+  --muted:#8A96B0;
+  --line:#24335A;
+  --stroke:rgba(78,168,255,.15);
+  --font-body:"Inter","PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
+  --font-disp:"Space Grotesk","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;
+  --font-mono:"Space Grotesk",ui-monospace,"SF Mono",Menlo,"PingFang SC","Noto Sans SC",monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--font-body);
+  background:#05080F;
+  background-image:
+    radial-gradient(900px 500px at 20% -10%,rgba(78,168,255,.10),transparent 60%),
+    radial-gradient(800px 600px at 90% 110%,rgba(255,180,84,.06),transparent 60%);
+  color:var(--text);
+  display:flex;align-items:center;justify-content:center;
+  padding:36px 20px;gap:56px;flex-wrap:wrap;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea{font-family:inherit}
+::selection{background:rgba(78,168,255,.35)}
+
+/* ============ STAGE / PHONE FRAME ============ */
+.stage{display:flex;align-items:center;gap:56px;flex-wrap:wrap;justify-content:center}
+.phone{
+  width:390px;height:844px;flex:0 0 auto;
+  border-radius:56px;padding:11px;
+  background:linear-gradient(160deg,#1a2338,#0a0f1c 40%,#141d33);
+  box-shadow:
+    0 0 0 1.5px #31406a,
+    0 0 0 4px #0b101f,
+    0 50px 100px rgba(0,0,0,.65),
+    0 0 90px rgba(78,168,255,.10);
+  position:relative;
+}
+.phone::before{ /* side button */
+  content:"";position:absolute;right:-4px;top:170px;width:4px;height:74px;
+  border-radius:2px;background:#2b3a61;
+}
+.screen{
+  position:relative;width:100%;height:100%;border-radius:46px;overflow:hidden;
+  background:var(--bg);display:flex;flex-direction:column;
+}
+.screen::after{ /* scanline texture */
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:90;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.016) 0 1px,transparent 1px 3px);
+}
+.screen::before{ /* top glow */
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(120% 40% at 50% -12%,rgba(78,168,255,.14),transparent 60%);
+}
+
+/* status bar + notch */
+.statusbar{
+  position:relative;z-index:5;height:48px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 26px 0;font-size:13px;font-weight:600;
+  font-family:var(--font-disp);
+}
+.notch{
+  position:absolute;left:50%;top:9px;transform:translateX(-50%);
+  width:112px;height:26px;border-radius:14px;background:#05080F;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.04);
+}
+.statusbar .sic{display:flex;gap:5px;align-items:center;color:var(--text)}
+
+/* ============ APP CHROME ============ */
+.views{position:relative;flex:1;overflow:hidden;z-index:2}
+.view{
+  position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;
+  padding:10px 18px 20px;display:none;scrollbar-width:none;
+}
+.view::-webkit-scrollbar{display:none}
+.view.active{display:block}
+@keyframes viewIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+.view.active{animation:viewIn .3s cubic-bezier(.2,.9,.25,1)}
+
+.view-head{display:flex;align-items:baseline;justify-content:space-between;margin:6px 2px 14px}
+.view-title{font-family:var(--font-disp);font-size:22px;font-weight:600;letter-spacing:.01em}
+.view-sub{font-size:11px;color:var(--muted);font-family:var(--font-mono);letter-spacing:.14em;text-transform:uppercase}
+
+.sec-label{
+  display:flex;align-items:center;gap:8px;
+  font-family:var(--font-mono);font-size:10px;font-weight:500;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--muted);
+  margin-bottom:10px;
+}
+.led{width:6px;height:6px;border-radius:50%;background:var(--blue);
+  box-shadow:0 0 8px var(--blue);flex:0 0 auto;
+  animation:ledPulse 1.6s ease-in-out infinite}
+.led.amber{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.led.mint{background:var(--mint);box-shadow:0 0 8px var(--mint)}
+@keyframes ledPulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* cards */
+.card{
+  background:linear-gradient(180deg,var(--card-hi),#131C34);
+  border:1px solid var(--stroke);
+  border-radius:16px;padding:16px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045),inset 0 0 24px rgba(78,168,255,.04),0 10px 28px rgba(3,8,20,.4);
+}
+.card + .card{margin-top:14px}
+.tappable{cursor:pointer;transition:transform .15s ease,border-color .15s ease}
+.tappable:active{transform:scale(.975);border-color:rgba(78,168,255,.4)}
+
+/* cascade entrance */
+.rise{opacity:0;transform:translateY(12px)}
+.rise.in{opacity:1;transform:none;transition:opacity .35s ease,transform .35s cubic-bezier(.2,.9,.3,1.2)}
+
+/* ============ HOME ============ */
+.mission{position:relative;overflow:hidden}
+.mission::after{
+  content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,180,84,.14),transparent 70%);pointer-events:none;
+}
+.mission-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.mission h2{font-size:20px;font-weight:600;letter-spacing:.01em}
+.mission .dates{margin-top:5px;font-size:12px;color:var(--muted);font-family:var(--font-mono);letter-spacing:.06em}
+.status-pill{
+  display:inline-flex;align-items:center;gap:7px;flex:0 0 auto;
+  font-size:12px;color:var(--amber);
+  border:1px solid rgba(255,180,84,.35);background:rgba(255,180,84,.08);
+  padding:5px 11px;border-radius:999px;
+}
+.countdown{display:flex;align-items:center;gap:16px;margin-top:16px;
+  border-top:1px dashed rgba(138,150,176,.22);padding-top:14px}
+.cd-num{
+  font-family:var(--font-mono);font-size:52px;font-weight:700;line-height:1;
+  color:var(--amber);font-variant-numeric:tabular-nums;
+  text-shadow:0 0 24px rgba(255,180,84,.45);
+}
+.cd-label{font-size:13px;line-height:1.5}
+.cd-label span{display:block;font-family:var(--font-mono);font-size:9px;letter-spacing:.22em;color:var(--muted);margin-top:3px;text-transform:uppercase}
+
+.map-card{padding:14px 14px 10px}
+#miniMap{width:100%;height:auto;display:block;border-radius:12px;background:#0A1120;border:1px solid rgba(36,51,90,.7)}
+.map-caption{display:flex;justify-content:space-between;align-items:center;margin-top:9px;font-size:11px;color:var(--muted)}
+.map-caption b{color:var(--blue);font-weight:500;font-family:var(--font-mono);letter-spacing:.06em}
+/* route draw animation */
+.seg{fill:none;stroke:var(--blue);stroke-width:2.4;stroke-linecap:round;
+  stroke-dasharray:100;stroke-dashoffset:100;
+  filter:drop-shadow(0 0 5px rgba(78,168,255,.8));}
+.seg.s1{animation:drawSeg .65s ease-out .15s forwards}
+.seg.s2{animation:drawSeg .65s ease-out .85s forwards}
+@keyframes drawSeg{to{stroke-dashoffset:0}}
+.seg-halo{fill:none;stroke:rgba(78,168,255,.22);stroke-width:7;stroke-linecap:round;
+  stroke-dasharray:100;stroke-dashoffset:100;}
+.seg-halo.s1{animation:drawSeg .65s ease-out .15s forwards}
+.seg-halo.s2{animation:drawSeg .65s ease-out .85s forwards}
+.mnode{opacity:0;animation:nodeIn .3s ease forwards}
+.mnode.n1{animation-delay:.1s}
+.mnode.n2{animation-delay:.8s}
+.mnode.n3{animation-delay:1.45s}
+@keyframes nodeIn{from{opacity:0}to{opacity:1}}
+.map-ring{fill:none;stroke:rgba(78,168,255,.55);transform-origin:center;transform-box:fill-box;animation:mapPing 2.4s ease-out 1.6s infinite}
+@keyframes mapPing{0%{transform:scale(.4);opacity:.9}100%{transform:scale(2.2);opacity:0}}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.mini-inst{padding:14px}
+.mini-inst .mi-title{font-size:12px;color:var(--muted);margin-bottom:8px}
+.mi-big{font-family:var(--font-mono);font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.mi-sub{font-size:11px;color:var(--muted);margin-top:4px}
+.mi-row{display:flex;align-items:center;gap:12px}
+.mini-bar{height:5px;border-radius:3px;background:#0D1526;margin-top:10px;overflow:hidden}
+.mini-bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blue),var(--mint));
+  transition:width .6s cubic-bezier(.34,1.4,.64,1)}
+
+.home-actions{display:flex;gap:12px;margin-top:16px}
+.btn-amber{
+  flex:1;padding:13px;border-radius:14px;font-size:14px;font-weight:600;color:#221503;
+  background:linear-gradient(180deg,#FFC677,var(--amber));
+  box-shadow:0 6px 20px rgba(255,180,84,.28),inset 0 1px 0 rgba(255,255,255,.4);
+  transition:transform .12s ease,box-shadow .2s ease;
+}
+.btn-amber:active{transform:scale(.96)}
+.btn-ghost{
+  flex:1;padding:13px;border-radius:14px;font-size:14px;font-weight:500;color:var(--blue);
+  border:1px solid rgba(78,168,255,.45);background:rgba(78,168,255,.07);
+  transition:transform .12s ease,background .2s ease;
+}
+.btn-ghost:active{transform:scale(.96);background:rgba(78,168,255,.14)}
+
+/* ============ CHECKLIST ============ */
+.cl-head{display:flex;align-items:center;gap:14px}
+.cl-ringwrap{position:relative;width:64px;height:64px;flex:0 0 auto}
+.cl-ringwrap svg{transform:rotate(-90deg)}
+.ring-track{fill:none;stroke:#22315a;stroke-width:6}
+.ring-prog{fill:none;stroke:var(--mint);stroke-width:6;stroke-linecap:round;
+  filter:drop-shadow(0 0 4px rgba(61,220,151,.6));
+  transition:stroke-dashoffset .6s cubic-bezier(.34,1.45,.64,1)}
+.cl-ringtxt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--mint);font-variant-numeric:tabular-nums}
+.cl-remain{font-size:14px}
+.cl-remain b{color:var(--amber);font-family:var(--font-mono);font-size:22px;font-variant-numeric:tabular-nums;text-shadow:0 0 16px rgba(255,180,84,.4)}
+.cl-meta{font-size:11px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
+
+.cl-cat{margin-top:18px}
+.cl-cat-head{display:flex;justify-content:space-between;align-items:center;margin:0 2px 8px}
+.cl-cat-name{font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px}
+.cl-cat-name::before{content:"";width:3px;height:12px;border-radius:2px;background:var(--blue);box-shadow:0 0 6px rgba(78,168,255,.7)}
+.cl-cat-count{font-family:var(--font-mono);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.cl-item{
+  display:flex;align-items:center;gap:12px;padding:11px 12px;
+  border:1px solid rgba(36,51,90,.6);border-radius:12px;margin-bottom:8px;
+  background:rgba(22,32,58,.45);cursor:pointer;
+  transition:border-color .15s ease,background .15s ease;
+}
+.cl-item:active{border-color:rgba(78,168,255,.4)}
+.cl-item.done{background:rgba(61,220,151,.05);border-color:rgba(61,220,151,.25)}
+/* radar-node checkbox */
+.radar-box{position:relative;width:24px;height:24px;flex:0 0 auto;border-radius:50%;
+  border:1.5px solid rgba(78,168,255,.55);transition:border-color .2s,box-shadow .3s}
+.radar-box::after{content:"";position:absolute;inset:6px;border-radius:50%;background:transparent;transition:background .2s,box-shadow .3s}
+.cl-item.done .radar-box{border-color:var(--mint);box-shadow:0 0 10px rgba(61,220,151,.45)}
+.cl-item.done .radar-box::after{background:var(--mint);box-shadow:0 0 6px var(--mint)}
+.radar-box svg{position:absolute;inset:3px;z-index:2}
+.radar-box svg path{stroke:#0D1526;stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:20;stroke-dashoffset:20}
+.cl-item.done .radar-box svg path{animation:tick .3s ease-out forwards}
+@keyframes tick{to{stroke-dashoffset:0}}
+.cl-name{font-size:14px;transition:color .2s}
+.cl-item.done .cl-name{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(61,220,151,.5)}
+.cl-add{display:flex;gap:10px;margin-top:16px}
+.cl-add input{
+  flex:1;background:#0B1222;border:1px solid var(--line);border-radius:12px;
+  padding:11px 13px;color:var(--text);font-size:13px;outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.cl-add input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(78,168,255,.15)}
+.cl-add input::placeholder{color:#5c6884}
+.cl-add select{
+  background:#0B1222;border:1px solid var(--line);border-radius:12px;color:var(--text);
+  padding:0 10px;font-size:13px;outline:none;
+}
+.cl-add button{padding:0 18px;border-radius:12px;font-size:18px;font-weight:600;
+  background:linear-gradient(180deg,#FFC677,var(--amber));color:#221503}
+
+/* ============ ITINERARY ============ */
+.day-chips{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none;padding:2px}
+.day-chips::-webkit-scrollbar{display:none}
+.day-chip{
+  flex:0 0 auto;padding:7px 14px;border-radius:999px;font-size:12px;
+  font-family:var(--font-mono);letter-spacing:.06em;
+  border:1px solid var(--line);color:var(--muted);background:rgba(22,32,58,.5);
+  transition:all .2s ease;
+}
+.day-chip.on{color:#0D1526;background:var(--blue);border-color:var(--blue);font-weight:600;
+  box-shadow:0 0 16px rgba(78,168,255,.4)}
+.tl{position:relative;padding-left:6px}
+.tl::before{content:"";position:absolute;left:33px;top:14px;bottom:14px;width:2px;
+  background:repeating-linear-gradient(180deg,rgba(78,168,255,.5) 0 5px,transparent 5px 11px)}
+.tl-item{position:relative;display:flex;gap:14px;padding:10px 0;cursor:pointer}
+.tl-node{position:relative;z-index:2;width:56px;flex:0 0 auto}
+.code-badge{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  height:30px;border-radius:9px;
+  font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.1em;
+  border:1.5px solid rgba(78,168,255,.6);color:var(--blue);background:#0B1222;
+  box-shadow:0 0 10px rgba(78,168,255,.18);
+  transition:all .25s ease;
+}
+.tl-item[data-st="1"] .code-badge{border-color:var(--mint);color:var(--mint);box-shadow:0 0 12px rgba(61,220,151,.35)}
+.tl-item[data-st="2"] .code-badge{border-color:#3a4666;color:#5c6884;box-shadow:none;text-decoration:line-through}
+.ripple{
+  position:absolute;inset:-5px;border-radius:13px;pointer-events:none;
+  border:2px solid rgba(61,220,151,.8);
+  animation:rippleGo .85s cubic-bezier(.2,.7,.3,1) forwards;
+}
+.ripple.r2{animation-delay:.12s;border-color:rgba(78,168,255,.6)}
+@keyframes rippleGo{0%{transform:scale(.7);opacity:1}100%{transform:scale(1.9);opacity:0}}
+.tl-body{
+  flex:1;border:1px solid rgba(36,51,90,.6);border-radius:12px;padding:10px 13px;
+  background:rgba(22,32,58,.45);transition:all .2s ease;
+}
+.tl-item:active .tl-body{border-color:rgba(78,168,255,.4)}
+.tl-time{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.08em;font-variant-numeric:tabular-nums}
+.tl-title{font-size:14px;margin-top:3px;transition:color .2s}
+.tl-item[data-st="1"] .tl-title{color:var(--mint)}
+.tl-item[data-st="2"] .tl-title{color:#5c6884;text-decoration:line-through}
+.tl-item[data-st="2"] .tl-body{opacity:.55}
+.tl-state{
+  margin-top:7px;display:inline-flex;align-items:center;gap:6px;
+  font-size:10px;font-family:var(--font-mono);letter-spacing:.12em;text-transform:uppercase;
+  padding:3px 8px;border-radius:6px;
+}
+.tl-item[data-st="0"] .tl-state{color:var(--blue);background:rgba(78,168,255,.1)}
+.tl-item[data-st="1"] .tl-state{color:var(--mint);background:rgba(61,220,151,.12)}
+.tl-item[data-st="2"] .tl-state{color:#5c6884;background:rgba(92,104,132,.12)}
+.tl-hint{margin-top:14px;text-align:center;font-size:11px;color:var(--muted)}
+
+/* ============ LEDGER ============ */
+.gauge-card{display:flex;align-items:center;gap:18px}
+.gauge-wrap{position:relative;width:150px;height:150px;flex:0 0 auto}
+.gauge-wrap svg{transform:rotate(-90deg)}
+.g-track{fill:none;stroke:#22315a;stroke-width:11}
+.g-prog{fill:none;stroke:url(#gGrad);stroke-width:11;stroke-linecap:round;
+  filter:drop-shadow(0 0 6px rgba(78,168,255,.55));
+  transition:stroke-dashoffset .8s cubic-bezier(.34,1.5,.64,1)}
+.gauge-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gauge-pct{font-family:var(--font-mono);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;
+  text-shadow:0 0 18px rgba(78,168,255,.4)}
+.gauge-pct small{font-size:13px;color:var(--muted);font-weight:400}
+.gauge-cap{font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.14em;font-family:var(--font-mono);text-transform:uppercase}
+.gauge-nums{flex:1}
+.gn-row{margin-bottom:14px}
+.gn-label{font-size:11px;color:var(--muted);letter-spacing:.1em;margin-bottom:3px}
+.gn-val{font-family:var(--font-mono);font-size:24px;font-weight:600;font-variant-numeric:tabular-nums}
+.gn-val.spent{color:var(--amber);text-shadow:0 0 16px rgba(255,180,84,.3)}
+.gn-val.left{color:var(--mint);text-shadow:0 0 16px rgba(61,220,151,.3)}
+.gn-val.over{color:#FF6B6B;text-shadow:0 0 16px rgba(255,107,107,.35)}
+.gn-budget{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.exp-form{margin-top:14px}
+.exp-form .row{display:flex;gap:10px;margin-bottom:10px}
+.exp-form input{
+  background:#0B1222;border:1px solid var(--line);border-radius:12px;padding:11px 13px;
+  color:var(--text);font-size:13px;outline:none;min-width:0;
+  transition:border-color .2s,box-shadow .2s;
+}
+.exp-form input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(78,168,255,.15)}
+.exp-form input::placeholder{color:#5c6884}
+.exp-form .nm{flex:1.6}
+.exp-form .amt{flex:1;font-variant-numeric:tabular-nums}
+.cat-chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.cat-chip{padding:6px 12px;border-radius:999px;font-size:12px;border:1px solid var(--line);
+  color:var(--muted);background:rgba(22,32,58,.5);transition:all .18s ease}
+.cat-chip.on{color:var(--amber);border-color:rgba(255,180,84,.55);background:rgba(255,180,84,.1);
+  box-shadow:0 0 10px rgba(255,180,84,.15)}
+.exp-form .btn-amber{width:100%;flex:none}
+.exp-row{
+  display:flex;align-items:center;gap:12px;padding:11px 4px;
+  border-bottom:1px solid rgba(36,51,90,.5);
+}
+.exp-row:last-child{border-bottom:none}
+.exp-dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 7px currentColor}
+.exp-name{flex:1;font-size:13px}
+.exp-cat{display:block;font-size:10px;color:var(--muted);margin-top:2px;font-family:var(--font-mono);letter-spacing:.1em}
+.exp-amt{font-family:var(--font-mono);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ============ JOURNAL ============ */
+.composer textarea{
+  width:100%;min-height:64px;resize:none;background:#0B1222;border:1px solid var(--line);
+  border-radius:12px;padding:12px 13px;color:var(--text);font-size:14px;outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.composer textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(78,168,255,.15)}
+.composer textarea::placeholder{color:#5c6884}
+.composer-foot{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:10px}
+.tag-chips{display:flex;gap:7px}
+.tag-chip{padding:6px 12px;border-radius:999px;font-size:12px;border:1px solid var(--line);
+  color:var(--muted);background:rgba(22,32,58,.5);transition:all .18s ease}
+.tag-chip.on{color:var(--blue);border-color:rgba(78,168,255,.55);background:rgba(78,168,255,.1);
+  box-shadow:0 0 10px rgba(78,168,255,.15)}
+.btn-pub{padding:9px 20px;border-radius:12px;font-size:13px;font-weight:600;color:#221503;
+  background:linear-gradient(180deg,#FFC677,var(--amber));
+  box-shadow:0 4px 14px rgba(255,180,84,.25);transition:transform .12s ease}
+.btn-pub:active{transform:scale(.95)}
+.j-item{margin-top:14px}
+.j-tag{display:inline-block;font-size:11px;padding:3px 9px;border-radius:6px;margin-bottom:8px;
+  font-family:var(--font-mono);letter-spacing:.06em}
+.j-tag.t-rec{color:var(--mint);background:rgba(61,220,151,.12)}
+.j-tag.t-avo{color:#FF8E8E;background:rgba(255,110,110,.12)}
+.j-tag.t-food{color:var(--amber);background:rgba(255,180,84,.12)}
+.j-text{font-size:14px;line-height:1.65}
+.j-photos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.j-ph{border-radius:10px;overflow:hidden;border:1px solid rgba(36,51,90,.7);aspect-ratio:4/3}
+.j-ph svg{width:100%;height:100%;display:block}
+.j-meta{margin-top:9px;font-size:11px;color:var(--muted);font-family:var(--font-mono);
+  letter-spacing:.06em;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:7px}
+
+/* ============ RETURN ============ */
+.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.sum-cell{border:1px solid rgba(36,51,90,.7);border-radius:12px;padding:13px;
+  background:rgba(11,18,34,.6)}
+.sum-num{font-family:var(--font-mono);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.sum-num small{font-size:12px;color:var(--muted);font-weight:400}
+.sum-cell:nth-child(1) .sum-num{color:var(--blue);text-shadow:0 0 14px rgba(78,168,255,.35)}
+.sum-cell:nth-child(2) .sum-num{color:var(--amber);text-shadow:0 0 14px rgba(255,180,84,.3)}
+.sum-cell:nth-child(3) .sum-num{color:var(--mint);text-shadow:0 0 14px rgba(61,220,151,.3)}
+.sum-cell:nth-child(4) .sum-num{color:#C9A7FF;text-shadow:0 0 14px rgba(201,167,255,.3)}
+.sum-label{font-size:11px;color:var(--muted);margin-top:4px}
+.share-btn{width:100%;margin-top:16px;padding:14px;border-radius:14px;font-size:14px;font-weight:600;
+  color:#221503;background:linear-gradient(180deg,#FFC677,var(--amber));
+  box-shadow:0 8px 24px rgba(255,180,84,.3),inset 0 1px 0 rgba(255,255,255,.4);
+  transition:transform .12s ease}
+.share-btn:active{transform:scale(.96)}
+
+/* ============ TAB BAR ============ */
+.tabbar{
+  position:relative;z-index:10;flex:0 0 auto;height:74px;
+  display:flex;align-items:stretch;
+  background:rgba(10,16,30,.72);
+  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+  border-top:1px solid rgba(78,168,255,.12);
+}
+.tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:var(--muted);font-size:9.5px;letter-spacing:.04em;position:relative;
+  transition:color .2s ease;padding-bottom:8px;
+}
+.tab svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round;transition:filter .25s ease}
+.tab.on{color:var(--blue)}
+.tab.on svg{filter:drop-shadow(0 0 6px rgba(78,168,255,.8))}
+.tab::before{
+  content:"";position:absolute;top:0;left:50%;transform:translateX(-50%) scaleX(0);
+  width:26px;height:2.5px;border-radius:2px;background:var(--blue);
+  box-shadow:0 0 10px var(--blue),0 2px 8px rgba(78,168,255,.5);
+  transition:transform .28s cubic-bezier(.34,1.5,.64,1);
+}
+.tab.on::before{transform:translateX(-50%) scaleX(1)}
+
+/* ============ OVERLAYS ============ */
+.overlay{
+  position:absolute;inset:0;z-index:80;display:none;align-items:center;justify-content:center;
+  background:rgba(5,8,15,.72);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  padding:26px;
+}
+.overlay.show{display:flex}
+@keyframes zoomPop{0%{opacity:0;transform:scale(.8)}100%{opacity:1;transform:scale(1)}}
+.overlay.show .sheet{animation:zoomPop .35s cubic-bezier(.3,1.4,.5,1)}
+.sheet{
+  width:100%;background:linear-gradient(180deg,#1B2647,#121A30);
+  border:1px solid rgba(78,168,255,.25);border-radius:20px;padding:22px;
+  box-shadow:0 30px 60px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);
+}
+.share-text{
+  font-size:13px;line-height:1.8;white-space:pre-wrap;
+  background:rgba(11,18,34,.8);border:1px dashed rgba(78,168,255,.3);
+  border-radius:12px;padding:14px;margin:14px 0;font-variant-numeric:tabular-nums;
+}
+.share-text .code{font-family:var(--font-mono);color:var(--amber);letter-spacing:.1em}
+.sheet-actions{display:flex;gap:10px}
+.sheet-actions .btn-ghost,.sheet-actions .btn-amber{padding:11px;font-size:13px}
+/* celebrate */
+.celebrate{flex-direction:column;gap:18px;text-align:center}
+.cel-radar{position:relative;width:120px;height:120px}
+.cel-radar i{position:absolute;inset:0;border-radius:50%;border:2px solid var(--mint);
+  animation:celPing 1.5s ease-out infinite}
+.cel-radar i:nth-child(2){animation-delay:.35s;border-color:rgba(78,168,255,.8)}
+.cel-radar i:nth-child(3){animation-delay:.7s}
+@keyframes celPing{0%{transform:scale(.25);opacity:1}100%{transform:scale(1.6);opacity:0}}
+.cel-core{position:absolute;inset:38px;border-radius:50%;background:var(--mint);
+  box-shadow:0 0 30px var(--mint);display:flex;align-items:center;justify-content:center;
+  font-size:22px;color:#0D1526}
+.cel-title{font-size:18px;font-weight:600}
+.cel-sub{font-size:12px;color:var(--muted)}
+/* toast */
+.toast{
+  position:absolute;left:50%;bottom:92px;transform:translateX(-50%) translateY(16px);
+  z-index:95;background:rgba(22,32,58,.95);border:1px solid rgba(78,168,255,.3);
+  color:var(--text);font-size:12px;padding:9px 16px;border-radius:999px;
+  opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ============ TOKEN PANEL (page side note) ============ */
+.tokens{width:300px;font-size:12px;color:#7d8aa8;line-height:1.7}
+.tokens h1{font-family:var(--font-disp);font-size:22px;color:#EEF2FA;font-weight:600;letter-spacing:.02em}
+.tokens .dir{font-family:var(--font-mono);font-size:10px;letter-spacing:.24em;color:#4EA8FF;
+  text-transform:uppercase;margin:6px 0 22px}
+.tokens h3{font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:#55617e;margin:20px 0 10px}
+.swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sw{display:flex;flex-direction:column;gap:5px}
+.sw i{display:block;height:34px;border-radius:8px;border:1px solid rgba(255,255,255,.08)}
+.sw span{font-family:var(--font-mono);font-size:9px;color:#55617e;letter-spacing:.04em}
+.tokens p{font-size:11.5px}
+.tokens code{font-family:var(--font-mono);color:#9fb4d8;font-size:10.5px}
+@media (max-width:860px){.tokens{width:390px}}
+
+/* ============ REDUCED MOTION ============ */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001s !important;animation-iteration-count:1 !important;transition-duration:.001s !important}
+  .rise{opacity:1;transform:none}
+  .seg,.seg-halo{stroke-dashoffset:0}
+  .mnode{opacity:1}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <!-- ================= PHONE ================= -->
+  <div class="phone">
+    <div class="screen">
+
+      <!-- status bar -->
+      <div class="statusbar">
+        <span class="notch"></span>
+        <span>21:47</span>
+        <span class="sic">
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="2.5" width="3" height="9.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1" opacity=".35"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 4.5C5 1.8 11 1.8 14 4.5"/><path d="M4.5 7.2C6.5 5.5 9.5 5.5 11.5 7.2"/><circle cx="8" cy="9.8" r="1" fill="currentColor" stroke="none"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".7" y=".7" width="20" height="10.6" rx="3" stroke="currentColor" opacity=".4" stroke-width="1"/><rect x="2.4" y="2.4" width="13" height="7.2" rx="1.6" fill="currentColor"/><path d="M22.6 4v4c1-.3 1.6-1 1.6-2s-.6-1.7-1.6-2z" fill="currentColor" opacity=".5"/></svg>
+        </span>
+      </div>
+
+      <div class="views">
+
+        <!-- ============ HOME ============ -->
+        <section class="view active" id="view-home">
+          <div class="view-head">
+            <div class="view-title">旅迹 <span style="color:var(--blue)">TripLine</span></div>
+            <div class="view-sub">Night Atlas</div>
+          </div>
+
+          <div class="card mission rise">
+            <div class="sec-label"><span class="led amber"></span>Current Mission · 当前旅程</div>
+            <div class="mission-top">
+              <div>
+                <h2>香格里拉 · 5天4晚</h2>
+                <div class="dates">10.02 — 10.06 · 与阿 May 同行</div>
+              </div>
+              <div class="status-pill"><span class="led amber"></span>⏳ 准备中</div>
+            </div>
+            <div class="countdown">
+              <div class="cd-num">12</div>
+              <div class="cd-label">天 · 距出发<span>Departure T-minus</span></div>
+            </div>
+          </div>
+
+          <div class="card map-card tappable rise" data-go="itinerary" style="margin-top:14px">
+            <div class="sec-label"><span class="led"></span>Route · 航线预览</div>
+            <svg id="miniMap" viewBox="0 0 340 190" aria-label="昆明至香格里拉航线图">
+              <defs>
+                <radialGradient id="terrain" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#1A2748" stop-opacity=".9"/>
+                  <stop offset="100%" stop-color="#0A1120" stop-opacity="0"/>
+                </radialGradient>
+                <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+                  <circle cx="2" cy="2" r="1" fill="#1C2A4E"/>
+                </pattern>
+              </defs>
+              <rect width="340" height="190" fill="url(#dots)"/>
+              <ellipse cx="90" cy="150" rx="120" ry="70" fill="url(#terrain)"/>
+              <ellipse cx="270" cy="40" rx="110" ry="60" fill="url(#terrain)"/>
+              <!-- abstract contour lines -->
+              <g fill="none" stroke="#24335A" stroke-width="1" opacity=".65">
+                <path d="M-10 60 C 50 40, 90 70, 140 55 S 240 30, 350 50"/>
+                <path d="M-10 100 C 40 85, 110 105, 170 88 S 280 62, 350 82"/>
+                <path d="M-10 140 C 60 125, 120 150, 190 132 S 290 105, 350 125"/>
+                <path d="M40 185 C 90 168, 160 185, 230 168 S 320 145, 355 160"/>
+              </g>
+              <!-- route halo + crisp line, two segments -->
+              <path class="seg-halo s1" pathLength="100" d="M56 148 C 96 132, 130 116, 180 92"/>
+              <path class="seg-halo s2" pathLength="100" d="M180 92 C 214 76, 252 58, 288 44"/>
+              <path class="seg s1" pathLength="100" d="M56 148 C 96 132, 130 116, 180 92"/>
+              <path class="seg s2" pathLength="100" d="M180 92 C 214 76, 252 58, 288 44"/>
+              <!-- waypoint -->
+              <g class="mnode n2">
+                <circle cx="180" cy="92" r="3" fill="#4EA8FF"/>
+                <text x="180" y="80" text-anchor="middle" font-size="8" fill="#8A96B0" font-family="Space Grotesk,monospace" letter-spacing="1">TLG · 虎跳峡</text>
+              </g>
+              <!-- KMG -->
+              <g class="mnode n1">
+                <circle cx="56" cy="148" r="4" fill="#0B1222" stroke="#4EA8FF" stroke-width="2"/>
+                <rect x="30" y="158" width="52" height="18" rx="6" fill="#0B1222" stroke="rgba(78,168,255,.6)"/>
+                <text x="56" y="171" text-anchor="middle" font-size="10" font-weight="600" fill="#4EA8FF" font-family="Space Grotesk,monospace" letter-spacing="2">KMG</text>
+              </g>
+              <!-- DIG -->
+              <g class="mnode n3">
+                <circle class="map-ring" cx="288" cy="44" r="8"/>
+                <circle cx="288" cy="44" r="4.5" fill="#3DDC97"/>
+                <rect x="262" y="18" width="52" height="18" rx="6" fill="#0B1222" stroke="rgba(61,220,151,.6)"/>
+                <text x="288" y="31" text-anchor="middle" font-size="10" font-weight="600" fill="#3DDC97" font-family="Space Grotesk,monospace" letter-spacing="2">DIG</text>
+              </g>
+              <!-- flight label -->
+              <text x="206" y="122" font-size="8.5" fill="#8A96B0" font-family="Space Grotesk,monospace" letter-spacing="1.5" transform="rotate(-16 206 122)">CZ8549 · 55MIN</text>
+            </svg>
+            <div class="map-caption"><span>昆明 <b>KMG</b> → 香格里拉 <b>DIG</b></span><span>点击进入行程 ›</span></div>
+          </div>
+
+          <div class="grid2">
+            <div class="card mini-inst tappable rise" data-go="checklist">
+              <div class="mi-title">🧳 清单进度</div>
+              <div class="mi-row">
+                <div class="cl-ringwrap" style="width:52px;height:52px">
+                  <svg viewBox="0 0 64 64" width="52" height="52">
+                    <circle class="ring-track" cx="32" cy="32" r="26"/>
+                    <circle class="ring-prog" id="homeClRing" cx="32" cy="32" r="26"/>
+                  </svg>
+                  <div class="cl-ringtxt" id="homeClPct" style="font-size:11px">–</div>
+                </div>
+                <div>
+                  <div class="mi-big" id="homeClLeft" style="color:var(--amber)">–</div>
+                  <div class="mi-sub">项待收拾</div>
+                </div>
+              </div>
+            </div>
+            <div class="card mini-inst tappable rise" data-go="ledger">
+              <div class="mi-title">💰 账本余量</div>
+              <div class="mi-big" id="homeLedgerLeft" style="color:var(--mint)">¥3,220</div>
+              <div class="mi-sub">预算 ¥4,500</div>
+              <div class="mini-bar"><i id="homeLedgerBar" style="width:0%"></i></div>
+            </div>
+          </div>
+
+          <div class="home-actions rise">
+            <button class="btn-amber" id="btnNew">＋ 新建旅程</button>
+            <button class="btn-ghost" id="btnImport">⌘V 粘贴导入</button>
+          </div>
+        </section>
+
+        <!-- ============ CHECKLIST ============ -->
+        <section class="view" id="view-checklist">
+          <div class="view-head">
+            <div class="view-title">清单</div>
+            <div class="view-sub">Checklist</div>
+          </div>
+          <div class="card rise">
+            <div class="cl-head">
+              <div class="cl-ringwrap">
+                <svg viewBox="0 0 64 64" width="64" height="64">
+                  <circle class="ring-track" cx="32" cy="32" r="26"/>
+                  <circle class="ring-prog" id="clRing" cx="32" cy="32" r="26"/>
+                </svg>
+                <div class="cl-ringtxt" id="clPct">–</div>
+              </div>
+              <div>
+                <div class="cl-remain">还差 <b id="clLeft">–</b> 项</div>
+                <div class="cl-meta" id="clMeta">–</div>
+              </div>
+            </div>
+          </div>
+          <div id="clGroups"></div>
+          <div class="cl-add rise">
+            <input id="clInput" type="text" placeholder="添加条目，如：墨镜" maxlength="20">
+            <select id="clCat">
+              <option>证件</option><option>交通</option><option>电子</option>
+              <option>药品</option><option>衣物</option><option>财务</option>
+            </select>
+            <button id="clAddBtn" aria-label="添加">＋</button>
+          </div>
+        </section>
+
+        <!-- ============ ITINERARY ============ -->
+        <section class="view" id="view-itinerary">
+          <div class="view-head">
+            <div class="view-title">行程</div>
+            <div class="view-sub">Flight Path</div>
+          </div>
+          <div class="day-chips rise" id="dayChips"></div>
+          <div class="tl" id="tlList"></div>
+          <div class="tl-hint">点击条目循环打卡：计划 → ✓ 已去 → 已取消</div>
+        </section>
+
+        <!-- ============ LEDGER ============ -->
+        <section class="view" id="view-ledger">
+          <div class="view-head">
+            <div class="view-title">账本</div>
+            <div class="view-sub">Budget Gauge</div>
+          </div>
+          <div class="card gauge-card rise">
+            <div class="gauge-wrap">
+              <svg viewBox="0 0 150 150" width="150" height="150">
+                <defs>
+                  <linearGradient id="gGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#4EA8FF"/>
+                    <stop offset="100%" stop-color="#3DDC97"/>
+                  </linearGradient>
+                </defs>
+                <circle class="g-track" cx="75" cy="75" r="63"/>
+                <circle class="g-prog" id="gProg" cx="75" cy="75" r="63"/>
+              </svg>
+              <div class="gauge-center">
+                <div class="gauge-pct" id="gPct">–</div>
+                <div class="gauge-cap">已用预算</div>
+              </div>
+            </div>
+            <div class="gauge-nums">
+              <div class="gn-row">
+                <div class="gn-label">已花 SPENT</div>
+                <div class="gn-val spent" id="gSpent">¥1,280</div>
+              </div>
+              <div class="gn-row" style="margin-bottom:6px">
+                <div class="gn-label">剩余 LEFT</div>
+                <div class="gn-val left" id="gLeft">¥3,220</div>
+              </div>
+              <div class="gn-budget">总预算 ¥4,500 · 5 天</div>
+            </div>
+          </div>
+
+          <div class="card exp-form rise">
+            <div class="sec-label"><span class="led amber"></span>记一笔 · New Entry</div>
+            <div class="row">
+              <input class="nm" id="expName" type="text" placeholder="名目，如：牦牛肉干" maxlength="16">
+              <input class="amt" id="expAmt" type="number" inputmode="decimal" placeholder="¥ 金额" min="0">
+            </div>
+            <div class="cat-chips" id="catChips"></div>
+            <button class="btn-amber" id="expAdd">记一笔</button>
+          </div>
+
+          <div class="card rise">
+            <div class="sec-label"><span class="led"></span>流水 · Ledger</div>
+            <div id="expList"></div>
+          </div>
+        </section>
+
+        <!-- ============ JOURNAL ============ -->
+        <section class="view" id="view-journal">
+          <div class="view-head">
+            <div class="view-title">手账</div>
+            <div class="view-sub">Field Notes</div>
+          </div>
+          <div class="card composer rise">
+            <div class="sec-label"><span class="led mint"></span>记录此刻 · Now</div>
+            <textarea id="jInput" placeholder="此刻在香格里拉，发生了什么？" maxlength="140"></textarea>
+            <div class="composer-foot">
+              <div class="tag-chips" id="tagChips"></div>
+              <button class="btn-pub" id="jPub">发布</button>
+            </div>
+          </div>
+          <div id="jFeed"></div>
+        </section>
+
+        <!-- ============ RETURN ============ -->
+        <section class="view" id="view-return">
+          <div class="view-head">
+            <div class="view-title">返程</div>
+            <div class="view-sub">Homeward</div>
+          </div>
+          <div class="card rise">
+            <div class="sec-label"><span class="led amber"></span>返程检查 · RTB Checklist</div>
+            <div id="backList"></div>
+          </div>
+          <div class="card rise">
+            <div class="sec-label"><span class="led mint"></span>旅行总结 · Debrief</div>
+            <div class="sum-grid">
+              <div class="sum-cell"><div class="sum-num" id="sumDone">–</div><div class="sum-label">完成行程</div></div>
+              <div class="sum-cell"><div class="sum-num" id="sumSpent">–</div><div class="sum-label">总花费</div></div>
+              <div class="sum-cell"><div class="sum-num" id="sumNotes">–</div><div class="sum-label">见闻</div></div>
+              <div class="sum-cell"><div class="sum-num" id="sumPhotos">–</div><div class="sum-label">照片</div></div>
+            </div>
+            <button class="share-btn" id="btnShare">✈️ 生成分享文案</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- ============ TAB BAR ============ -->
+      <nav class="tabbar" id="tabbar">
+        <button class="tab on" data-tab="home">
+          <svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M6 9.5V20h12V9.5"/><circle cx="12" cy="14.5" r="2"/></svg>首页</button>
+        <button class="tab" data-tab="checklist">
+          <svg viewBox="0 0 24 24"><path d="M4 6.5l1.6 1.6L8.4 5"/><path d="M11.5 6.5H20"/><path d="M4 12.5l1.6 1.6 2.8-3.1"/><path d="M11.5 12.5H20"/><path d="M4 18.5l1.6 1.6 2.8-3.1"/><path d="M11.5 18.5H20"/></svg>清单</button>
+        <button class="tab" data-tab="itinerary">
+          <svg viewBox="0 0 24 24"><circle cx="5.5" cy="18.5" r="2.2"/><circle cx="18.5" cy="5.5" r="2.2"/><path d="M7.5 17C12 14.5 9 9.5 13.5 7.5" stroke-dasharray="2.5 2.5"/><path d="M14.8 6.2l3-1.4-1.4 3"/></svg>行程</button>
+        <button class="tab" data-tab="ledger">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v10"/><path d="M15.2 9.2c-.6-1-1.7-1.5-3.2-1.5-1.9 0-3 .9-3 2.2 0 2.9 6.3 1.5 6.3 4.3 0 1.4-1.4 2.3-3.3 2.3-1.6 0-2.8-.6-3.4-1.7"/></svg>账本</button>
+        <button class="tab" data-tab="journal">
+          <svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4z"/><path d="M5 4v13"/><path d="M9 9h6M9 13h4"/></svg>手账</button>
+        <button class="tab" data-tab="return">
+          <svg viewBox="0 0 24 24"><path d="M2.5 16h19"/><path d="M4 13l1.8-6.5A2 2 0 0 1 7.7 5h8.6a2 2 0 0 1 1.9 1.5L20 13"/><path d="M9 13v3M15 13v3"/></svg>返程</button>
+      </nav>
+
+      <!-- overlays -->
+      <div class="overlay celebrate" id="celebrate">
+        <div class="cel-radar"><i></i><i></i><i></i><div class="cel-core">✓</div></div>
+        <div>
+          <div class="cel-title">清单全部完成</div>
+          <div class="cel-sub">行李就绪 · 可以出发 ✈️</div>
+        </div>
+      </div>
+
+      <div class="overlay" id="shareOverlay">
+        <div class="sheet">
+          <div class="sec-label"><span class="led amber"></span>Share · 分享文案</div>
+          <div class="share-text" id="shareText"></div>
+          <div class="sheet-actions">
+            <button class="btn-amber" id="btnCopy">复制文案</button>
+            <button class="btn-ghost" id="btnCloseShare">关闭</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+
+  <!-- ================= TOKEN PANEL ================= -->
+  <aside class="tokens">
+    <h1>旅迹 TripLine</h1>
+    <div class="dir">Direction C · 夜航地图 Dark Atlas</div>
+
+    <h3>色板 Palette</h3>
+    <div class="swatches">
+      <div class="sw"><i style="background:#0D1526"></i><span>#0D1526 背景</span></div>
+      <div class="sw"><i style="background:#16203A"></i><span>#16203A 卡片</span></div>
+      <div class="sw"><i style="background:#4EA8FF"></i><span>#4EA8FF 航迹蓝</span></div>
+      <div class="sw"><i style="background:#FFB454"></i><span>#FFB454 琥珀</span></div>
+      <div class="sw"><i style="background:#3DDC97"></i><span>#3DDC97 薄荷</span></div>
+      <div class="sw"><i style="background:#EEF2FA"></i><span>#EEF2FA 文字</span></div>
+      <div class="sw"><i style="background:#8A96B0"></i><span>#8A96B0 次要</span></div>
+      <div class="sw"><i style="background:#24335A"></i><span>#24335A 描线</span></div>
+    </div>
+
+    <h3>字体 Typography</h3>
+    <p>标题 <code>Space Grotesk</code> · 正文 <code>Inter</code> · 中文 <code>Noto Sans SC / PingFang SC</code>（Regular–Medium，暗底防糊边）· 全部数字 <code>tabular-nums</code></p>
+
+    <h3>动效签名 Motion</h3>
+    <p>航线 stroke 绘制 1.5s 逐段点亮 · 打卡雷达脉冲涟漪 · Tab zoom 过渡 · 记账数字滚动 300ms · 环形图弹性填充 · 卡片 40ms 级联入场 · 支持 <code>prefers-reduced-motion</code></p>
+
+    <h3>组件质感 Material</h3>
+    <p>16px 圆角深色卡 + 1px <code>rgba(78,168,255,.15)</code> 描边 + 内发光 · 琥珀实底 / 蓝边幽灵按钮 · Tab 栏毛玻璃 <code>blur 20px</code> + 发光激活指示线 · 雷达节点复选框 · LED 状态灯</p>
+  </aside>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const REDUCED=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const BUDGET=4500;
+const money=n=>'¥'+Math.round(n).toLocaleString('zh-CN');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ================= STATE ================= */
+const CAT_COLOR={'交通':'#4EA8FF','住宿':'#C9A7FF','餐饮':'#FFB454','门票':'#3DDC97','购物':'#FF8E8E','其他':'#8A96B0'};
+const state={
+  checklist:[
+    {cat:'证件',name:'身份证',done:true},
+    {cat:'证件',name:'驾驶证（备用）',done:false},
+    {cat:'交通',name:'机票行程单',done:true},
+    {cat:'交通',name:'接机拼车预约',done:false},
+    {cat:'电子',name:'充电宝',done:false},
+    {cat:'电子',name:'相机存储卡',done:false},
+    {cat:'药品',name:'氧气瓶预订',done:false},
+    {cat:'药品',name:'防晒霜 SPF50',done:false},
+    {cat:'药品',name:'红景天（抗高反）',done:false},
+    {cat:'衣物',name:'冲锋衣',done:false},
+    {cat:'衣物',name:'保暖内衣',done:false}
+  ],
+  days:[
+    {label:'Day 1',items:[
+      {time:'09:30',title:'飞昆明转机',code:'KMG',st:0},
+      {time:'14:00',title:'抵达香格里拉',code:'DIG',st:0},
+      {time:'16:00',title:'独克宗古城',code:'DKZ',st:0},
+      {time:'19:00',title:'藏餐 · 牦牛火锅',code:'POT',st:0}
+    ]},
+    {label:'Day 2',items:[
+      {time:'09:00',title:'普达措国家公园',code:'PDC',st:0},
+      {time:'15:00',title:'属都湖栈道徒步',code:'SDH',st:0}
+    ]},
+    {label:'Day 3',items:[
+      {time:'10:00',title:'松赞林寺',code:'SZL',st:0},
+      {time:'16:00',title:'纳帕海环湖',code:'NPH',st:0}
+    ]},
+    {label:'Day 4',items:[
+      {time:'06:30',title:'梅里雪山 · 日照金山',code:'MLI',st:0},
+      {time:'14:00',title:'飞来寺观景台',code:'FLS',st:0}
+    ]},
+    {label:'Day 5',items:[
+      {time:'10:30',title:'返程 DIG → KMG',code:'RTB',st:0},
+      {time:'18:00',title:'到家 · 报平安',code:'HOME',st:0}
+    ]}
+  ],
+  curDay:0,
+  ledger:[
+    {name:'机票预付',cat:'交通',amt:860},
+    {name:'客栈定金',cat:'住宿',amt:300},
+    {name:'氧气瓶',cat:'其他',amt:120}
+  ],
+  expCat:'餐饮',
+  journal:[
+    {text:'转经筒下许了个愿 ✨',tag:'推荐',time:'10.03 21:47 · 独克宗古城',photos:2}
+  ],
+  jTag:'推荐',
+  backcheck:[
+    {name:'充电器',done:false},
+    {name:'房卡退还',done:false},
+    {name:'发票收好',done:false},
+    {name:'洗衣服',done:false},
+    {name:'导照片',done:false}
+  ],
+  celebrated:false
+};
+
+/* ================= HELPERS ================= */
+let toastTimer=null;
+function toast(msg){
+  const t=$('#toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+function setRing(el,frac){
+  const r=+el.getAttribute('r'),C=2*Math.PI*r;
+  el.style.strokeDasharray=C;
+  el.style.strokeDashoffset=C*(1-Math.max(0,Math.min(1,frac)));
+}
+function tweenNum(el,from,to,fmt,ms){
+  fmt=fmt||money;ms=ms||300;
+  if(REDUCED||from===to){el.textContent=fmt(to);return;}
+  const t0=performance.now();
+  const tick=()=>{
+    const p=Math.min(1,Math.max(0,(performance.now()-t0)/ms)),e=1-Math.pow(1-p,3);
+    el.textContent=fmt(from+(to-from)*e);
+    if(p<1)requestAnimationFrame(tick);else el.textContent=fmt(to);
+  };
+  requestAnimationFrame(tick);
+  setTimeout(()=>{el.textContent=fmt(to);},ms+120); /* 兜底：环境异常时直达终值 */
+}
+function stagger(els){
+  els.forEach((el,i)=>{
+    el.classList.remove('in');el.style.transitionDelay='';
+  });
+  if(REDUCED){els.forEach(el=>el.classList.add('in'));return;}
+  requestAnimationFrame(()=>{
+    els.forEach((el,i)=>{
+      el.style.transitionDelay=(i*40)+'ms';
+      el.classList.add('in');
+    });
+    setTimeout(()=>els.forEach(el=>el.style.transitionDelay=''),els.length*40+500);
+  });
+}
+
+/* ================= NAVIGATION ================= */
+let currentTab='home';
+function go(tab){
+  currentTab=tab;
+  $$('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  $$('.view').forEach(v=>v.classList.remove('active'));
+  const view=$('#view-'+tab);
+  view.classList.add('active');
+  view.scrollTop=0;
+  if(tab==='home'){restartMap();updateHomeWidgets();}
+  if(tab==='checklist')renderChecklist();
+  if(tab==='itinerary')renderItinerary();
+  if(tab==='ledger')renderLedger(true);
+  if(tab==='journal')renderJournal(false);
+  if(tab==='return')renderReturn();
+  stagger(Array.from(view.querySelectorAll('.rise')));
+}
+$('#tabbar').addEventListener('click',e=>{
+  const b=e.target.closest('.tab');if(b)go(b.dataset.tab);
+});
+$$('[data-go]').forEach(el=>el.addEventListener('click',()=>go(el.dataset.go)));
+
+/* route draw restart */
+function restartMap(){
+  $('#miniMap').querySelectorAll('.seg,.seg-halo,.mnode,.map-ring').forEach(el=>{
+    const cls=el.getAttribute('class');
+    el.setAttribute('class','');
+    el.getBoundingClientRect();
+    el.setAttribute('class',cls);
+  });
+}
+
+/* ================= HOME WIDGETS ================= */
+function clStats(){
+  const total=state.checklist.length,done=state.checklist.filter(i=>i.done).length;
+  return{total,done,left:total-done,frac:total?done/total:0};
+}
+function ledgerStats(){
+  const spent=state.ledger.reduce((s,e)=>s+e.amt,0);
+  return{spent,left:BUDGET-spent,frac:spent/BUDGET};
+}
+function updateHomeWidgets(){
+  const c=clStats();
+  setRing($('#homeClRing'),c.frac);
+  $('#homeClPct').textContent=Math.round(c.frac*100)+'%';
+  $('#homeClLeft').textContent=c.left;
+  const l=ledgerStats();
+  $('#homeLedgerLeft').textContent=money(l.left);
+  $('#homeLedgerLeft').style.color=l.left<0?'#FF6B6B':'var(--mint)';
+  $('#homeLedgerBar').style.width=Math.min(100,l.frac*100)+'%';
+}
+
+/* ================= CHECKLIST ================= */
+const BOX_SVG='<svg viewBox="0 0 18 18"><path d="M3.5 9.5l3.6 3.6L14.5 5.5"/></svg>';
+function renderChecklist(){
+  const groups={};
+  state.checklist.forEach((it,i)=>{(groups[it.cat]=groups[it.cat]||[]).push({...it,idx:i});});
+  $('#clGroups').innerHTML=Object.keys(groups).map(cat=>{
+    const items=groups[cat],dn=items.filter(i=>i.done).length;
+    return `<div class="cl-cat rise">
+      <div class="cl-cat-head">
+        <div class="cl-cat-name">${esc(cat)}</div>
+        <div class="cl-cat-count">${dn}/${items.length}</div>
+      </div>
+      ${items.map(it=>`
+        <div class="cl-item ${it.done?'done':''}" data-idx="${it.idx}">
+          <div class="radar-box">${BOX_SVG}</div>
+          <div class="cl-name">${esc(it.name)}</div>
+        </div>`).join('')}
+    </div>`;
+  }).join('');
+  updateChecklistProgress();
+  stagger(Array.from($('#clGroups').querySelectorAll('.rise')));
+}
+function updateChecklistProgress(){
+  const c=clStats();
+  setRing($('#clRing'),c.frac);
+  $('#clPct').textContent=Math.round(c.frac*100)+'%';
+  $('#clLeft').textContent=c.left;
+  $('#clMeta').textContent='已完成 '+c.done+' / '+c.total+' 项';
+  updateHomeWidgets();
+}
+$('#clGroups').addEventListener('click',e=>{
+  const row=e.target.closest('.cl-item');if(!row)return;
+  const it=state.checklist[+row.dataset.idx];
+  it.done=!it.done;
+  row.classList.toggle('done',it.done);
+  if(!it.done)state.celebrated=false;
+  updateChecklistProgress();
+  if(it.done && state.checklist.every(x=>x.done) && !state.celebrated){
+    state.celebrated=true;
+    const ov=$('#celebrate');ov.classList.add('show');
+    setTimeout(()=>ov.classList.remove('show'),2400);
+  }
+});
+$('#celebrate').addEventListener('click',()=>$('#celebrate').classList.remove('show'));
+$('#clAddBtn').addEventListener('click',()=>{
+  const name=$('#clInput').value.trim();
+  if(!name){toast('先输入条目名称');return;}
+  state.checklist.push({cat:$('#clCat').value,name,done:false});
+  state.celebrated=false;
+  $('#clInput').value='';
+  renderChecklist();
+  toast('已加入清单 · '+name);
+});
+$('#clInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('#clAddBtn').click();});
+
+/* ================= ITINERARY ================= */
+const ST_TXT=['计划 · Planned','✓ 已去 · Done','已取消 · Skipped'];
+function renderItinerary(){
+  $('#dayChips').innerHTML=state.days.map((d,i)=>
+    `<button class="day-chip ${i===state.curDay?'on':''}" data-day="${i}">${d.label}</button>`).join('');
+  const day=state.days[state.curDay];
+  $('#tlList').innerHTML=day.items.map((it,i)=>`
+    <div class="tl-item rise" data-st="${it.st}" data-idx="${i}">
+      <div class="tl-node"><div class="code-badge">${esc(it.code)}</div></div>
+      <div class="tl-body">
+        <div class="tl-time">${esc(it.time)} · ${esc(day.label)}</div>
+        <div class="tl-title">${esc(it.title)}</div>
+        <div class="tl-state">${ST_TXT[it.st]}</div>
+      </div>
+    </div>`).join('');
+  stagger(Array.from($('#tlList').querySelectorAll('.rise')));
+}
+$('#dayChips').addEventListener('click',e=>{
+  const chip=e.target.closest('.day-chip');if(!chip)return;
+  state.curDay=+chip.dataset.day;
+  renderItinerary();
+});
+$('#tlList').addEventListener('click',e=>{
+  const row=e.target.closest('.tl-item');if(!row)return;
+  const it=state.days[state.curDay].items[+row.dataset.idx];
+  it.st=(it.st+1)%3;
+  row.dataset.st=it.st;
+  row.querySelector('.tl-state').textContent=ST_TXT[it.st];
+  if(it.st===1){ /* radar pulse on check-in */
+    const node=row.querySelector('.tl-node');
+    ['ripple','ripple r2'].forEach(c=>{
+      const s=document.createElement('span');s.className=c;node.appendChild(s);
+      setTimeout(()=>s.remove(),1000);
+    });
+  }
+});
+
+/* ================= LEDGER ================= */
+function renderLedger(withStagger){
+  const l=ledgerStats();
+  setRing($('#gProg'),l.frac);
+  $('#gPct').innerHTML=Math.round(l.frac*100)+'<small>%</small>';
+  $('#gSpent').textContent=money(l.spent);
+  const leftEl=$('#gLeft');
+  leftEl.textContent=money(l.left);
+  leftEl.classList.toggle('over',l.left<0);
+  leftEl.classList.toggle('left',l.left>=0);
+  $('#catChips').innerHTML=Object.keys(CAT_COLOR).map(c=>
+    `<button class="cat-chip ${c===state.expCat?'on':''}" data-cat="${c}">${c}</button>`).join('');
+  $('#expList').innerHTML=state.ledger.map(e2=>`
+    <div class="exp-row rise">
+      <span class="exp-dot" style="color:${CAT_COLOR[e2.cat]};background:${CAT_COLOR[e2.cat]}"></span>
+      <div class="exp-name">${esc(e2.name)}<span class="exp-cat">${esc(e2.cat)}</span></div>
+      <div class="exp-amt">${money(e2.amt)}</div>
+    </div>`).join('');
+  if(withStagger)stagger(Array.from($('#expList').querySelectorAll('.rise')));
+}
+$('#catChips').addEventListener('click',e=>{
+  const chip=e.target.closest('.cat-chip');if(!chip)return;
+  state.expCat=chip.dataset.cat;
+  $$('#catChips .cat-chip').forEach(c=>c.classList.toggle('on',c===chip));
+});
+$('#expAdd').addEventListener('click',()=>{
+  const name=$('#expName').value.trim();
+  const amt=parseFloat($('#expAmt').value);
+  if(!name){toast('先填写名目');return;}
+  if(!(amt>0)){toast('金额需大于 0');return;}
+  const before=ledgerStats().spent;
+  state.ledger.push({name,cat:state.expCat,amt:Math.round(amt)});
+  $('#expName').value='';$('#expAmt').value='';
+  renderLedger(true);
+  tweenNum($('#gSpent'),before,ledgerStats().spent,money,300);
+  tweenNum($('#gLeft'),BUDGET-before,BUDGET-ledgerStats().spent,money,300);
+  updateHomeWidgets();
+  const l=ledgerStats();
+  if(l.left<0)toast('⚠️ 已超预算 '+money(-l.left));
+  else toast('已记账 · '+name+' '+money(amt));
+});
+$('#expAmt').addEventListener('keydown',e=>{if(e.key==='Enter')$('#expAdd').click();});
+
+/* ================= JOURNAL ================= */
+let sceneSeq=0;
+function sceneSVG(v){
+  const id='sc'+(sceneSeq++);
+  if(v%2===0){ /* 夜色经幡 */
+    return `<svg viewBox="0 0 160 120" preserveAspectRatio="xMidYMid slice">
+      <defs><linearGradient id="${id}a" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#101C3E"/><stop offset="100%" stop-color="#0A1120"/>
+      </linearGradient></defs>
+      <rect width="160" height="120" fill="url(#${id}a)"/>
+      <circle cx="126" cy="24" r="10" fill="#EEF2FA" opacity=".9"/>
+      <circle cx="126" cy="24" r="16" fill="#EEF2FA" opacity=".12"/>
+      <circle cx="22" cy="18" r="1.2" fill="#EEF2FA" opacity=".8"/><circle cx="48" cy="30" r="1" fill="#EEF2FA" opacity=".6"/>
+      <circle cx="76" cy="14" r="1.3" fill="#EEF2FA" opacity=".7"/><circle cx="100" cy="40" r="1" fill="#EEF2FA" opacity=".5"/>
+      <path d="M0 88 L34 58 L62 84 L96 52 L128 80 L160 62 V120 H0 Z" fill="#141F3C"/>
+      <path d="M0 100 L40 76 L84 98 L124 74 L160 92 V120 H0 Z" fill="#0D1730"/>
+      <path d="M14 44 C 50 34, 104 34, 146 46" stroke="#3A4C7E" stroke-width="1" fill="none"/>
+      <g>
+        <rect x="24" y="39" width="6" height="8" rx="1" fill="#4EA8FF" transform="rotate(-6 24 39)"/>
+        <rect x="42" y="36" width="6" height="8" rx="1" fill="#FFB454" transform="rotate(-3 42 36)"/>
+        <rect x="60" y="35" width="6" height="8" rx="1" fill="#3DDC97"/>
+        <rect x="78" y="35" width="6" height="8" rx="1" fill="#FF8E8E" transform="rotate(3 78 35)"/>
+        <rect x="96" y="36" width="6" height="8" rx="1" fill="#C9A7FF" transform="rotate(5 96 36)"/>
+        <rect x="114" y="39" width="6" height="8" rx="1" fill="#4EA8FF" transform="rotate(8 114 39)"/>
+      </g>
+    </svg>`;
+  }
+  /* 雪山晨光 */
+  return `<svg viewBox="0 0 160 120" preserveAspectRatio="xMidYMid slice">
+    <defs><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1B2A52"/><stop offset="70%" stop-color="#2E2350"/><stop offset="100%" stop-color="#0A1120"/>
+    </linearGradient></defs>
+    <rect width="160" height="120" fill="url(#${id}b)"/>
+    <circle cx="34" cy="26" r="9" fill="#FFB454" opacity=".95"/>
+    <circle cx="34" cy="26" r="17" fill="#FFB454" opacity=".14"/>
+    <path d="M-6 120 L46 40 L74 78 L104 30 L166 120 Z" fill="#1A2748"/>
+    <path d="M46 40 L58 56 L50 60 L62 72 L74 78 Z" fill="#8FA8D8" opacity=".85"/>
+    <path d="M104 30 L118 50 L108 55 L120 66 L128 60 L138 78 L166 120 L74 78 Z" fill="#22315C"/>
+    <path d="M104 30 L113 43 L106 47 L114 55 L104 58 L96 48 Z" fill="#EEF2FA" opacity=".9"/>
+    <path d="M0 104 C 40 96, 110 96, 160 104 V120 H0 Z" fill="#0D1730"/>
+  </svg>`;
+}
+const TAG_CLS={'推荐':'t-rec','避雷':'t-avo','美食':'t-food'};
+function jItemHTML(j){
+  const photos=j.photos?`<div class="j-photos">${Array.from({length:j.photos},(_,k)=>`<div class="j-ph">${sceneSVG(k)}</div>`).join('')}</div>`:'';
+  return `<div class="card j-item rise">
+    <span class="j-tag ${TAG_CLS[j.tag]||'t-rec'}">#${esc(j.tag)}</span>
+    <div class="j-text">${esc(j.text)}</div>
+    ${photos}
+    <div class="j-meta"><span class="led" style="animation:none;width:5px;height:5px"></span>${esc(j.time)}</div>
+  </div>`;
+}
+function renderJournal(withStagger){
+  $('#tagChips').innerHTML=['推荐','避雷','美食'].map(t=>
+    `<button class="tag-chip ${t===state.jTag?'on':''}" data-tag="${t}">${t}</button>`).join('');
+  $('#jFeed').innerHTML=state.journal.map(jItemHTML).join('');
+  if(withStagger)stagger(Array.from($('#jFeed').querySelectorAll('.rise')));
+}
+$('#tagChips').addEventListener('click',e=>{
+  const chip=e.target.closest('.tag-chip');if(!chip)return;
+  state.jTag=chip.dataset.tag;
+  $$('#tagChips .tag-chip').forEach(c=>c.classList.toggle('on',c===chip));
+});
+$('#jPub').addEventListener('click',()=>{
+  const text=$('#jInput').value.trim();
+  if(!text){toast('先写点什么吧');return;}
+  const d=new Date();
+  const p=n=>String(n).padStart(2,'0');
+  state.journal.unshift({
+    text,tag:state.jTag,photos:0,
+    time:p(d.getMonth()+1)+'.'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+' · 香格里拉'
+  });
+  $('#jInput').value='';
+  renderJournal(true);
+  toast('已发布到手账');
+});
+
+/* ================= RETURN ================= */
+function renderReturn(){
+  $('#backList').innerHTML=state.backcheck.map((b,i)=>`
+    <div class="cl-item ${b.done?'done':''}" data-idx="${i}">
+      <div class="radar-box">${BOX_SVG}</div>
+      <div class="cl-name">${esc(b.name)}</div>
+    </div>`).join('');
+  const total=state.days.reduce((s,d)=>s+d.items.length,0);
+  const done=state.days.reduce((s,d)=>s+d.items.filter(i=>i.st===1).length,0);
+  const l=ledgerStats();
+  $('#sumDone').innerHTML=done+'<small> / '+total+'</small>';
+  $('#sumSpent').innerHTML=money(l.spent).replace('¥','¥')+'<small> / '+money(BUDGET)+'</small>';
+  $('#sumNotes').innerHTML=state.journal.length+'<small> 条</small>';
+  $('#sumPhotos').innerHTML=state.journal.reduce((s,j)=>s+j.photos,0)+'<small> 张</small>';
+}
+$('#backList').addEventListener('click',e=>{
+  const row=e.target.closest('.cl-item');if(!row)return;
+  const b=state.backcheck[+row.dataset.idx];
+  b.done=!b.done;
+  row.classList.toggle('done',b.done);
+});
+$('#btnShare').addEventListener('click',()=>{
+  const total=state.days.reduce((s,d)=>s+d.items.length,0);
+  const done=state.days.reduce((s,d)=>s+d.items.filter(i=>i.st===1).length,0);
+  const l=ledgerStats();
+  const photos=state.journal.reduce((s,j)=>s+j.photos,0);
+  $('#shareText').innerHTML=
+`【旅迹 TripLine】香格里拉 · 5天4晚 旅行手记
+✅ 完成行程 ${done}/${total} 项 · 💰 花费 ${money(l.spent)} / 预算 ${money(BUDGET)}
+📔 见闻 ${state.journal.length} 条 · 📷 照片 ${photos} 张
+—— 从收拾行李，到安全回家 ——
+导出码：<span class="code">TLC-KMG2DIG-1002-7F3A</span>
+（复制整段文案，在旅迹 App「粘贴导入」即可还原本趟旅程）`;
+  $('#shareOverlay').classList.add('show');
+});
+$('#btnCloseShare').addEventListener('click',()=>$('#shareOverlay').classList.remove('show'));
+$('#shareOverlay').addEventListener('click',e=>{if(e.target.id==='shareOverlay')$('#shareOverlay').classList.remove('show');});
+$('#btnCopy').addEventListener('click',()=>{
+  const txt=$('#shareText').innerText;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>toast('已复制，去粘贴给旅伴吧')).catch(()=>toast('复制失败，请手动选择文本'));
+  }else toast('请手动长按选择文本复制');
+});
+
+/* ================= HOME ENTRIES ================= */
+$('#btnNew').addEventListener('click',()=>toast('演示原型 · 新建旅程入口预留'));
+$('#btnImport').addEventListener('click',()=>toast('粘贴含 TLC- 前缀的分享文案即可导入'));
+
+/* ================= INIT ================= */
+updateHomeWidgets();
+renderChecklist();
+renderItinerary();
+renderLedger(false);
+renderJournal(false);
+renderReturn();
+stagger(Array.from($('#view-home').querySelectorAll('.rise')));
+})();
+
+</script>
+</body>
+</html>
