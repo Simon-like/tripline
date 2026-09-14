@@ -4,6 +4,47 @@
 
 ---
 
+## 2026-09-14 · Kimi-Coder（M03 行程规划 + M04 旅行账本施工完成，待独立验收）
+
+**现在什么最重要**：Wave 1 四个模块（M01–M04）已全部完成施工，Simon 2026-09-14 会话明确授权"进入后续模块的开发计划规划和开发"（与此前 Codex 施工 M01/M02 授权方式一致，已在两份模块文档中如实记录）。需求/技术评审门与验收门均未正式通过，**下一步是由独立会话对照 EARS 逐条验收，Simon 做验收门决策**。
+
+**本会话做了什么**：
+- 起草 [modules/M03-itinerary.md](modules/M03-itinerary.md)（12 条 EARS）与 [modules/M04-ledger.md](modules/M04-ledger.md)（12 条 EARS），按六段式模板填齐需求/调研/方案/任务清单/施工记录，验收段留空。
+- M03：`packages/shared` 增量新增 `itinerary.ts`（三态循环 `nextItineraryState`、`journeyDays`、演示 Day1 四条目，确定性 UUID）；数据层双端 CRUD（SQLite 事务 + sync_queue / Web localStorage，存档向后兼容）；`itinerary.tsx` 占位页 → Day 胶囊切换 + 彩色圆球时间轴 + 三态打卡（visited 触发 600ms 彩带）+ 增删（Modal 二次确认）+ 40ms 级联入场；演示种入幂等（独立 `demoItinerarySeeded` 标记 + 存在性双保险）。
+- M04：shared 增量新增 `ledger.ts`（`budgetSummary` 三档状态、`categoryBreakdown`、`dailyExpenseTotals`、演示三笔账目）；expense 双端 CRUD；`ledger.tsx` → 预算卡（数字滚动 + 百分比条 + ≥80% 警告 / >100% 超支 + 预算修改弹层）+ 分类堆叠占比条与图例 + react-native-svg 手绘每日折线 + 流水列表（时间倒序、二次确认删除）+ 记账弹层（600ms 彩带反馈）。**未引入 victory-native**（避免新原生依赖与重新 prebuild），已在模块文档列为 revisit 点。ExpenseSchema 未改动——每日趋势按 `createdAt` 本地日期聚合，契约零变更。
+- 顺带修复：首页 bento 行加 `minWidth: 0 / flexShrink: 1` 防御性约束。
+- 验证：`lint` / `typecheck` / `test` 全绿（shared 测试 14 → 22，只增不减）；Web 预览 390×844 截图 `artifacts/preview/m03-itinerary.png`、`m04-ledger.png`、`home-bento-fix.png` 目检通过（无 [?]、无溢出、图表渲染正常、Tab 栏完整）。
+
+**下一步**：独立会话对照 M03 AC-1~12 与 M04 AC-1~12 逐条核验（含双端 dev build 真机），Simon 签字验收；之后进入 Wave 2（M05 手账等）立项。
+
+**坑与提醒**：
+- **headless Chrome 最小窗口宽度是 500px**——`--window-size=390,844` 截图实际按 500px 布局再裁左 390，此前"首页 bento 横向溢出"与此后所有 390 截图的右侧裁切都是这个测量假象；真实 390 视口须用 CDP `Emulation.setDeviceMetricsOverride`（脚本 `artifacts/preview/cdp-shot.mjs`，验证入口 `verify-m03-m04.sh`）。旧 `verify-web.sh` 的截图结论需以此为准重新解读。
+- 数字滚动（rAF 计数器）在 `--virtual-time-budget` 下会被快进而截到中间值，截图数字以静态复核为准。
+- Web 预览存档 key 为 `tripline.preview.v1`，新增 `itineraryItems/expenses` 字段对旧存档做了缺省回填；演示数据三个 seeded 标记互相独立，老存档首次进入 M03/M04 会自动补种。
+- 真机验证仍受"手机到 Metro 网络不通"阻塞，未解除。
+
+---
+
+## 2026-09-14 · Kimi（根治图标「?」：切换 SVG 图标系统）
+
+**现在什么最重要**：iOS 端"图标显示为 ?"已根治并验证，不再是阻塞项。Wave 1 剩余 M03 行程规划、M04 旅行账本进入开发（Simon 2026-09-14 会话明确授权"规划并开发后续模块"）。
+
+**本会话做了什么**：
+- 梳理 Codex 全部工程纪要（M00 基座、M01/M02 首版、双端 dev build 链路）跟上进度；提交基线 commit `5c48936` 固化遗留未提交状态。
+- 调研确诊"图标为 ?"根因：**iOS 26 Emoji 字体级联回归**（RN 官方 issue facebook/react-native#56183——iOS 26 模拟器上 RN `<Text>` 全部 Emoji 渲染为 [?]，Safari 正常；xcodes #468——部分 26.3.1/26.4 模拟器运行时系统级 Emoji 失效）。Codex 日志中的 `AppleColorEmoji.ttc 无法打开` 与此吻合。非本应用代码缺陷，但应用图标不应依赖该级联。
+- 实施修复（commit `69717b0`）：新建 `packages/ui/src/Icon.tsx`（19 个手绘 SVG 图标，24×24 stroke 风格，三端可渲染，零新增依赖——`react-native-svg` 已在依赖中），替换全部约 15 处图标位 Emoji（Tab 栏 5 个、清单分类 8 个、页头装饰、首页品牌/倒计时/清单卡/山景）；ADR `docs/adr/0002-icon-system-svg.md`（Accepted）；CONTEXT.md 补图标系统说明。此决策把 PRD 原"V2 换定制图标"提前落地，也是方向 B "Tab 图标形状变形"动效的前提。
+- 验证：lint / typecheck / test（14 用例）全绿；Web 预览 390×844 无头 Chrome 截图目检首页与清单页，图标全部正常、无 [?]。截图：`artifacts/preview/icon-fix-home.png`、`icon-fix-checklist.png`。
+
+**下一步**：M03 行程规划（按日时间轴+三态打卡）与 M04 旅行账本（记一笔+预算+占比+趋势）的模块文档起草与施工；完成后由独立会话对照 EARS 验收，Simon 做验收门决策。
+
+**坑与提醒**：
+- iOS 26 模拟器上用户内容里的 Emoji 仍可能显示 [?]——那是 Apple/RN 平台回归，等上游修复，不要在应用层绕过；图标位已全走 SVG，不受影响。
+- 既有问题（非本次引入）：Web 预览 390px 视口首页 bento 行有横向溢出，右侧被裁；已在 M03/M04 任务中要求顺带修复。
+- 真机（iPhone 17 Pro）验证仍受"手机到 Metro 网络不通"阻塞，图标修复的真机确认待网络通路恢复后由 Simon 完成；本次验证基于 Web 预览 + 类型/测试。
+- 本机无全局 pnpm，使用 `npx --yes pnpm@10.33.4`（与 packageManager 字段一致）。
+
+---
+
 ## 2026-09-14 · Codex（iOS 模拟器首次运行）
 
 **现在什么最重要**：Simon 决定先用 iOS 模拟器开发，绕开当前真机到 Metro 的网络阻塞。iPhone 17 Pro / iOS 26.3 模拟器已完成 development build，成功加载 JS 并显示旅迹首页与清单；真机网络问题暂缓。

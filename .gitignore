@@ -7,3 +7,6 @@ android/
 ios/
 *.log
 .DS_Store
+
+# 本地 Chrome 预览调试 profile
+artifacts/preview/.chrome-profile*/
