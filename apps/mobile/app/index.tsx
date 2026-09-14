@@ -129,8 +129,8 @@ export default function Home() {
             </View>
           </BouncyButton>
 
-          <View style={{ flexDirection: 'row', gap: 12 }}>
-            <View style={{ flex: 1, minHeight: 169, backgroundColor: theme.celebrate, borderRadius: 27, padding: 18, justifyContent: 'space-between' }}>
+          <View style={{ flexDirection: 'row', gap: 12, maxWidth: '100%' }}>
+            <View style={{ flex: 1, flexShrink: 1, minWidth: 0, minHeight: 169, backgroundColor: theme.celebrate, borderRadius: 27, padding: 18, justifyContent: 'space-between', overflow: 'hidden' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <TripText size={13} weight="semibold" style={{ color: theme.text }}>出发倒计时</TripText>
                 <Icon name="sun" size={15} color={theme.text} />
@@ -140,7 +140,7 @@ export default function Home() {
                 <TripText size={12} weight="semibold" style={{ color: theme.text }}>{status === 'preparing' ? '天后，故事开始' : status === 'traveling' ? '正在路上' : '把回忆收好'}</TripText>
               </View>
             </View>
-            <BouncyButton onPress={() => openJourney(current)} style={{ flex: 1, minHeight: 169, backgroundColor: theme.surface, borderRadius: 27, padding: 18, justifyContent: 'space-between' }}>
+            <BouncyButton onPress={() => openJourney(current)} style={{ flex: 1, flexShrink: 1, minWidth: 0, minHeight: 169, backgroundColor: theme.surface, borderRadius: 27, padding: 18, justifyContent: 'space-between', overflow: 'hidden' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <TripText size={13} weight="semibold">行前清单</TripText>
                 <Icon name="luggage" size={15} color={theme.textSecondary} />
