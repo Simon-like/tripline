@@ -18,6 +18,8 @@
 
 2026-09-14 只读检查：Apple Silicon Mac；Node 20.19.3、pnpm 10.33.4、Java 17 已安装。Expo SDK 55 官方最低支持 Node 20.19.4（另支持 22.13.0+ 等），所以**先升级 Node**。完整 Xcode 缺失，当前只有 Command Line Tools，xcodebuild/simctl 不可用。Android SDK 命令行管理器存在，但 Platform 36、Build Tools 36 和 adb 尚不可用；此前安装停在 Google SDK 许可确认。EAS CLI 尚不在 PATH，Expo 账号未关联此项目。
 
+这台 Mac 是 macOS 15.7.7。当前 Mac App Store 提供的新版 Xcode 要求 macOS 26.2，因此会出现“不能安装”的提示；这不代表此 Mac 无法本地开发。Apple 的版本兼容表显示，Xcode 26.2 支持 macOS 15.6 起的系统，也符合 Expo SDK 55 的 Xcode 26.2+ 要求。应从 Apple Developer 的历史下载页获取 Xcode 26.2。
+
 本仓库 apps/mobile/eas.json 已配置 development profile：含 development client，内部安装，Android 输出 APK。apps/mobile/ios 与 apps/mobile/android 是 git 忽略的本地生成目录，新增过原生依赖，需要在首次本地真机编译前重新生成。iOS Bundle Identifier 和 Android package 暂定为 app.tripline.mobile；首次签名/关联 EAS 前确认它可用且愿意长期保留。
 
 ## 1. 通用准备
@@ -73,7 +75,7 @@
 
 ### 安装和签名
 
-从 Mac App Store 安装**完整 Xcode 26.2 或更新且符合 SDK 55 要求的版本**。单独 Command Line Tools 不够。首次启动 Xcode，完成组件安装及系统显示的许可。在 Xcode → Settings → Locations → Command Line Tools 选择完整 Xcode。终端验证 xcode-select -p 和 xcodebuild -version；若仍指向 CommandLineTools，并确认 Xcode 在 /Applications/Xcode.app，可运行：
+这台 macOS 15.7.7 的 Mac **不要从 Mac App Store 安装当前最新版 Xcode**：它要求 macOS 26.2。用自己的 Apple Account 登录 [Apple Developer 下载页](https://developer.apple.com/download/all/)，搜索并下载官方 **Xcode 26.2** 的 .xip 文件。解压后把 Xcode.app 移到 /Applications，首次启动并完成组件安装及系统显示的许可。单独 Command Line Tools 不够。在 Xcode → Settings → Locations → Command Line Tools 选择完整 Xcode。终端验证 xcode-select -p 和 xcodebuild -version；若仍指向 CommandLineTools，并确认 Xcode 在 /Applications/Xcode.app，可运行：
 
     sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
@@ -118,6 +120,7 @@ EAS 在 Expo 服务器编译，构建所需的项目代码和配置会上传给 
 | 新增原生库、改 app.json/config plugin、升级 SDK | 重新 prebuild 和 development build；旧客户端不会自动获得原生代码 |
 | 手机打不开 Metro | 检查同 Wi‑Fi、Mac 防火墙、VPN、访客网络隔离；Android USB 尝试 adb reverse；再试 tunnel |
 | 扫码误开 Expo Go | 先安装“旅迹”的 development build，再打开 pnpm start 的 dev-client 链接 |
+| App Store 提示 Xcode 需要 macOS 26.2 | 当前系统 15.7.7 可从 Apple Developer 历史下载页安装 Xcode 26.2；无需仅为此提示升级 macOS |
 
 Tunnel：在根目录运行 pnpm --filter @tripline/mobile exec expo start --dev-client --tunnel。若 Expo 提示缺隧道依赖，按它的官方指引安装。Tunnel 通常比局域网慢。首次 iPhone 连接局域网时也留意系统的“本地网络”权限提示。
 
@@ -125,7 +128,7 @@ Tunnel：在根目录运行 pnpm --filter @tripline/mobile exec expo start --dev
 
 ## 6. 建议执行顺序
 
-先升级 Node 并跑通项目检查。如果手边有 Android 手机，EAS Android APK 是最快装上去体验的路线；要离线本地编译和原生日志，再补 Android Studio/SDK。iPhone 有付费 Apple Developer 时可走 EAS；没有就装 Xcode 26.2+，用 Personal Team 本地装在自己的手机。两端均装好 development build 后，以 pnpm start 进入日常开发。
+先升级 Node 并跑通项目检查。如果手边有 Android 手机，EAS Android APK 是最快装上去体验的路线；要离线本地编译和原生日志，再补 Android Studio/SDK。iPhone 有付费 Apple Developer 时可走 EAS；没有就从 Apple Developer 历史下载页安装 Xcode 26.2，用 Personal Team 本地装在自己的手机。两端均装好 development build 后，以 pnpm start 进入日常开发。
 
 ## 官方资料
 
@@ -134,5 +137,6 @@ Tunnel：在根目录运行 pnpm --filter @tripline/mobile exec expo start --dev
 - [EAS 首次构建](https://docs.expo.dev/build/setup/)；[EAS monorepo 规则](https://docs.expo.dev/build-reference/build-with-monorepos/)；[内部分发](https://docs.expo.dev/build/internal-distribution/)
 - [EAS iPhone 真机构建与设备注册](https://docs.expo.dev/tutorial/eas/ios-development-build-for-devices/)；[iOS 开发者模式](https://docs.expo.dev/guides/ios-developer-mode/)
 - [Apple Xcode 真机运行与签名](https://developer.apple.com/documentation/xcode/building-and-running-an-app)；[免费 Personal Team 限制](https://developer.apple.com/help/account/basics/about-your-developer-account)
+- [Apple Xcode 各版本 macOS 要求](https://developer.apple.com/xcode/system-requirements)；[Apple Developer 历史下载页](https://developer.apple.com/download/all/)
 - [Android Studio 真机连接](https://developer.android.com/studio/run/device)；[手机开发者选项](https://developer.android.com/studio/debug/dev-options)；[SDK Manager 与许可](https://developer.android.com/studio/intro/update)
 - [Expo 调试工具](https://docs.expo.dev/debugging/tools/)；[原生日志](https://docs.expo.dev/debugging/runtime-issues/)；[局域网与 Tunnel](https://docs.expo.dev/get-started/start-developing/)

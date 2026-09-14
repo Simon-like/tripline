@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-09-14 · Codex（Xcode 安装报错排查）
+
+**现在什么最重要**：Simon 安装 Xcode 时遇到 Mac App Store 提示需要 macOS 26.2；iPhone 本地构建仍未启动。
+
+**本会话做了什么**：核对本机 macOS 15.7.7 与 Apple 官方 Xcode 版本要求，确认 App Store 当前版不兼容，但 Xcode 26.2 支持 macOS 15.6 及以上、满足 Expo SDK 55。修正真机调试指南，指向 Apple Developer 历史下载页和完整 Xcode 的安装/选择步骤。
+
+**验证与依据**：本机 sw_vers 为 15.7.7，xcode-select 仍指向 CommandLineTools；Apple Xcode 系统要求表与 Expo SDK 55 支持矩阵见 DEVICE_DEBUGGING.md 末尾链接。只更新文档，未登录 Apple 账号、下载 Xcode 或接受许可。
+
+**下一步**：Simon 用自己的 Apple Account 下载 Xcode 26.2，安装后检查 xcodebuild -version；同时将 Node 20.19.3 升至至少 20.19.4，再进行 iPhone development build。
+
+---
+
 ## 2026-09-14 · Codex（真机调试指南）
 
 **现在什么最重要**：Simon 正准备配置 iOS/Android 真机调试环境；M00–M02 仍需双端 development build 和独立验收。

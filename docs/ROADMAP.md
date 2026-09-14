@@ -20,7 +20,7 @@
 
 | 模块 | Wave | 状态 | 认领人 | 评审门通过日期 | 阻塞原因 | 最近更新 |
 |---|---|---|---|---|---|---|
-| M00 工程基座 | 0 | 施工中（提前授权；契约待复核） | Codex | — | iOS/Android 真机 dev build 待验证；Node 20.19.3 需升级，缺完整 Xcode，Android SDK 许可未接受，EAS 未登录；配置步骤见 DEVICE_DEBUGGING.md | 2026-09-14 |
+| M00 工程基座 | 0 | 施工中（提前授权；契约待复核） | Codex | — | iOS/Android 真机 dev build 待验证；Node 20.19.3 需升级，缺完整 Xcode（macOS 15.7.7 应从 Apple Developer 下载 Xcode 26.2），Android SDK 许可未接受，EAS 未登录；配置步骤见 DEVICE_DEBUGGING.md | 2026-09-14 |
 | M01 旅程管理 | 1 | 施工中（提前授权；待评审） | Codex | — | 双端 dev build / 独立验收待完成；多旅程排序、删除恢复入口待拍板 | 2026-09-13 |
 | M02 行前清单 | 1 | 施工中（提前授权；待评审） | Codex | — | 双端 dev build / 独立验收待完成；模板内容与删除交互待拍板 | 2026-09-13 |
 | M03 行程规划 | 1 | 未起草 | — | — | — | 2026-09-13 |
