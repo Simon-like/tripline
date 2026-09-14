@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-09-14 · Codex（Android 首次构建验证补记）
+
+**现在什么最重要**：Android Pixel 8 模拟器已装上并打开“旅迹”development build；iPhone 17 Pro 尚未接入本机，真机签名与安装仍待验证。
+
+**本会话做了什么**：继续完成首次 Android 构建，Gradle 自动安装 NDK 27.1、Build-Tools 35 与 CMake 3.22.1，产出并安装调试 APK；Metro 完成 Android JS 打包。保存模拟器首页截图 artifacts/preview/android-emulator-first-run.png。先前环境与快捷命令的改动已出现在 Simon 的提交 2989c0c 中，本条仅补记后续验证结果。
+
+**验证与依据**：pnpm android:emulator 显示 BUILD SUCCESSFUL；APK 位于 apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk（本地产物）；adb 显示 package app.tripline.mobile 已安装且 MainActivity 为前台，截图可见旅程首页。iOS 只完成 CocoaPods 与 xcodebuild -list，未构建或安装到真机。
+
+**下一步**：Simon 将 iPhone 接线、信任电脑、启用开发者模式并在 Xcode 选择自己的 Team，然后从仓库根目录运行 pnpm ios:device。两端均装好后，日常只运行 pnpm start；后续由独立会话做 M00–M02 验收。
+
+**坑与提醒**：第一次 Gradle 运行约 23 分钟，主要用于下载 Gradle/NDK/CMake 和编译原生模块；后续构建可用缓存。Android 首页截图顶部系统栏与品牌标题靠得较近，之后做原生视觉验收时应检查安全区。
+
+---
+
 ## 2026-09-14 · Codex（本地开发环境落地）
 
 **现在什么最重要**：环境变量与项目 Node 版本已经固定；Android Pixel 8 模拟器首次 development build 正在编译，iPhone 尚未连接，真机签名/安装待 Simon 接线后完成。
