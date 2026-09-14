@@ -22,7 +22,7 @@
 
 这台 Mac 是 macOS 15.7.7，现已安装 Xcode 26.3。完整 Xcode 兼容当前系统且符合 Expo SDK 55 的 Xcode 26.2+ 要求；终端目前仍指向 Command Line Tools，需要在 Xcode Settings → Locations 选择 Xcode 26.3。Android Studio、模拟器程序、Platform Tools、Build Tools 36.0.0 也已安装，尚需 Android API 36 平台和 ARM64 模拟器镜像。
 
-本仓库 apps/mobile/eas.json 已配置 development profile：含 development client，内部安装，Android 输出 APK。apps/mobile/ios 与 apps/mobile/android 是 git 忽略的本地生成目录，新增过原生依赖，需要在首次本地真机编译前重新生成。iOS Bundle Identifier 和 Android package 暂定为 app.tripline.mobile；首次签名/关联 EAS 前确认它可用且愿意长期保留。
+本仓库 apps/mobile/eas.json 已配置 development profile：含 development client，内部安装，Android 输出 APK。apps/mobile/ios 与 apps/mobile/android 是 git 忽略的本地生成目录，新增过原生依赖，需要在首次本地真机编译前重新生成。iOS Bundle Identifier 为 com.yingdonglin.tripline，Android package 为 app.tripline.mobile；首次签名/关联 EAS 前确认 iOS 标识可用且愿意长期保留。
 
 ## 1. 通用准备
 

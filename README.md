@@ -30,12 +30,13 @@ BROWSER=none pnpm --filter @tripline/mobile web
 
 ## 在手机上运行
 
-当前 iPhone 17 Pro + Android 模拟器的最短步骤见 [调试速查](docs/DEVICE_DEBUGGING.md)；其他设备、EAS 与详细排障见 [完整版指南](docs/DEVICE_DEBUGGING_FULL.md)。本项目使用 Expo SDK 55，先检查 Node 和 Xcode 版本要求，再按设备选择路线。
+当前 iOS/Android 模拟器的最短步骤见 [调试速查](docs/DEVICE_DEBUGGING.md)；iPhone 真机、其他设备、EAS 与详细排障见 [完整版指南](docs/DEVICE_DEBUGGING_FULL.md)。本项目使用 Expo SDK 55，先检查 Node 和 Xcode 版本要求，再按设备选择路线。
 
-本机已配置 Android SDK、JDK 17、Xcode 26.3 和 CocoaPods，原生工程也已生成。打开 Android 模拟器或接好 iPhone 后，从项目根目录运行：
+本机已配置 Android SDK、JDK 17、Xcode 26.3 和 CocoaPods，原生工程也已生成。从项目根目录运行：
 
 ```bash
 pnpm android:emulator  # Android 模拟器：编译、安装并启动
+pnpm ios:simulator     # iPhone 17 Pro 模拟器：编译、安装并启动
 pnpm ios:device        # iPhone 真机：编译、签名并安装
 pnpm start             # 两端已装开发版后，日常只需启动开发服务器
 ```

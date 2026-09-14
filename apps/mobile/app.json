@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.tripline.mobile"
+      "bundleIdentifier": "com.yingdonglin.tripline"
     },
     "android": {
       "package": "app.tripline.mobile",

@@ -4,6 +4,76 @@
 
 ---
 
+## 2026-09-14 · Codex（iOS 模拟器首次运行）
+
+**现在什么最重要**：Simon 决定先用 iOS 模拟器开发，绕开当前真机到 Metro 的网络阻塞。iPhone 17 Pro / iOS 26.3 模拟器已完成 development build，成功加载 JS 并显示旅迹首页与清单；真机网络问题暂缓。
+
+**本会话做了什么**：关闭旧 Metro，使用 `expo run:ios --device <iPhone 17 Pro 模拟器 UDID>` 首次编译 iOS 模拟器版本并安装启动。通过 `xcrun simctl openurl` 打开旅迹首页，保存截图 `artifacts/preview/ios-simulator-home.png` 和 `artifacts/preview/ios-simulator-first-run.png`。根目录增加 `pnpm ios:simulator` 快捷命令，并把 iOS 模拟器改为 README 和调试速查的当前优先路线。
+
+**验证与依据**：Xcode 模拟器原生构建成功，Metro 完成 iOS JS 打包，模拟器日志显示 MMKV 初始化和页面渲染；`simctl` 截图直接显示香格里拉旅程首页与清单页面。部分 emoji 在 iOS 26.3 模拟器中显示问号框，同时模拟器日志提示 AppleColorEmoji.ttc 无法打开，不能据此推断真机也有该问题。
+
+**下一步**：Simon 先在 iOS 模拟器查看页面；后续常规改动保持模拟器运行、执行 `pnpm start`。视觉验收时处理 emoji 问号框；换到可互访网络后再做 iPhone 真机联调及独立验收。
+
+**坑与提醒**：模拟器与 Metro 在同一台 Mac 上，可绕开当前 Wi-Fi 客户端隔离；但它不覆盖真机网络、权限和性能。首次 iOS 模拟器原生编译耗时数分钟，普通页面改动不需要重复构建。
+
+---
+
+## 2026-09-14 · Codex（iPhone 到 Metro 的网络连通排查）
+
+**现在什么最重要**：手机 Safari 无法访问 Mac Wi-Fi 地址上的 Metro；Expo tunnel 也连接超时。应用已安装可启动，剩余障碍是手机到开发服务器的网络通路。
+
+**本会话做了什么**：确认 Mac 的 Metro 正常监听所有网卡且本机访问 `/status` 成功，macOS 防火墙关闭。尝试 `expo start --dev-client --tunnel`，按 CLI 提示全局安装 `@expo/ngrok`，但 ngrok 隧道超时；`ngrok.com` 从当前网络访问也超时。重启普通 Metro。Simon 已打开 iPhone 个人热点；Mac 的 `iPhone USB` 服务仍显示未激活，另一个直连网卡 `en8` 取得 `169.254.124.147`，本机访问该地址的 Metro 正常，正请 Simon 在手机 Safari 测试此地址。
+
+**验证与依据**：`curl http://10.254.169.255:8081/status` 与 `curl http://169.254.124.147:8081/status` 在 Mac 均返回 `packager-status:running`；Simon 明确反馈 iPhone Safari 无法打开前者。`socketfilterfw` 显示防火墙已关闭。tunnel CLI 报 `ngrok tunnel took too long to connect`。目前不能据 Mac 本机成功推断手机直连成功。
+
+**下一步**：根据 iPhone Safari 对 `http://169.254.124.147:8081/status` 的结果决定：成功则在 Development Build 手动输入同一地址；失败则让 Mac 接入 iPhone 热点 Wi-Fi 后重新获取 Mac IP 并测试。进入首页后继续 M00–M02 验收。
+
+**坑与提醒**：`169.254.*` 地址和 Wi-Fi IP 都会变化，不能写入固定启动脚本。不要重复原生编译解决 Metro 连接问题。当前网络不支持 Expo ngrok tunnel；如换网络后可再试。
+
+---
+
+## 2026-09-14 · Codex（iPhone 开发服务发现排查）
+
+**现在什么最重要**：iPhone 已能打开“旅迹”Development Build，但首页显示 `No development servers found`；Metro 在 Mac 上运行，手机到 Mac 的局域网连接尚待验证。
+
+**本会话做了什么**：检查 `pnpm start` 启动的 Expo 进程仍监听 8081；Mac 通过 localhost 和 Wi-Fi 地址访问 `/status` 都返回 `packager-status:running`。确认 Expo Dev Launcher 的手动输入支持 `http://` 地址，指导 Simon 在手机输入 `http://10.254.169.255:8081` 连接，并补充到设备调试速查。当前 Wi-Fi IP 会变化，不应写死在日常步骤中。
+
+**验证与依据**：Mac 当前 Wi-Fi IP 为 `10.254.169.255`，8081 端口处于 LISTEN，开发服务已持续运行约 25 分钟；iPhone 仍被 `devicectl` 识别。手机截图只证明自动发现失败，不证明手动连接或局域网访问失败；本轮没有重新编译应用。
+
+**下一步**：Simon 在 Development Build 的 Enter URL manually 输入当前 Mac 地址并点 Connect；若失败，用 iPhone Safari 访问同一地址的 `/status` 区分自动发现问题与局域网连通问题。局域网不通时检查同一 Wi-Fi、本地网络权限，必要时使用 Expo tunnel；进入首页后继续 M00–M02 验收。
+
+**坑与提醒**：iPhone Development Build 的“找不到服务器”与应用签名/安装无关，优先检查开发服务、自动发现和局域网，勿重复耗时的 iOS 原生编译。
+
+---
+
+## 2026-09-14 · Codex（解决 iOS Bundle Identifier 冲突并安装真机）
+
+**现在什么最重要**：iPhone 17 Pro 上已经安装并启动“旅迹”development build；还需由 Simon 查看手机，确认是否进入首页并连上 Metro 开发服务。
+
+**本会话做了什么**：根据 Xcode 报错确认 `app.tripline.mobile` 无法注册到 Personal Team，改 `apps/mobile/app.json` 的 iOS Bundle Identifier 为 `com.yingdonglin.tripline`，Android 包名保持原样；清理重建 iOS 原生工程并完成 CocoaPods 安装。`pnpm ios:device` 找到 iPhone 和 Apple Development 证书，Xcode 自动生成匹配新标识及手机的七天开发描述文件，原生构建成功并把应用安装到 iPhone。更新设备调试速查和完整版文档。
+
+**验证与依据**：Expo 配置及生成的 Xcode 工程均显示新 iOS 标识；`security find-identity` 显示 1 个有效开发身份；Xcode `Build Succeeded`，`xcrun devicectl device info apps` 显示手机已安装 `com.yingdonglin.tripline`。本地安装包 `codesign --verify --deep --strict` 通过。首次自动启动被 iOS 的开发者信任门拒绝，随后重新执行 `devicectl device process launch` 成功，进程列表显示 TripLine 正在运行；`pnpm start` 已开启 Metro。`pnpm lint`、`pnpm typecheck`、`pnpm test`（14 个 shared 用例）及 `git diff --check` 均通过。尚无手机屏幕首页的直接证据。
+
+**下一步**：Simon 查看手机上的“旅迹”，若仍显示开发者未受信任，按“设置 → 通用 → VPN 与设备管理”的提示完成信任；进入 development build 后允许本地网络访问并连接 Metro。确认首页后继续做 M00–M02 独立验收。
+
+**坑与提醒**：`apps/mobile/ios` 为 Git 忽略的生成目录，清理重建会丢失 Xcode 中手动选择的 Team；开发证书保存在本机钥匙串，描述文件可由 Xcode 自动生成。免费 Personal Team 的本次描述文件有效期七天，过期后需重新签名安装。初次安装完成时 Expo 仍可能因为设备端信任未建立而以退出码 1 结束，此时应先按手机设置提示处理，再重试启动，无需重编译。
+
+---
+
+## 2026-09-14 · Codex（iPhone 真机签名排查）
+
+**现在什么最重要**：iPhone 17 Pro 已接线并启用开发者模式，Xcode 26.3 已登录 Personal Team；首次 iOS development build 因本机尚无 Apple Development 证书而停在签名检查，应用尚未安装到 iPhone。
+
+**本会话做了什么**：确认 `xcrun devicectl` 可识别 iPhone；检查 Xcode 工程已启用 Automatically manage signing、Bundle Identifier 为 `app.tripline.mobile`，但 Team 仍为 None。核对 Xcode 账户中 Personal Team 可选、当前尚无已登记设备；`pnpm ios:device` 能找到手机，但提示没有可用代码签名证书。已向 Simon 请求选择 Personal Team 并由 Xcode 自动创建本地开发签名的操作时确认。
+
+**验证与依据**：`security find-identity -v -p codesigning` 显示 0 个有效身份；Expo 首次真机安装报 `No code signing certificates are available to use`。Android 模拟器结果沿用上一条日志，本轮未重复构建。
+
+**下一步**：确认后在 Xcode 的 TripLine target → Signing & Capabilities 将 Team 选为 Personal Team，等待自动签名完成，再从仓库根目录运行 `pnpm ios:device` 安装到 iPhone；成功后日常用 `pnpm start` 启动开发服务器。
+
+**坑与提醒**：不必先手工下载 Manual Profiles；首次本地真机安装仍需 Xcode 生成开发证书和描述文件。本机 `apps/mobile/ios` 是被 Git 忽略的原生生成目录，若之后重新 prebuild，需再次检查签名团队。
+
+---
+
 ## 2026-09-14 · Codex（Android 首次构建验证补记）
 
 **现在什么最重要**：Android Pixel 8 模拟器已装上并打开“旅迹”development build；iPhone 17 Pro 尚未接入本机，真机签名与安装仍待验证。
