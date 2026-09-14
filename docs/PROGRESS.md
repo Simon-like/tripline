@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-09-14 · Codex（本地开发环境落地）
+
+**现在什么最重要**：环境变量与项目 Node 版本已经固定；Android Pixel 8 模拟器首次 development build 正在编译，iPhone 尚未连接，真机签名/安装待 Simon 接线后完成。
+
+**本会话做了什么**：在 ~/.zshrc 配置 ANDROID_HOME 与 adb/emulator PATH；检查 Xcode 26.3 已选为开发工具、JDK 17 与 Android API 36/Pixel 8 AVD 齐备。pnpm-workspace.yaml 以 useNodeVersion 固定 20.19.4，.nvmrc 同步标记；.npmrc 保留 Expo 所需 hoisted 布局并说明 Node 配置位置。根目录加入 pnpm android:emulator 和 pnpm ios:device 入口，更新 README/速查。项目实体从中文“旅游记”移到同级英文 tripline，原位置保留指向同一工程的符号链接，以避开 React Native/CocoaPods 处理中文路径时的本地 URI/编码错误。安装 CocoaPods 1.17.0，重新生成双端原生工程并完成 iOS pod install。
+
+**验证与依据**：新终端可找到 ANDROID_HOME、adb、Xcode 26.3 与 CocoaPods；pnpm node -v 和 pnpm exec node -v 均为 20.19.4。pnpm install --frozen-lockfile、lint、typecheck、test（14 个 shared 用例）、expo install --check 均通过；iOS TripLine.xcworkspace 可由 xcodebuild -list 正常读取，Pods/Manifest.lock 已生成。Android 模拟器显示 emulator-5554；首次 Gradle 构建尚待最终结果。xcrun devicectl 未发现已连接的 iPhone，因此未宣称真机通过。
+
+**下一步**：确认 Android 首次构建并在 Pixel 8 上启动应用；Simon 接上 iPhone 17 Pro、选自己的 Personal Team 并开启开发者模式后，在根目录运行 pnpm ios:device。两端装好开发版后日常运行 pnpm start。
+
+**坑与提醒**：pnpm 10 的 useNodeVersion 应写在 pnpm-workspace.yaml，而非 .npmrc；直接运行系统 node -v 可能仍显示旧 nvm 版本，但 pnpm 脚本已固定使用 20.19.4。中文物理路径导致 URI::File.build 与 Hermes podspec 编码错误，符号链接到英文目录不足以修复，需让项目实体位于英文路径；原“旅游记”入口保留。iOS 原生目录为 git 忽略的本地产物，新增原生依赖后仍需重新 prebuild。
+
+---
+
 ## 2026-09-14 · Codex（按现有设备简化调试路线）
 
 **现在什么最重要**：Simon 只有 iPhone 17 Pro 真机，Android Studio 与 Xcode 26.3 已安装；应先完成 Android 模拟器和 iPhone 两条本地 development build 路线，无需 EAS。

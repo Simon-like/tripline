@@ -4,7 +4,7 @@
 
 ## 环境
 
-- Node.js 20.19.4+（或 Expo SDK 55 支持的更高版本）、pnpm 10.33.4。
+- 项目固定使用 Node.js 20.19.4（pnpm-workspace.yaml 的 useNodeVersion，.nvmrc 同步标记）；pnpm 10.33.4。.npmrc 保留 Expo monorepo 所需的 hoisted 配置。
 - iOS 本地构建：macOS、完整 Xcode、可用的 iPhone 或模拟器。
 - Android 本地构建：JDK 17、Android SDK Platform 36/Build Tools 36、可用的手机或模拟器。
 - 此应用使用 MMKV 原生模块；请使用 development build，**不要用 Expo Go 验证**。
@@ -32,13 +32,15 @@ BROWSER=none pnpm --filter @tripline/mobile web
 
 当前 iPhone 17 Pro + Android 模拟器的最短步骤见 [调试速查](docs/DEVICE_DEBUGGING.md)；其他设备、EAS 与详细排障见 [完整版指南](docs/DEVICE_DEBUGGING_FULL.md)。本项目使用 Expo SDK 55，先检查 Node 和 Xcode 版本要求，再按设备选择路线。
 
-先接好设备。Android 需开启 USB 调试；iPhone 需开启开发者模式并配置本地开发签名。
+本机已配置 Android SDK、JDK 17、Xcode 26.3 和 CocoaPods，原生工程也已生成。打开 Android 模拟器或接好 iPhone 后，从项目根目录运行：
 
 ```bash
-pnpm --filter @tripline/mobile android  # Android 真机
-pnpm --filter @tripline/mobile ios      # iPhone 真机
-pnpm start                              # 后续启动开发服务器
+pnpm android:emulator  # Android 模拟器：编译、安装并启动
+pnpm ios:device        # iPhone 真机：编译、签名并安装
+pnpm start             # 两端已装开发版后，日常只需启动开发服务器
 ```
+
+首次 iPhone 安装仍需在 Xcode 登录自己的 Apple Account，手机确认信任电脑并开启开发者模式。新增原生依赖或修改原生配置后，应按[调试速查](docs/DEVICE_DEBUGGING.md)重新 prebuild 和编译。
 
 没有本地原生工具链时，可在本人 Expo 账号登录后使用 EAS 云构建。`apps/mobile/eas.json` 已提供 development profile：
 

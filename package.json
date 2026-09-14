@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "turbo run dev",
     "start": "pnpm --filter @tripline/mobile start",
+    "android:emulator": "pnpm --filter @tripline/mobile exec expo run:android",
+    "ios:device": "pnpm --filter @tripline/mobile ios",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test"
