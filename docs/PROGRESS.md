@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-09-14 · Codex（真机调试指南）
+
+**现在什么最重要**：Simon 正准备配置 iOS/Android 真机调试环境；M00–M02 仍需双端 development build 和独立验收。
+
+**本会话做了什么**：核对仓库的 Expo SDK 55、设备运行脚本、eas.json 与本机工具状态，编写 [DEVICE_DEBUGGING.md](DEVICE_DEBUGGING.md) 覆盖 Android/iPhone 本地及 EAS 路线、设备设置、签名、Metro 日常调试和排障，并在 README 加入口。只改文档，未安装工具或接受许可。
+
+**验证与依据**：本机检查显示 Node 20.19.3、pnpm 10.33.4、Java 17，缺完整 Xcode、adb/Android 平台包及 EAS CLI；项目 git 工作区起初干净。Expo SDK 55 官方支持矩阵要求 Node 至少 20.19.4、Xcode 26.2+、Android compile/target SDK 36；其他步骤均对应指南末尾 Expo/Apple/Android 官方资料。
+
+**下一步**：Simon 先升级 Node，选择本地或 EAS 路线完成账号、工具与设备配置；随后运行双端 development build，记录真机结果并让独立会话验收。
+
+**坑与提醒**：免费 Apple Personal Team 仅适合自己的 iPhone 用 Xcode 本地自测，描述文件 7 天后过期；EAS iPhone ad hoc 分发需要付费 Apple Developer Program 与设备 UDID。Android SDK 许可必须由 Simon 本人阅读并接受。当前生成的 ios/android 目录早于新增原生依赖，首次本地真机编译前需重新 prebuild。
+
+---
+
 ## 2026-09-13 · Codex（基础模块与网页预览）
 
 **现在什么最重要**：M01 旅程管理、M02 行前清单的首版已按 Simon 的明确授权提前施工并可在 Expo Web 手机尺寸预览；下一步是正式评审 M00–M02 契约，以及在部署配置就绪后做 iOS/Android dev build 真机核验。M03–M04 仍为占位页，不应被误认为已完工。

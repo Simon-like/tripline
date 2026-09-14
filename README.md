@@ -30,6 +30,8 @@ BROWSER=none pnpm --filter @tripline/mobile web
 
 ## 在手机上运行
 
+完整安装、设备设置、本地/EAS 两条构建路线与调试排障见 [iOS / Android 真机调试指南](docs/DEVICE_DEBUGGING.md)。本项目使用 Expo SDK 55，先检查 Node 和 Xcode 版本要求，再按设备选择路线。
+
 先接好设备。Android 需开启 USB 调试；iPhone 需开启开发者模式并配置本地开发签名。
 
 ```bash
