@@ -1,5 +1,5 @@
-import type { ChecklistItem, Journey } from '@tripline/shared';
-import { ChecklistItemSchema, JourneySchema, makeChecklistTemplate } from '@tripline/shared';
+import type { ChecklistItem, Expense, ItineraryItem, Journey } from '@tripline/shared';
+import { ChecklistItemSchema, ExpenseSchema, ItineraryItemSchema, JourneySchema, makeChecklistTemplate } from '@tripline/shared';
 import * as Crypto from 'expo-crypto';
 import * as SQLite from 'expo-sqlite';
 
@@ -189,6 +189,117 @@ async function insertChecklistItem(tx: SQLite.SQLiteDatabase, item: ChecklistIte
     [item.id, item.journeyId, item.phase, item.category, item.title, item.checked ? 1 : 0,
       item.sortOrder, item.createdAt, item.updatedAt, item.deletedAt, item.schemaVersion],
   );
+}
+
+// ---- M03 行程规划 ----
+
+export async function listItineraryItems(journeyId: string): Promise<ItineraryItem[]> {
+  const db = await initializeDatabase();
+  const rows = await db.getAllAsync<ItineraryItem>(
+    'SELECT * FROM itinerary_item WHERE journeyId = ? AND deletedAt IS NULL ORDER BY date, time, createdAt',
+    [journeyId],
+  );
+  return rows.map((row) => ItineraryItemSchema.parse(row));
+}
+
+async function insertItineraryItem(tx: SQLite.SQLiteDatabase, item: ItineraryItem): Promise<void> {
+  await tx.runAsync(
+    `INSERT INTO itinerary_item (id, journeyId, date, time, content, note, state, createdAt, updatedAt, deletedAt, schemaVersion)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [item.id, item.journeyId, item.date, item.time, item.content, item.note, item.state,
+      item.createdAt, item.updatedAt, item.deletedAt, item.schemaVersion],
+  );
+}
+
+export async function addItineraryItem(input: ItineraryItem): Promise<void> {
+  const item = ItineraryItemSchema.parse(input);
+  const db = await initializeDatabase();
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    await insertItineraryItem(tx, item);
+    await enqueue(tx, 'itinerary_item', item.id, 'create', item, item.updatedAt);
+  });
+}
+
+/** 仅供演示种入：同事务批量插入，调用方负责幂等判断 */
+export async function addItineraryItems(inputs: ItineraryItem[]): Promise<void> {
+  const items = inputs.map((input) => ItineraryItemSchema.parse(input));
+  const db = await initializeDatabase();
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    for (const item of items) {
+      await insertItineraryItem(tx, item);
+      await enqueue(tx, 'itinerary_item', item.id, 'create', item, item.updatedAt);
+    }
+  });
+}
+
+export async function setItineraryState(id: string, state: ItineraryItem['state'], now: number): Promise<void> {
+  const db = await initializeDatabase();
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    const row = await tx.getFirstAsync<ItineraryItem>('SELECT * FROM itinerary_item WHERE id = ? AND deletedAt IS NULL', [id]);
+    if (!row) throw new Error('行程条目不存在或已删除');
+    const item = ItineraryItemSchema.parse({ ...row, state, updatedAt: now });
+    await tx.runAsync('UPDATE itinerary_item SET state = ?, updatedAt = ? WHERE id = ?', [state, now, id]);
+    await enqueue(tx, 'itinerary_item', id, 'update', item, now);
+  });
+}
+
+export async function deleteItineraryItem(id: string, now: number): Promise<void> {
+  const db = await initializeDatabase();
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    const result = await tx.runAsync('UPDATE itinerary_item SET deletedAt = ?, updatedAt = ? WHERE id = ? AND deletedAt IS NULL', [now, now, id]);
+    if (result.changes !== 1) throw new Error('行程条目不存在或已删除');
+    await enqueue(tx, 'itinerary_item', id, 'delete', { id, deletedAt: now }, now);
+  });
+}
+
+// ---- M04 旅行账本 ----
+
+export async function listExpenses(journeyId: string): Promise<Expense[]> {
+  const db = await initializeDatabase();
+  const rows = await db.getAllAsync<Expense>(
+    'SELECT * FROM expense WHERE journeyId = ? AND deletedAt IS NULL ORDER BY createdAt DESC',
+    [journeyId],
+  );
+  return rows.map((row) => ExpenseSchema.parse(row));
+}
+
+async function insertExpense(tx: SQLite.SQLiteDatabase, expense: Expense): Promise<void> {
+  await tx.runAsync(
+    `INSERT INTO expense (id, journeyId, amount, category, note, payer, createdAt, updatedAt, deletedAt, schemaVersion)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [expense.id, expense.journeyId, expense.amount, expense.category, expense.note, expense.payer,
+      expense.createdAt, expense.updatedAt, expense.deletedAt, expense.schemaVersion],
+  );
+}
+
+export async function addExpense(input: Expense): Promise<void> {
+  const expense = ExpenseSchema.parse(input);
+  const db = await initializeDatabase();
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    await insertExpense(tx, expense);
+    await enqueue(tx, 'expense', expense.id, 'create', expense, expense.updatedAt);
+  });
+}
+
+/** 仅供演示种入：同事务批量插入，调用方负责幂等判断 */
+export async function addExpenses(inputs: Expense[]): Promise<void> {
+  const expenses = inputs.map((input) => ExpenseSchema.parse(input));
+  const db = await initializeDatabase();
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    for (const expense of expenses) {
+      await insertExpense(tx, expense);
+      await enqueue(tx, 'expense', expense.id, 'create', expense, expense.updatedAt);
+    }
+  });
+}
+
+export async function deleteExpense(id: string, now: number): Promise<void> {
+  const db = await initializeDatabase();
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    const result = await tx.runAsync('UPDATE expense SET deletedAt = ?, updatedAt = ? WHERE id = ? AND deletedAt IS NULL', [now, now, id]);
+    if (result.changes !== 1) throw new Error('账目不存在或已删除');
+    await enqueue(tx, 'expense', id, 'delete', { id, deletedAt: now }, now);
+  });
 }
 
 async function enqueue(tx: SQLite.SQLiteDatabase, entityType: string, entityId: string, operation: string, payload: unknown, now: number): Promise<void> {

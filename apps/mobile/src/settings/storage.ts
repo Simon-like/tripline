@@ -21,4 +21,16 @@ export const settings = {
   setDemoSeeded(): void {
     storage.set('demoSeeded', true);
   },
+  getDemoItinerarySeeded(): boolean {
+    return storage.getBoolean('demoItinerarySeeded') === true;
+  },
+  setDemoItinerarySeeded(): void {
+    storage.set('demoItinerarySeeded', true);
+  },
+  getDemoExpensesSeeded(): boolean {
+    return storage.getBoolean('demoExpensesSeeded') === true;
+  },
+  setDemoExpensesSeeded(): void {
+    storage.set('demoExpensesSeeded', true);
+  },
 };

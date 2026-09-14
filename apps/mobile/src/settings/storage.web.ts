@@ -16,4 +16,8 @@ export const settings = {
   setSyncCursor: (cursor: string) => set('syncCursor', cursor),
   getDemoSeeded: () => get('demoSeeded') === 'true',
   setDemoSeeded: () => set('demoSeeded', 'true'),
+  getDemoItinerarySeeded: () => get('demoItinerarySeeded') === 'true',
+  setDemoItinerarySeeded: () => set('demoItinerarySeeded', 'true'),
+  getDemoExpensesSeeded: () => get('demoExpensesSeeded') === 'true',
+  setDemoExpensesSeeded: () => set('demoExpensesSeeded', 'true'),
 };
