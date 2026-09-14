@@ -4,7 +4,7 @@ import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, TextInput
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
-import { motion } from '@tripline/ui';
+import { Icon, motion, type IconName } from '@tripline/ui';
 import { ChecklistItemSchema, checklistProgress, SCHEMA_VERSION, type ChecklistItem, type Journey } from '@tripline/shared';
 import { BouncyButton } from '../../../src/components/BouncyButton';
 import { Page } from '../../../src/components/Page';
@@ -14,7 +14,7 @@ import { addChecklistItem, deleteChecklistItem, getJourney, listChecklistItems, 
 import { chineseFont, useTriplineTheme } from '../../../src/theme';
 
 const categories = ['证件', '交通', '住宿', '电子', '药品', '衣物', '财务', '其他'] as const;
-const icons: Record<string, string> = { 证件: '🪪', 交通: '🚆', 住宿: '🏠', 电子: '🔌', 药品: '💊', 衣物: '👕', 财务: '💳', 其他: '✨' };
+const icons: Record<string, IconName> = { 证件: 'id-card', 交通: 'train', 住宿: 'home', 电子: 'plug', 药品: 'pill', 衣物: 'shirt', 财务: 'bankcard', 其他: 'sparkle' };
 
 function ConfettiPiece({ index }: { index: number }) {
   const { theme } = useTriplineTheme();
@@ -106,7 +106,10 @@ export default function Checklist() {
   return (
     <Page tabbed>
       <View style={{ gap: 4 }}>
-        <TripText size={29} weight="bold">出发前，轻松打包 🧳</TripText>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
+          <TripText size={29} weight="bold">出发前，轻松打包</TripText>
+          <Icon name="luggage" size={26} color={theme.primary} />
+        </View>
         <TripText size={14} muted>{journey ? journey.name + ' · ' : ''}一件件来，准备好就出发。</TripText>
       </View>
 
@@ -123,7 +126,10 @@ export default function Checklist() {
 
       {progress.complete ? (
         <View style={{ backgroundColor: theme.celebrate, borderRadius: 23, padding: 18, overflow: 'hidden' }}>
-          <TripText size={19} weight="bold">🎉 清单完成！</TripText>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Icon name="party" size={21} color={theme.text} />
+            <TripText size={19} weight="bold">清单完成！</TripText>
+          </View>
           <TripText size={13}>行李和期待都打包好了，祝你一路精彩。</TripText>
           {Array.from({ length: 6 }, (_, index) => <ConfettiPiece key={index} index={index} />)}
         </View>
@@ -137,7 +143,7 @@ export default function Checklist() {
       {grouped.map((group) => (
         <View key={group.name} style={{ gap: 9 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
-            <TripText size={20}>{icons[group.name]}</TripText>
+            <Icon name={icons[group.name] ?? 'sparkle'} size={19} color={theme.primary} />
             <TripText size={16} weight="bold">{group.name}</TripText>
             <TripText size={12} muted>{group.items.filter((item) => item.checked).length}/{group.items.length}</TripText>
           </View>
@@ -166,13 +172,19 @@ export default function Checklist() {
           <View style={{ backgroundColor: theme.surface, borderTopLeftRadius: 32, borderTopRightRadius: 32, maxHeight: '80%', paddingTop: 15 }}>
             <View style={{ width: 48, height: 5, borderRadius: 9, backgroundColor: theme.border, alignSelf: 'center' }} />
             <ScrollView contentContainerStyle={{ padding: 24, gap: 16 }} keyboardShouldPersistTaps="handled">
-              <TripText size={24} weight="bold">再加一件小事 ✨</TripText>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
+                <TripText size={24} weight="bold">再加一件小事</TripText>
+                <Icon name="sparkle" size={21} color={theme.accent} />
+              </View>
               <TextInput value={title} onChangeText={setTitle} autoFocus placeholder="比如：带上拍立得" placeholderTextColor={theme.textSecondary} style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }} />
               <TripText size={13} weight="semibold">放在哪一类？</TripText>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {categories.map((name) => (
                   <Pressable key={name} onPress={() => setCategory(name)} style={{ paddingHorizontal: 15, paddingVertical: 9, borderRadius: 999, backgroundColor: category === name ? theme.primary : theme.surfaceAlt }}>
-                    <TripText size={13} weight="semibold" style={{ color: category === name ? theme.onPrimary : theme.text }}>{icons[name]} {name}</TripText>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Icon name={icons[name]} size={14} color={category === name ? theme.onPrimary : theme.textSecondary} />
+                      <TripText size={13} weight="semibold" style={{ color: category === name ? theme.onPrimary : theme.text }}>{name}</TripText>
+                    </View>
                   </Pressable>
                 ))}
               </View>

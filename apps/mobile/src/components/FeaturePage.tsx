@@ -1,17 +1,18 @@
 import { View } from 'react-native';
+import { Icon, type IconName } from '@tripline/ui';
 import { Page } from './Page';
 import { TripText } from './TripText';
 import { useTriplineTheme } from '../theme';
 
-type Props = { emoji: string; title: string; subtitle: string; cardTitle: string; cardBody: string; accent: 'primary' | 'accent' | 'celebrate' | 'success' };
+type Props = { icon: IconName; title: string; subtitle: string; cardTitle: string; cardBody: string; accent: 'primary' | 'accent' | 'celebrate' | 'success' };
 
-export function FeaturePage({ emoji, title, subtitle, cardTitle, cardBody, accent }: Props) {
+export function FeaturePage({ icon, title, subtitle, cardTitle, cardBody, accent }: Props) {
   const { theme } = useTriplineTheme();
   return (
     <Page tabbed>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <View style={{ width: 58, height: 58, borderRadius: 21, backgroundColor: theme.surface, alignItems: 'center', justifyContent: 'center' }}>
-          <TripText size={30}>{emoji}</TripText>
+          <Icon name={icon} size={30} color={theme[accent]} />
         </View>
         <View style={{ flex: 1 }}>
           <TripText size={29} weight="bold">{title}</TripText>

@@ -4,6 +4,7 @@ import { Modal, Pressable, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import * as Crypto from 'expo-crypto';
 import { checklistProgress, deriveJourneyStatus, SCHEMA_VERSION, toLocalDateString, type Journey } from '@tripline/shared';
+import { Icon } from '@tripline/ui';
 import { BouncyButton } from '../src/components/BouncyButton';
 import { JourneyForm, type JourneyDraft } from '../src/components/JourneyForm';
 import { Page } from '../src/components/Page';
@@ -94,7 +95,10 @@ export default function Home() {
   return (
     <Page>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <TripText size={19} weight="bold"><TripText style={{ color: theme.accent }}>✦</TripText> 旅迹</TripText>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+          <Icon name="sparkle" size={17} color={theme.accent} />
+          <TripText size={19} weight="bold">旅迹</TripText>
+        </View>
         <View style={{ backgroundColor: theme.primarySoft, borderRadius: 999, paddingHorizontal: 13, paddingVertical: 7 }}>
           <TripText size={12} weight="semibold" style={{ color: theme.primary }}>离线也安心</TripText>
         </View>
@@ -127,14 +131,20 @@ export default function Home() {
 
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <View style={{ flex: 1, minHeight: 169, backgroundColor: theme.celebrate, borderRadius: 27, padding: 18, justifyContent: 'space-between' }}>
-              <TripText size={13} weight="semibold" style={{ color: theme.text }}>出发倒计时 ☀️</TripText>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <TripText size={13} weight="semibold" style={{ color: theme.text }}>出发倒计时</TripText>
+                <Icon name="sun" size={15} color={theme.text} />
+              </View>
               <View>
                 <TripText size={38} numbers style={{ color: theme.text }}>{status === 'preparing' ? countdown : status === 'traveling' ? 'GO' : '✓'}</TripText>
                 <TripText size={12} weight="semibold" style={{ color: theme.text }}>{status === 'preparing' ? '天后，故事开始' : status === 'traveling' ? '正在路上' : '把回忆收好'}</TripText>
               </View>
             </View>
             <BouncyButton onPress={() => openJourney(current)} style={{ flex: 1, minHeight: 169, backgroundColor: theme.surface, borderRadius: 27, padding: 18, justifyContent: 'space-between' }}>
-              <TripText size={13} weight="semibold">行前清单 🧳</TripText>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <TripText size={13} weight="semibold">行前清单</TripText>
+                <Icon name="luggage" size={15} color={theme.textSecondary} />
+              </View>
               <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' }}>
                 <View><TripText size={25} numbers>{progress.done}/{progress.total}</TripText><TripText size={11} muted>已准备</TripText></View>
                 <ProgressRing percent={progress.percent} size={70} />
@@ -154,7 +164,7 @@ export default function Home() {
         </>
       ) : (
         <View style={{ backgroundColor: theme.primary, borderRadius: 32, padding: 26, minHeight: 235, justifyContent: 'space-between' }}>
-          <TripText size={35}>🏔️</TripText>
+          <Icon name="mountain" size={72} color={theme.onPrimary} />
           <View><TripText size={25} weight="bold" style={{ color: theme.onPrimary }}>下一程，从这里开始</TripText><TripText size={14} style={{ color: theme.onPrimary }}>装好期待，出发吧。</TripText></View>
         </View>
       )}

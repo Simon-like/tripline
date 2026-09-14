@@ -52,6 +52,8 @@
 
 以上 token 在 `packages/ui/src/theme.ts` 实现，由 `useColorScheme()` 驱动；splash/状态栏跟随主题。**禁止在组件中散落硬编码色值。**
 
+**图标系统**：应用内所有图标位统一使用内联 SVG（`packages/ui` 的 `Icon` 组件，基于 react-native-svg，24×24 viewBox、stroke≈2、round cap/join、`size`/`color` 由调用方传入）；**禁止把 Emoji 当图标用**（iOS 26 Emoji 字体级联回归，RN #56183 / xcodes #468），决策详见 [ADR 0002](adr/0002-icon-system-svg.md)。用户内容中的 Emoji 不受影响。
+
 ### 字体
 
 | 用途 | 字体栈 | 字重 |

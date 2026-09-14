@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import type { Journey } from '@tripline/shared';
 import { JourneySchema, toLocalDateString } from '@tripline/shared';
+import { Icon } from '@tripline/ui';
 import { BouncyButton } from './BouncyButton';
 import { TripText } from './TripText';
 import { chineseFont, useTriplineTheme } from '../theme';
@@ -90,7 +91,10 @@ export function JourneyForm({ visible, initial, onClose, onSave }: {
           <View style={{ width: 48, height: 5, borderRadius: 9, backgroundColor: theme.border, alignSelf: 'center', marginBottom: 18 }} />
           <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 32, gap: 14 }} keyboardShouldPersistTaps="handled">
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <TripText size={27} weight="bold">{initial ? '编辑旅程' : '新建旅程'} ✨</TripText>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
+                <TripText size={27} weight="bold">{initial ? '编辑旅程' : '新建旅程'}</TripText>
+                <Icon name="sparkle" size={21} color={theme.accent} />
+              </View>
               <Pressable onPress={onClose}><TripText size={22} muted>×</TripText></Pressable>
             </View>
             <TripText size={13} muted>先定个方向，其他精彩可以路上慢慢补。</TripText>
