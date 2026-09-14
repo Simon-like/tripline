@@ -4,7 +4,7 @@
 
 ## 环境
 
-- Node.js 20+、pnpm 10.33.4。
+- Node.js 20.19.4+（或 Expo SDK 55 支持的更高版本）、pnpm 10.33.4。
 - iOS 本地构建：macOS、完整 Xcode、可用的 iPhone 或模拟器。
 - Android 本地构建：JDK 17、Android SDK Platform 36/Build Tools 36、可用的手机或模拟器。
 - 此应用使用 MMKV 原生模块；请使用 development build，**不要用 Expo Go 验证**。
@@ -30,7 +30,7 @@ BROWSER=none pnpm --filter @tripline/mobile web
 
 ## 在手机上运行
 
-完整安装、设备设置、本地/EAS 两条构建路线与调试排障见 [iOS / Android 真机调试指南](docs/DEVICE_DEBUGGING.md)。本项目使用 Expo SDK 55，先检查 Node 和 Xcode 版本要求，再按设备选择路线。
+当前 iPhone 17 Pro + Android 模拟器的最短步骤见 [调试速查](docs/DEVICE_DEBUGGING.md)；其他设备、EAS 与详细排障见 [完整版指南](docs/DEVICE_DEBUGGING_FULL.md)。本项目使用 Expo SDK 55，先检查 Node 和 Xcode 版本要求，再按设备选择路线。
 
 先接好设备。Android 需开启 USB 调试；iPhone 需开启开发者模式并配置本地开发签名。
 

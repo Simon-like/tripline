@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-09-14 · Codex（按现有设备简化调试路线）
+
+**现在什么最重要**：Simon 只有 iPhone 17 Pro 真机，Android Studio 与 Xcode 26.3 已安装；应先完成 Android 模拟器和 iPhone 两条本地 development build 路线，无需 EAS。
+
+**本会话做了什么**：将 DEVICE_DEBUGGING.md 改为当前设备的简明步骤，把原广泛路线保留在 DEVICE_DEBUGGING_FULL.md；README 改为优先指向速查。说明 Android Studio Device Manager 创建 Pixel/API 36/ARM64 虚拟设备，iPhone 配对/Personal Team/开发者模式，以及两端首次构建和日常 Metro 用法。
+
+**验证与依据**：本机只读检查显示 Xcode.app 26.3 在 /Applications，直接调用 xcodebuild 可显示版本，但 xcode-select 仍指向 CommandLineTools；Node 仍为 20.19.3；Android SDK 已有 emulator、platform-tools、build-tools/36.0.0，只有 platforms/android-37.0，尚无 system-images 或 AVD，且终端尚未配置 ANDROID_HOME/adb PATH。Android Device Manager 与 Expo 本地构建步骤已对照官方文档。仅改文档，没有替 Simon 选择 Xcode、接受许可、安装系统镜像或签名。
+
+**下一步**：Simon 在 Android Studio 安装 API 36 平台与 ARM64 系统镜像并启动 AVD，给终端配置 ANDROID_HOME；将 Node 升至至少 20.19.4，切换 Xcode Command Line Tools；随后在仓库根目录按速查分别做 Android 模拟器与 iPhone development build。
+
+**坑与提醒**：iOS 26.3.1 Simulator 下载对 iPhone 真机路线不是前置条件；apps/mobile 的 android 脚本带 --device、偏向真机，模拟器请用速查中的 expo run:android 命令；首次构建前本地原生目录需 prebuild --clean。
+
+---
+
 ## 2026-09-14 · Codex（Xcode 安装报错排查）
 
 **现在什么最重要**：Simon 安装 Xcode 时遇到 Mac App Store 提示需要 macOS 26.2；iPhone 本地构建仍未启动。
