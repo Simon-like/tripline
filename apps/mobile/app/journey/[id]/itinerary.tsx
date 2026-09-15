@@ -3,7 +3,7 @@ import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
-import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, type SharedValue } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
 import { Icon, motion } from '@tripline/ui';
 import {
   ITINERARY_STATE_LABELS, ItineraryItemSchema, SCHEMA_VERSION, journeyDays, nextItineraryState,
@@ -11,6 +11,7 @@ import {
 } from '@tripline/shared';
 import { BouncyButton } from '../../../src/components/BouncyButton';
 import { CascadeIn } from '../../../src/components/CascadeIn';
+import { ConfettiCelebration } from '../../../src/components/ConfettiCelebration';
 import { Page } from '../../../src/components/Page';
 import { TripText } from '../../../src/components/TripText';
 import { addItineraryItem, deleteItineraryItem, getJourney, listItineraryItems, setItineraryState } from '../../../src/data/database';
@@ -46,34 +47,8 @@ function StateBadge({ item, onPress }: { item: ItineraryItem; onPress: () => voi
 }
 
 function ConfettiBurst() {
-  const { theme } = useTriplineTheme();
-  const reduceMotion = useReducedMotion();
-  const travel = useSharedValue(0);
-  useEffect(() => {
-    travel.value = reduceMotion ? 1 : withSpring(1, { duration: feedbackDuration, dampingRatio: motion.dampingRatio });
-  }, [reduceMotion, travel]);
-  if (reduceMotion) return null;
-  return (
-    <View pointerEvents="none" style={{ position: 'absolute', top: 10, right: 16, width: 0, height: 0 }}>
-      {[-34, -12, 14, 36, 58, -52].map((x, index) => (
-        <BurstPiece key={index} index={index} x={x} travel={travel} reduceMotion={reduceMotion}
-          color={index % 3 === 0 ? theme.primary : index % 3 === 1 ? theme.accent : theme.celebrate} />
-      ))}
-    </View>
-  );
+  return <ConfettiCelebration top={10} right={16} />;
 }
-
-function BurstPiece({ index, x, travel, reduceMotion, color }: {
-  index: number; x: number; travel: SharedValue<number>; reduceMotion: boolean; color: string;
-}) {
-  const y = [-26, -48, -18, -42, -24, -52][index];
-  const style = useAnimatedStyle(() => ({
-    opacity: reduceMotion ? 1 : 1 - travel.value * 0.6,
-    transform: [{ translateX: x * travel.value }, { translateY: y * travel.value }, { rotate: index % 2 ? '-28deg' : '28deg' }],
-  }));
-  return <Animated.View style={[{ position: 'absolute', width: 8, height: 14, borderRadius: 3, backgroundColor: color }, style]} />;
-}
-
 export default function Itinerary() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { theme } = useTriplineTheme();
