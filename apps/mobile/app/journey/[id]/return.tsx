@@ -1,3 +1,8 @@
+import { useState } from 'react';
+import { Pressable, View } from 'react-native';
+import { TripText } from '../../../src/components/TripText';
+import { JourneySummarySheet } from '../../../src/components/JourneySummarySheet';
+import { useTriplineTheme } from '../../../src/theme';
 import { useLocalSearchParams } from 'expo-router';
 import { ChecklistPanel, type ChecklistCategory } from '../../../src/components/ChecklistPanel';
 import { Page } from '../../../src/components/Page';
@@ -12,8 +17,14 @@ const categories: readonly ChecklistCategory[] = [
 
 export default function Return() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const [summarizing, setSummarizing] = useState(false);
+  const { theme } = useTriplineTheme();
   return (
+    <>
     <Page tabbed>
+      <Pressable onPress={() => setSummarizing(true)} accessibilityRole="button" accessibilityLabel="查看旅行总结" style={{ backgroundColor: theme.primarySoft, padding: 20, borderRadius: 24 }}>
+        <View style={{ gap: 6 }}><TripText size={18} weight="bold">这一程，值得回味</TripText><TripText size={13} muted>查看旅行小结，留住走过的路与故事 →</TripText></View>
+      </Pressable>
       <ChecklistPanel journeyId={id} phase="return" categories={categories} beforeLoad={ensureDemoReturnChecklist} copy={{
         heading: '最后一程，也照顾周全',
         headingIcon: 'plane',
@@ -30,6 +41,9 @@ export default function Return() {
         emptyBody: '添上第一件要核对的事，回家时一件不落。',
         emptyIcon: 'plane',
       }} />
+
     </Page>
+    <JourneySummarySheet journeyId={id} visible={summarizing} onClose={() => setSummarizing(false)} />
+    </>
   );
 }

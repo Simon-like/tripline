@@ -1,4 +1,4 @@
-import { importJourneyBundle, getJourney, listExpenses, listJournalEntries, updateJourney } from './database.web';
+import { importJourneyBundle, getJourney, listChecklistItems, listItineraryItems, listExpenses, listJournalEntries, updateJourney } from './database.web';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { JourneyBundleSchema, type JourneyBundle } from '@tripline/shared';
 vi.mock('expo-crypto', () => ({ randomUUID: () => crypto.randomUUID() }));
@@ -8,7 +8,8 @@ export function fixture(n = 1): JourneyBundle {
   const base = { createdAt: 1, updatedAt: 1, deletedAt: null, schemaVersion: 1 };
   return JourneyBundleSchema.parse({
     journey: { ...base, id: id(n), name: '测试旅程', startDate: '2026-10-01', endDate: '2026-10-03', budget: 10000, tags: [], companions: [] },
-    checklistItems: [], itineraryItems: [],
+    checklistItems: [{ ...base, id: id(n + 300), journeyId: id(n), phase: 'return', category: '行李', title: '充电器', checked: true, sortOrder: 0 }],
+    itineraryItems: [{ ...base, id: id(n + 400), journeyId: id(n), date: '2099-10-01', time: '10:00', content: '散步', note: '慢慢走', state: 'visited' }],
     expenses: [{ ...base, id: id(n + 100), journeyId: id(n), amount: 125, category: '餐饮', note: '', payer: null }],
     journalEntries: [{ ...base, id: id(n + 200), journeyId: id(n), text: '记住这一刻', photoPaths: [], tags: [], mood: null, timestamp: 1 }],
   });
@@ -26,6 +27,8 @@ describe('web import repository', () => {
   it('preserves all fields and repeat import creates no duplicate live entities', async () => {
     const bundle = fixture(); await importJourneyBundle(bundle); await importJourneyBundle(bundle);
     expect(await getJourney(bundle.journey.id)).toEqual(bundle.journey);
+    expect(await listChecklistItems(bundle.journey.id, 'return')).toEqual(bundle.checklistItems);
+    expect(await listItineraryItems(bundle.journey.id)).toEqual(bundle.itineraryItems);
     expect(await listExpenses(bundle.journey.id)).toEqual(bundle.expenses);
     expect(await listJournalEntries(bundle.journey.id)).toEqual(bundle.journalEntries);
   });
