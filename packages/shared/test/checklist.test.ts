@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checklistProgress, makeChecklistTemplate } from '../src/checklist';
+import { checklistProgress, makeChecklistTemplate, makeReturnTemplate } from '../src/checklist';
 
 const journeyId = '3f34e0d6-443f-48f1-833f-2b8c52398a21';
 
@@ -17,5 +17,23 @@ describe('行前清单', () => {
     expect(checklistProgress([])).toEqual({ done: 0, total: 0, remaining: 0, percent: 0, complete: false });
     expect(checklistProgress([{ checked: true }, { checked: false }])).toEqual({ done: 1, total: 2, remaining: 1, percent: 50, complete: false });
     expect(checklistProgress([{ checked: true }, { checked: true }])).toEqual({ done: 2, total: 2, remaining: 0, percent: 100, complete: true });
+  });
+});
+
+describe('返程清单模板', () => {
+  it('生成四类十一条目，phase 为 return，ID 唯一且顺序稳定', () => {
+    let n = 0;
+    const items = makeReturnTemplate(journeyId, 2_000, () => `00000000-0000-4000-8000-${String(++n).padStart(12, '0')}`);
+    expect(items).toHaveLength(11);
+    expect(new Set(items.map((item) => item.category))).toEqual(new Set(['行李清点', '退房检查', '票据报销', '到家待办']));
+    expect(items.every((item) => item.journeyId === journeyId && item.phase === 'return' && !item.checked)).toBe(true);
+    expect(items.map((item) => item.sortOrder)).toEqual(items.map((_, index) => index));
+    expect(new Set(items.map((item) => item.id)).size).toBe(items.length);
+    expect(items.map((item) => item.title)).toEqual([
+      '充电器', '充电宝', '换洗衣物',
+      '房卡退还', '检查抽屉与床头', '押金发票收好',
+      '行程发票', '车票机票凭证',
+      '洗衣服', '导照片', '还借来的物品',
+    ]);
   });
 });
