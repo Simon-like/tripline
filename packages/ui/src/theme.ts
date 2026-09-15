@@ -18,6 +18,7 @@ export const lightTheme = {
   glassFallback: 'rgba(255,255,255,0.96)',
   glassStroke: 'rgba(255,255,255,0.88)',
   glassSelection: 'rgba(231,227,255,0.88)',
+  photoBackdrop: '#000000',
 } as const;
 
 export const darkTheme: Record<keyof typeof lightTheme, string> = {
@@ -40,6 +41,7 @@ export const darkTheme: Record<keyof typeof lightTheme, string> = {
   glassFallback: 'rgba(33,29,49,0.96)',
   glassStroke: 'rgba(249,246,255,0.20)',
   glassSelection: 'rgba(90,78,153,0.70)',
+  photoBackdrop: '#000000',
 };
 
 export type TriplineTheme = Record<keyof typeof lightTheme, string>;

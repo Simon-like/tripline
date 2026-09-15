@@ -6,6 +6,7 @@ import * as Crypto from 'expo-crypto';
 import { checklistProgress, deriveJourneyStatus, SCHEMA_VERSION, toLocalDateString, type Journey } from '@tripline/shared';
 import { darkJourneyPalettes, Icon, lightJourneyPalettes } from '@tripline/ui';
 import { BouncyButton } from '../src/components/BouncyButton';
+import { ImportSheet } from '../src/components/ImportSheet';
 import { JourneyCarousel } from '../src/components/JourneyCarousel';
 import { JourneyForm, type JourneyDraft } from '../src/components/JourneyForm';
 import { Page } from '../src/components/Page';
@@ -33,6 +34,7 @@ export default function Home() {
   const [deleting, setDeleting] = useState<Journey | null>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
   const [limitVisible, setLimitVisible] = useState(false);
+  const [importVisible, setImportVisible] = useState(false);
   const [error, setError] = useState('');
   const progressRequest = useRef(0);
   const carouselProgress = useSharedValue(0);
@@ -143,6 +145,11 @@ export default function Home() {
           <Icon name="settings" size={17} color={theme.textSecondary} />
           <TripText size={12} muted>设置</TripText>
         </Pressable>
+        <Pressable onPress={() => setImportVisible(true)} accessibilityRole="button" accessibilityLabel="导入旅程"
+          style={{ minHeight: 40, borderRadius: 20, paddingHorizontal: 12, backgroundColor: theme.surface, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 5 }}>
+          <Icon name="share" size={17} color={theme.textSecondary} />
+          <TripText size={12} muted>导入</TripText>
+        </Pressable>
       </View>
 
       <View style={{ gap: 3 }}>
@@ -209,6 +216,8 @@ export default function Home() {
       {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
 
       <JourneyForm visible={formVisible} initial={editing} onClose={() => { setFormVisible(false); setEditing(null); }} onSave={saveJourney} />
+      <ImportSheet visible={importVisible} onClose={() => setImportVisible(false)}
+        onImported={(journeyId) => { settings.setLastOpenedJourneyId(journeyId); void refresh(); }} />
       <Modal visible={limitVisible} transparent animationType="fade" onRequestClose={() => setLimitVisible(false)}>
         <View style={{ flex: 1, justifyContent: 'center', padding: 28 }}>
           <Pressable onPress={() => setLimitVisible(false)} style={{ position: 'absolute', inset: 0, backgroundColor: theme.shadow, opacity: 0.45 }} />

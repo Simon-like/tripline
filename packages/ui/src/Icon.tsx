@@ -38,6 +38,7 @@ export const iconNames = [
   'settings',
   'moon',
   'pencil',
+  'share',
 ] as const;
 
 export type IconName = (typeof iconNames)[number];
@@ -208,6 +209,14 @@ const paths: Record<IconName, ReactElement> = {
     <>
       <Path d="M4 20l1.3-4.3L16.6 4.4a2.12 2.12 0 0 1 3 3L8.3 18.7 4 20Z" />
       <Path d="M14.5 6.5l3 3" />
+    </>
+  ),
+  // 分享：托盘 + 向上箭头
+  share: (
+    <>
+      <Path d="M12 14.5V3.5" />
+      <Path d="m7.5 7.5 4.5-4.5 4.5 4.5" />
+      <Path d="M4.5 12.5v6a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6" />
     </>
   ),
 };

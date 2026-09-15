@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
 import { Icon } from '@tripline/ui';
@@ -15,6 +15,7 @@ import { Page } from '../../../src/components/Page';
 import { TripText } from '../../../src/components/TripText';
 import { addJournalEntry, deleteJournalEntry, getJourney, listJournalEntries } from '../../../src/data/database';
 import { ensureDemoJournal } from '../../../src/data/demo';
+import { persistJournalPhotos, pickJournalPhotos, removeJournalPhotos, resolvePhotoUri, type PickedPhoto } from '../../../src/data/photos';
 import { chineseFont, useTriplineTheme } from '../../../src/theme';
 
 const TEXT_LIMIT = 500;
@@ -36,6 +37,9 @@ export default function Journal() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [customTag, setCustomTag] = useState('');
   const [mood, setMood] = useState('');
+  const [photos, setPhotos] = useState<PickedPhoto[]>([]);
+  const [picking, setPicking] = useState(false);
+  const [viewing, setViewing] = useState<{ paths: string[]; index: number } | null>(null);
   const [removing, setRemoving] = useState<JournalEntry | null>(null);
   const [celebrating, setCelebrating] = useState(false);
   const [error, setError] = useState('');
@@ -61,6 +65,23 @@ export default function Journal() {
     setSelectedTags((current) => current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag]);
   }
 
+  async function pickPhotos() {
+    if (picking) return;
+    setPicking(true);
+    try {
+      const picked = await pickJournalPhotos();
+      if (picked.length > 0) setPhotos((current) => [...current, ...picked]);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : '选照片失败，再试一次');
+    } finally {
+      setPicking(false);
+    }
+  }
+
+  function removePickedPhoto(index: number) {
+    setPhotos((current) => current.filter((_, itemIndex) => itemIndex !== index));
+  }
+
   async function save() {
     if (!id || saving.current) return;
     const trimmed = text.trim();
@@ -68,21 +89,29 @@ export default function Journal() {
     if (trimmed.length > TEXT_LIMIT) { setError(`最多写 ${TEXT_LIMIT} 字，把最心动的留下`); return; }
     const now = Date.now();
     const custom = customTag.trim();
-    const parsed = JournalEntrySchema.safeParse({
-      id: Crypto.randomUUID(), journeyId: id,
-      text: trimmed, photoPaths: [],
-      tags: [...selectedTags, ...(custom ? [custom] : [])],
-      mood: mood.trim() || null, timestamp: now,
-      createdAt: now, updatedAt: now, deletedAt: null, schemaVersion: SCHEMA_VERSION,
-    });
-    if (!parsed.success) { setError(parsed.error.issues[0]?.message ?? '请检查内容'); return; }
+    const entryId = Crypto.randomUUID();
     saving.current = true;
     try {
+      // 先把照片拷入沙盒持久路径（Web 端为压缩后的 data URL），DB 只存相对路径
+      const photoPaths = await persistJournalPhotos(entryId, photos);
+      const parsed = JournalEntrySchema.safeParse({
+        id: entryId, journeyId: id,
+        text: trimmed, photoPaths,
+        tags: [...selectedTags, ...(custom ? [custom] : [])],
+        mood: mood.trim() || null, timestamp: now,
+        createdAt: now, updatedAt: now, deletedAt: null, schemaVersion: SCHEMA_VERSION,
+      });
+      if (!parsed.success) {
+        void removeJournalPhotos(entryId).catch(() => {}); // 校验不过，清掉已拷入的孤儿照片
+        setError(parsed.error.issues[0]?.message ?? '请检查内容');
+        return;
+      }
       await addJournalEntry(parsed.data);
       setText('');
       setSelectedTags([]);
       setCustomTag('');
       setMood('');
+      setPhotos([]);
       setAdding(false);
       if (Platform.OS !== 'web') void Haptics.selectionAsync();
       setCelebrating(true);
@@ -99,6 +128,7 @@ export default function Journal() {
     if (!removing) return;
     try {
       await deleteJournalEntry(removing.id, Date.now());
+      void removeJournalPhotos(removing.id).catch(() => {}); // best-effort 清理沙盒照片目录
       setRemoving(null);
       await refresh();
     } catch (cause) {
@@ -144,6 +174,17 @@ export default function Journal() {
                       </Pressable>
                     </View>
                     <TripText size={16} weight="semibold" style={{ lineHeight: 24 }}>{entry.text}</TripText>
+                    {entry.photoPaths.length > 0 ? (
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                        {entry.photoPaths.map((path, photoIndex) => (
+                          <Pressable key={path} onPress={() => setViewing({ paths: entry.photoPaths, index: photoIndex })}
+                            accessibilityRole="imagebutton" accessibilityLabel={`放大第 ${photoIndex + 1} 张照片`}>
+                            <Image source={{ uri: resolvePhotoUri(path) }} resizeMode="cover"
+                              style={{ width: 72, height: 72, borderRadius: 14, backgroundColor: theme.surfaceAlt }} />
+                          </Pressable>
+                        ))}
+                      </View>
+                    ) : null}
                     {entry.tags.length || entry.mood ? (
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7, alignItems: 'center' }}>
                         {entry.tags.map((tag) => (
@@ -162,7 +203,7 @@ export default function Journal() {
         ))
       )}
 
-      <BouncyButton onPress={() => { setError(''); setAdding(true); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 16, alignItems: 'center' }}>
+      <BouncyButton onPress={() => { setError(''); setPhotos([]); setAdding(true); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 16, alignItems: 'center' }}>
         <TripText size={15} weight="bold" style={{ color: theme.onAccent }}>＋ 记一条见闻</TripText>
       </BouncyButton>
       {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
@@ -207,6 +248,26 @@ export default function Journal() {
                 <TextInput value={mood} onChangeText={setMood} maxLength={20} placeholder="比如：松了口气" placeholderTextColor={theme.textSecondary}
                   style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }} />
               </View>
+              <View style={{ gap: 8 }}>
+                <TripText size={13} weight="semibold">照片（可多选，只存本机）</TripText>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                  {photos.map((photo, index) => (
+                    <View key={photo.uri}>
+                      <Image source={{ uri: photo.uri }} resizeMode="cover"
+                        style={{ width: 68, height: 68, borderRadius: 14, backgroundColor: theme.surfaceAlt }} />
+                      <Pressable onPress={() => removePickedPhoto(index)} accessibilityRole="button" accessibilityLabel={`移除第 ${index + 1} 张照片`} hitSlop={6}
+                        style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: theme.accent, alignItems: 'center', justifyContent: 'center' }}>
+                        <TripText size={12} weight="bold" style={{ color: theme.onAccent, lineHeight: 15 }}>×</TripText>
+                      </Pressable>
+                    </View>
+                  ))}
+                  <Pressable onPress={() => { void pickPhotos(); }} accessibilityRole="button" accessibilityLabel="从相册添加照片"
+                    style={{ width: 68, height: 68, borderRadius: 14, backgroundColor: theme.surfaceAlt, borderWidth: 1, borderColor: theme.border, alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="plus" size={22} color={theme.textSecondary} />
+                  </Pressable>
+                </View>
+                {picking ? <TripText size={12} muted>正在读取相册…</TripText> : null}
+              </View>
               {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
               <BouncyButton onPress={() => { void save(); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 15, alignItems: 'center' }}>
                 <TripText size={16} weight="bold" style={{ color: theme.onAccent }}>收进手账</TripText>
@@ -214,6 +275,16 @@ export default function Journal() {
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+
+      <Modal visible={!!viewing} animationType="fade" onRequestClose={() => setViewing(null)}>
+        <Pressable onPress={() => setViewing(null)} accessibilityRole="button" accessibilityLabel="关闭照片查看"
+          style={{ flex: 1, backgroundColor: theme.photoBackdrop, justifyContent: 'center' }}>
+          {viewing ? (
+            <Image source={{ uri: resolvePhotoUri(viewing.paths[viewing.index]) }} resizeMode="contain"
+              style={{ width: '100%', height: '100%' }} />
+          ) : null}
+        </Pressable>
       </Modal>
 
       <Modal visible={!!removing} transparent animationType="fade" onRequestClose={() => setRemoving(null)}>

@@ -6,3 +6,4 @@ export * from './checklist';
 export * from './itinerary';
 export * from './ledger';
 export * from './journal';
+export * from './share';

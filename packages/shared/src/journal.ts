@@ -19,6 +19,23 @@ export function makeDemoJournalEntry(journeyId: string, now: number): JournalEnt
   });
 }
 
+/** 手账照片沙盒根目录（相对 documentDirectory） */
+export const JOURNAL_PHOTO_DIR = 'journal';
+
+/**
+ * 手账照片的沙盒相对路径：journal/<entryId>/<index>.<ext>。
+ * 扩展名净化为小写字母数字，缺省 jpg；结果恒满足 JournalEntrySchema.photoPaths 的相对路径约束。
+ */
+export function journalPhotoRelativePath(entryId: string, index: number, extension: string): string {
+  const safeExtension = extension.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+  return `${JOURNAL_PHOTO_DIR}/${entryId}/${index}.${safeExtension}`;
+}
+
+/** Web 端照片以 data URL 直接入库；原生端为沙盒相对路径（渲染时拼 documentDirectory 前缀） */
+export function isInlinePhoto(path: string): boolean {
+  return path.startsWith('data:');
+}
+
 export type JournalDayGroup = {
   /** 本机日期键 YYYY-MM-DD */
   key: string;

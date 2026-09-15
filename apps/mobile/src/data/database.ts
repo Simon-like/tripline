@@ -1,5 +1,5 @@
-import type { ChecklistItem, Expense, ItineraryItem, JournalEntry, Journey } from '@tripline/shared';
-import { ChecklistItemSchema, ExpenseSchema, ItineraryItemSchema, JournalEntrySchema, JourneySchema, makeChecklistTemplate, makeReturnTemplate } from '@tripline/shared';
+import type { ChecklistItem, Expense, ItineraryItem, JournalEntry, Journey, JourneyBundle } from '@tripline/shared';
+import { ChecklistItemSchema, ExpenseSchema, ItineraryItemSchema, JournalEntrySchema, JourneyBundleSchema, JourneySchema, makeChecklistTemplate, makeReturnTemplate } from '@tripline/shared';
 import * as Crypto from 'expo-crypto';
 import * as SQLite from 'expo-sqlite';
 
@@ -137,6 +137,93 @@ export async function deleteJourney(id: string, now: number): Promise<void> {
       const rows = await tx.getAllAsync<{ id: string }>(`SELECT id FROM ${table} WHERE journeyId = ? AND deletedAt IS NULL`, [id]);
       await tx.runAsync(`UPDATE ${table} SET deletedAt = ?, updatedAt = ? WHERE journeyId = ? AND deletedAt IS NULL`, [now, now, id]);
       for (const row of rows) await enqueue(tx, table, row.id, 'delete', { id: row.id, deletedAt: now }, now);
+    }
+  });
+}
+
+// ---- M08 分享与导入 ----
+
+/**
+ * 导入导出码载荷：同事务内——同 journey id 已存在则整趟级联软删（逐条落 sync_queue），
+ * 随后按原 id upsert journey 与全部子实体（tombstone 行整体覆盖并复活，幂等），逐条落 sync_queue。
+ * 任一步失败事务回滚，不产生脏数据。
+ */
+export async function importJourneyBundle(input: JourneyBundle): Promise<void> {
+  const bundle = JourneyBundleSchema.parse(input);
+  const db = await initializeDatabase();
+  const now = Date.now();
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    const existing = await tx.getFirstAsync<{ id: string }>(
+      'SELECT id FROM journey WHERE id = ? AND deletedAt IS NULL', [bundle.journey.id],
+    );
+    if (existing) {
+      await tx.runAsync('UPDATE journey SET deletedAt = ?, updatedAt = ? WHERE id = ? AND deletedAt IS NULL', [now, now, existing.id]);
+      await enqueue(tx, 'journey', existing.id, 'delete', { id: existing.id, deletedAt: now }, now);
+      for (const table of ['checklist_item', 'itinerary_item', 'expense', 'journal_entry'] as const) {
+        const rows = await tx.getAllAsync<{ id: string }>(`SELECT id FROM ${table} WHERE journeyId = ? AND deletedAt IS NULL`, [existing.id]);
+        await tx.runAsync(`UPDATE ${table} SET deletedAt = ?, updatedAt = ? WHERE journeyId = ? AND deletedAt IS NULL`, [now, now, existing.id]);
+        for (const row of rows) await enqueue(tx, table, row.id, 'delete', { id: row.id, deletedAt: now }, now);
+      }
+    }
+
+    const journey = bundle.journey;
+    const updated = await tx.runAsync(
+      `UPDATE journey SET name = ?, startDate = ?, endDate = ?, budget = ?, companions = ?, tags = ?,
+         createdAt = ?, updatedAt = ?, deletedAt = NULL, schemaVersion = ? WHERE id = ?`,
+      [journey.name, journey.startDate, journey.endDate, journey.budget,
+        JSON.stringify(journey.companions), JSON.stringify(journey.tags),
+        journey.createdAt, journey.updatedAt, journey.schemaVersion, journey.id],
+    );
+    if (updated.changes === 0) {
+      await tx.runAsync(
+        `INSERT INTO journey (id, name, startDate, endDate, budget, companions, tags, createdAt, updatedAt, deletedAt, schemaVersion)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)`,
+        [journey.id, journey.name, journey.startDate, journey.endDate, journey.budget,
+          JSON.stringify(journey.companions), JSON.stringify(journey.tags),
+          journey.createdAt, journey.updatedAt, journey.schemaVersion],
+      );
+    }
+    await enqueue(tx, 'journey', journey.id, 'create', journey, journey.updatedAt);
+
+    for (const item of bundle.checklistItems) {
+      const result = await tx.runAsync(
+        `UPDATE checklist_item SET journeyId = ?, phase = ?, category = ?, title = ?, checked = ?, sortOrder = ?,
+           createdAt = ?, updatedAt = ?, deletedAt = NULL, schemaVersion = ? WHERE id = ?`,
+        [item.journeyId, item.phase, item.category, item.title, item.checked ? 1 : 0, item.sortOrder,
+          item.createdAt, item.updatedAt, item.schemaVersion, item.id],
+      );
+      if (result.changes === 0) await insertChecklistItem(tx, item);
+      await enqueue(tx, 'checklist_item', item.id, 'create', item, item.updatedAt);
+    }
+    for (const item of bundle.itineraryItems) {
+      const result = await tx.runAsync(
+        `UPDATE itinerary_item SET journeyId = ?, date = ?, time = ?, content = ?, note = ?, state = ?,
+           createdAt = ?, updatedAt = ?, deletedAt = NULL, schemaVersion = ? WHERE id = ?`,
+        [item.journeyId, item.date, item.time, item.content, item.note, item.state,
+          item.createdAt, item.updatedAt, item.schemaVersion, item.id],
+      );
+      if (result.changes === 0) await insertItineraryItem(tx, item);
+      await enqueue(tx, 'itinerary_item', item.id, 'create', item, item.updatedAt);
+    }
+    for (const expense of bundle.expenses) {
+      const result = await tx.runAsync(
+        `UPDATE expense SET journeyId = ?, amount = ?, category = ?, note = ?, payer = ?,
+           createdAt = ?, updatedAt = ?, deletedAt = NULL, schemaVersion = ? WHERE id = ?`,
+        [expense.journeyId, expense.amount, expense.category, expense.note, expense.payer,
+          expense.createdAt, expense.updatedAt, expense.schemaVersion, expense.id],
+      );
+      if (result.changes === 0) await insertExpense(tx, expense);
+      await enqueue(tx, 'expense', expense.id, 'create', expense, expense.updatedAt);
+    }
+    for (const entry of bundle.journalEntries) {
+      const result = await tx.runAsync(
+        `UPDATE journal_entry SET journeyId = ?, text = ?, photoPaths = ?, tags = ?, mood = ?, timestamp = ?,
+           createdAt = ?, updatedAt = ?, deletedAt = NULL, schemaVersion = ? WHERE id = ?`,
+        [entry.journeyId, entry.text, JSON.stringify(entry.photoPaths), JSON.stringify(entry.tags), entry.mood,
+          entry.timestamp, entry.createdAt, entry.updatedAt, entry.schemaVersion, entry.id],
+      );
+      if (result.changes === 0) await insertJournalEntry(tx, entry);
+      await enqueue(tx, 'journal_entry', entry.id, 'create', entry, entry.updatedAt);
     }
   });
 }
@@ -326,14 +413,18 @@ export async function addJournalEntry(input: JournalEntry): Promise<void> {
   const entry = JournalEntrySchema.parse(input);
   const db = await initializeDatabase();
   await db.withExclusiveTransactionAsync(async (tx) => {
-    await tx.runAsync(
-      `INSERT INTO journal_entry (id, journeyId, text, photoPaths, tags, mood, timestamp, createdAt, updatedAt, deletedAt, schemaVersion)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [entry.id, entry.journeyId, entry.text, JSON.stringify(entry.photoPaths), JSON.stringify(entry.tags),
-        entry.mood, entry.timestamp, entry.createdAt, entry.updatedAt, entry.deletedAt, entry.schemaVersion],
-    );
+    await insertJournalEntry(tx, entry);
     await enqueue(tx, 'journal_entry', entry.id, 'create', entry, entry.updatedAt);
   });
+}
+
+async function insertJournalEntry(tx: SQLite.SQLiteDatabase, entry: JournalEntry): Promise<void> {
+  await tx.runAsync(
+    `INSERT INTO journal_entry (id, journeyId, text, photoPaths, tags, mood, timestamp, createdAt, updatedAt, deletedAt, schemaVersion)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [entry.id, entry.journeyId, entry.text, JSON.stringify(entry.photoPaths), JSON.stringify(entry.tags),
+      entry.mood, entry.timestamp, entry.createdAt, entry.updatedAt, entry.deletedAt, entry.schemaVersion],
+  );
 }
 
 export async function deleteJournalEntry(id: string, now: number): Promise<void> {

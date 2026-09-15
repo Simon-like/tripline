@@ -1,5 +1,5 @@
-import type { ChecklistItem, Expense, ItineraryItem, JournalEntry, Journey } from '@tripline/shared';
-import { ChecklistItemSchema, ExpenseSchema, ItineraryItemSchema, JournalEntrySchema, JourneySchema, makeChecklistTemplate, makeReturnTemplate } from '@tripline/shared';
+import type { ChecklistItem, Expense, ItineraryItem, JournalEntry, Journey, JourneyBundle } from '@tripline/shared';
+import { ChecklistItemSchema, ExpenseSchema, ItineraryItemSchema, JournalEntrySchema, JourneyBundleSchema, JourneySchema, makeChecklistTemplate, makeReturnTemplate } from '@tripline/shared';
 import * as Crypto from 'expo-crypto';
 
 const STORAGE_KEY = 'tripline.preview.v1';
@@ -97,6 +97,59 @@ export async function deleteJourney(id: string, now: number): Promise<void> {
     }
   }
   writeStore(store);
+}
+
+// ---- M08 分享与导入 ----
+
+/**
+ * 导入导出码载荷（与原生端同语义）：同 journey id 已存在则整趟级联软删，
+ * 随后按原 id upsert journey 与全部子实体（tombstone 整体覆盖并复活，幂等），逐条落 sync_queue。
+ */
+export async function importJourneyBundle(input: JourneyBundle): Promise<void> {
+  const bundle = JourneyBundleSchema.parse(input);
+  const store = readStore();
+  const now = Date.now();
+
+  const existing = store.journeys.find((item) => item.id === bundle.journey.id && item.deletedAt === null);
+  if (existing) {
+    existing.deletedAt = now;
+    existing.updatedAt = now;
+    log(store, 'journey', existing.id, 'delete', { id: existing.id, deletedAt: now }, now);
+    for (const [entityType, items] of [
+      ['checklist_item', store.checklistItems],
+      ['itinerary_item', store.itineraryItems],
+      ['expense', store.expenses],
+      ['journal_entry', store.journalEntries],
+    ] as const) {
+      for (const item of items) {
+        if (item.journeyId === existing.id && item.deletedAt === null) {
+          item.deletedAt = now;
+          item.updatedAt = now;
+          log(store, entityType, item.id, 'delete', { id: item.id, deletedAt: now }, now);
+        }
+      }
+    }
+  }
+
+  upsertForImport(store, 'journey', store.journeys, [bundle.journey]);
+  upsertForImport(store, 'checklist_item', store.checklistItems, bundle.checklistItems);
+  upsertForImport(store, 'itinerary_item', store.itineraryItems, bundle.itineraryItems);
+  upsertForImport(store, 'expense', store.expenses, bundle.expenses);
+  upsertForImport(store, 'journal_entry', store.journalEntries, bundle.journalEntries);
+  writeStore(store);
+}
+
+/** 导入 upsert：同 id 行（含 tombstone）整体覆盖并复活 deletedAt=null，否则追加；逐条落 sync_queue */
+function upsertForImport<T extends { id: string; updatedAt: number; deletedAt: number | null }>(
+  store: PreviewStore, entityType: string, items: T[], incoming: readonly T[],
+): void {
+  for (const entity of incoming) {
+    const revived = { ...entity, deletedAt: null };
+    const index = items.findIndex((item) => item.id === entity.id);
+    if (index >= 0) items[index] = revived;
+    else items.push(revived);
+    log(store, entityType, entity.id, 'create', revived, entity.updatedAt);
+  }
 }
 
 export async function listChecklistItems(journeyId: string, phase: ChecklistItem['phase'] = 'preparation'): Promise<ChecklistItem[]> {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { JOURNAL_TAG_PRESETS, groupJournalEntriesByDay, makeDemoJournalEntry } from '../src/journal';
+import { JOURNAL_TAG_PRESETS, groupJournalEntriesByDay, isInlinePhoto, journalPhotoRelativePath, makeDemoJournalEntry } from '../src/journal';
 import { JournalEntrySchema, SCHEMA_VERSION, type JournalEntry } from '../src/schema';
 
 const journeyId = '3f34e0d6-443f-48f1-833f-2b8c52398a21';
@@ -66,5 +66,30 @@ describe('手账', () => {
     ], now);
     expect(groups).toHaveLength(1);
     expect(groups[0].entries.map((item) => item.text)).toEqual(['傍晚', '中午', '早上']);
+  });
+
+  it('照片沙盒相对路径：journal/<entryId>/<index>.<ext>，扩展名净化', () => {
+    const path = journalPhotoRelativePath('3f34e0d6-443f-48f1-833f-2b8c52398a21', 0, 'JPEG');
+    expect(path).toBe('journal/3f34e0d6-443f-48f1-833f-2b8c52398a21/0.jpeg');
+    expect(journalPhotoRelativePath('x', 2, '.png')).toBe('journal/x/2.png');
+    expect(journalPhotoRelativePath('x', 1, '...')).toBe('journal/x/1.jpg');
+  });
+
+  it('沙盒相对路径与 data URL 均通过 schema 校验，isInlinePhoto 区分两者', () => {
+    const relative = journalPhotoRelativePath('3f34e0d6-443f-48f1-833f-2b8c52398a21', 0, 'jpg');
+    const dataUrl = 'data:image/jpeg;base64,/9j/4AAQSkZJRg==';
+    for (const path of [relative, dataUrl]) {
+      const parsed = JournalEntrySchema.safeParse({ ...entry('00000000-0000-4000-8000-000000000009', now), photoPaths: [path] });
+      expect(parsed.success).toBe(true);
+    }
+    expect(isInlinePhoto(dataUrl)).toBe(true);
+    expect(isInlinePhoto(relative)).toBe(false);
+  });
+
+  it('绝对路径与含 .. 的路径仍被 schema 拒绝', () => {
+    for (const path of ['/var/mobile/x.jpg', 'journal/../escape.jpg']) {
+      const parsed = JournalEntrySchema.safeParse({ ...entry('00000000-0000-4000-8000-00000000000a', now), photoPaths: [path] });
+      expect(parsed.success).toBe(false);
+    }
   });
 });
