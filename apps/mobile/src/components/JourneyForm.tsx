@@ -146,7 +146,7 @@ export function JourneyForm({ visible, initial, onClose, onSave }: {
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
-      </Modal>
+      {/* 日期选择器嵌套在表单 Modal 内，避免兄弟 Modal 叠层在 Android 上被压到底层导致动画截断 */}
       <DatePickerSheet
         visible={pickerVisible}
         mode="range"
@@ -160,6 +160,7 @@ export function JourneyForm({ visible, initial, onClose, onSave }: {
           setPickerVisible(false);
         }}
       />
+      </Modal>
     </>
   );
 }
