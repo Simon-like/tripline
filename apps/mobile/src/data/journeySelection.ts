@@ -40,3 +40,10 @@ export function selectFeaturedJourney<T extends JourneyDates>(journeys: T[], tod
   return journeys.filter((journey) => journey.endDate < today)
     .sort((a, b) => b.endDate.localeCompare(a.endDate))[0];
 }
+
+/** Repository-level capacity gate: replacement is not an additional slot. */
+export function assertJourneyCapacity(incoming: JourneyDates, existing: readonly (JourneyDates & { deletedAt: number | null })[], today: string): void {
+  if (!isOpenJourney(incoming, today)) return;
+  const openOthers = existing.filter((journey) => journey.deletedAt === null && journey.id !== incoming.id && isOpenJourney(journey, today));
+  if (openOthers.length >= MAX_OPEN_JOURNEYS) throw new Error('最多保留四趟进行中的旅程。旅程不是排期，生活不用赶集；先结束一趟，再添新的故事。');
+}

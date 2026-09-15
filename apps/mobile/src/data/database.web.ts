@@ -1,6 +1,7 @@
+import { assertJourneyCapacity } from './journeySelection';
 import { assertImportOwnership, importGroups } from './importGuard';
 import type { ChecklistItem, Expense, ItineraryItem, JournalEntry, Journey, JourneyBundle } from '@tripline/shared';
-import { ChecklistItemSchema, ExpenseSchema, ItineraryItemSchema, JournalEntrySchema, JourneyBundleSchema, JourneySchema, makeChecklistTemplate, makeReturnTemplate } from '@tripline/shared';
+import { toLocalDateString, ChecklistItemSchema, ExpenseSchema, ItineraryItemSchema, JournalEntrySchema, JourneyBundleSchema, JourneySchema, makeChecklistTemplate, makeReturnTemplate } from '@tripline/shared';
 import * as Crypto from 'expo-crypto';
 
 const STORAGE_KEY = 'tripline.preview.v1';
@@ -30,7 +31,9 @@ function readStore(): PreviewStore {
 }
 
 function writeStore(store: PreviewStore): void {
-  if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+  if (typeof localStorage === 'undefined') throw new Error('当前浏览器不支持本地保存');
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); }
+  catch { throw new Error('本地保存失败，可能空间不足。旧记录已保留，请减少照片后重试。'); }
 }
 
 function log(store: PreviewStore, entityType: string, entityId: string, operation: string, payload: unknown, now: number): void {
@@ -44,6 +47,7 @@ export async function initializeDatabase(): Promise<void> {
 export async function createJourney(input: Journey): Promise<void> {
   const journey = JourneySchema.parse(input);
   const store = readStore();
+  assertJourneyCapacity(journey, store.journeys, toLocalDateString(new Date()));
   if (store.journeys.some((item) => item.id === journey.id)) throw new Error('旅程已存在');
   store.journeys.push(journey);
   log(store, 'journey', journey.id, 'create', journey, journey.updatedAt);
@@ -69,6 +73,7 @@ export async function getJourney(id: string): Promise<Journey | null> {
 export async function updateJourney(input: Journey): Promise<void> {
   const journey = JourneySchema.parse(input);
   const store = readStore();
+  assertJourneyCapacity(journey, store.journeys, toLocalDateString(new Date()));
   const index = store.journeys.findIndex((item) => item.id === journey.id && item.deletedAt === null);
   if (index < 0) throw new Error('旅程不存在或已删除');
   store.journeys[index] = journey;
@@ -109,6 +114,7 @@ export async function deleteJourney(id: string, now: number): Promise<void> {
 export async function importJourneyBundle(input: JourneyBundle): Promise<void> {
   const bundle = JourneyBundleSchema.parse(input);
   const store = readStore();
+  assertJourneyCapacity(bundle.journey, store.journeys, toLocalDateString(new Date()));
   const now = Date.now();
 
   const tables = { checklist_item: store.checklistItems, itinerary_item: store.itineraryItems, expense: store.expenses, journal_entry: store.journalEntries };

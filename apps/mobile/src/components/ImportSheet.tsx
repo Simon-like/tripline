@@ -44,6 +44,7 @@ export function ImportSheet({ visible, onClose, onImported }: Props) {
   }, [visible]);
 
   function handleChange(next: string) {
+    const pasted = next.length - text.length > 1;
     setText(next);
     setPreview(null);
     setError('');
@@ -52,7 +53,7 @@ export function ImportSheet({ visible, onClose, onImported }: Props) {
       setPreview(decodeExportCode(next));
     } catch (cause) {
       // 识别失败不打扰逐字输入；粘贴（一次性长文本）或含 TL 前缀的坏码才提示中文可读错误
-      if (cause instanceof ExportCodeError && (/TL\d+\./.test(next) || next.trim().length >= 8)) setError(cause.message);
+      if (cause instanceof ExportCodeError && (pasted || /TL\d+\.[^\s]+\s/.test(next))) setError(cause.message);
     }
   }
 
@@ -94,6 +95,7 @@ export function ImportSheet({ visible, onClose, onImported }: Props) {
                 <TripText size={18} weight="bold">{preview.journey.name}</TripText>
                 <TripText size={13} numbers muted>{preview.journey.startDate} — {preview.journey.endDate}</TripText>
                 <TripText size={12} muted>{bundleCounts(preview)}</TripText>
+                <TripText size={12} muted>同一旅程会用分享内容替换本地记录；最多保留四趟开放旅程。</TripText>
               </View>
             ) : null}
             {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}

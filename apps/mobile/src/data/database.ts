@@ -1,6 +1,7 @@
+import { assertJourneyCapacity } from './journeySelection';
 import { assertImportOwnership, importGroups } from './importGuard';
 import type { ChecklistItem, Expense, ItineraryItem, JournalEntry, Journey, JourneyBundle } from '@tripline/shared';
-import { ChecklistItemSchema, ExpenseSchema, ItineraryItemSchema, JournalEntrySchema, JourneyBundleSchema, JourneySchema, makeChecklistTemplate, makeReturnTemplate } from '@tripline/shared';
+import { toLocalDateString, ChecklistItemSchema, ExpenseSchema, ItineraryItemSchema, JournalEntrySchema, JourneyBundleSchema, JourneySchema, makeChecklistTemplate, makeReturnTemplate } from '@tripline/shared';
 import * as Crypto from 'expo-crypto';
 import * as SQLite from 'expo-sqlite';
 
@@ -76,6 +77,7 @@ export async function createJourney(input: Journey): Promise<void> {
   ];
   const db = await initializeDatabase();
   await db.withExclusiveTransactionAsync(async (tx) => {
+    assertJourneyCapacity(journey, await tx.getAllAsync<Journey>('SELECT * FROM journey WHERE deletedAt IS NULL'), toLocalDateString(new Date()));
     await tx.runAsync(
       `INSERT INTO journey (id, name, startDate, endDate, budget, companions, tags, createdAt, updatedAt, deletedAt, schemaVersion)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -117,6 +119,7 @@ export async function updateJourney(input: Journey): Promise<void> {
   const journey = JourneySchema.parse(input);
   const db = await initializeDatabase();
   await db.withExclusiveTransactionAsync(async (tx) => {
+    assertJourneyCapacity(journey, await tx.getAllAsync<Journey>('SELECT * FROM journey WHERE deletedAt IS NULL'), toLocalDateString(new Date()));
     const result = await tx.runAsync(
       `UPDATE journey SET name = ?, startDate = ?, endDate = ?, budget = ?, companions = ?, tags = ?, updatedAt = ?
        WHERE id = ? AND deletedAt IS NULL`,
@@ -154,6 +157,7 @@ export async function importJourneyBundle(input: JourneyBundle): Promise<void> {
   const db = await initializeDatabase();
   const now = Date.now();
   await db.withExclusiveTransactionAsync(async (tx) => {
+    assertJourneyCapacity(bundle.journey, await tx.getAllAsync<Journey>('SELECT * FROM journey WHERE deletedAt IS NULL'), toLocalDateString(new Date()));
     for (const [table, incoming] of importGroups(bundle)) {
       const existingRows = [];
       for (const item of incoming) {
