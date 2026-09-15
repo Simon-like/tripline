@@ -14,6 +14,10 @@ export const lightTheme = {
   shadow: '#4A3C80',
   onPrimary: '#FFFFFF',
   onAccent: '#FFFFFF',
+  glassFill: 'rgba(255,255,255,0.72)',
+  glassFallback: 'rgba(255,255,255,0.96)',
+  glassStroke: 'rgba(255,255,255,0.88)',
+  glassSelection: 'rgba(231,227,255,0.88)',
 } as const;
 
 export const darkTheme: Record<keyof typeof lightTheme, string> = {
@@ -32,6 +36,10 @@ export const darkTheme: Record<keyof typeof lightTheme, string> = {
   shadow: '#07050C',
   onPrimary: '#17132B',
   onAccent: '#17132B',
+  glassFill: 'rgba(33,29,49,0.82)',
+  glassFallback: 'rgba(33,29,49,0.96)',
+  glassStroke: 'rgba(249,246,255,0.20)',
+  glassSelection: 'rgba(90,78,153,0.70)',
 };
 
 export type TriplineTheme = Record<keyof typeof lightTheme, string>;

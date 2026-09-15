@@ -8,6 +8,7 @@ describe('旅行账本', () => {
     const summary = budgetSummary(450_000, [{ amount: 128_000 }]);
     expect(summary).toEqual({ budget: 450_000, spent: 128_000, remaining: 322_000, percent: 28, status: 'normal' });
     expect(budgetSummary(100_000, [{ amount: 80_000 }]).status).toBe('warning');
+    expect(budgetSummary(100_000, [{ amount: 79_600 }]).status).toBe('normal');
     expect(budgetSummary(100_000, [{ amount: 100_000 }]).status).toBe('warning');
     expect(budgetSummary(100_000, [{ amount: 100_001 }]).status).toBe('over');
     expect(budgetSummary(0, []).percent).toBe(0);
@@ -25,6 +26,9 @@ describe('旅行账本', () => {
     expect(slices[0].amount).toBe(88_000);
     expect(slices.reduce((sum, slice) => sum + slice.percent, 0)).toBe(100);
     expect(categoryBreakdown([])).toEqual([]);
+    const thirds = categoryBreakdown(['餐饮', '住宿', '交通'].map((category) => ({ category, amount: 1 })));
+    expect(thirds.reduce((sum, slice) => sum + slice.percent, 0)).toBe(100);
+    expect(thirds.map((slice) => slice.percent).sort()).toEqual([33, 33, 34]);
   });
 
   it('按日记账聚合：同日合并、日期升序', () => {

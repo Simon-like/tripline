@@ -34,6 +34,9 @@ export const iconNames = [
   'plus',
   'check',
   'chevron-left',
+  'arrow-up-right',
+  'settings',
+  'moon',
 ] as const;
 
 export type IconName = (typeof iconNames)[number];
@@ -191,6 +194,14 @@ const paths: Record<IconName, ReactElement> = {
   check: <Path d="M20 6.5 9.2 17.5 4 12.3" />,
   // 返回箭头
   'chevron-left': <Path d="m14.5 6-6 6 6 6" />,
+  'arrow-up-right': <Path d="M6 18 18 6M8 6h10v10" />,
+  settings: (
+    <>
+      <Circle cx={12} cy={12} r={3} />
+      <Path d="M12 2.7 13.8 4l2.1-.3 1.1 1.9 2 .8v2.2l1.4 1.7-1.4 1.7v2.2l-2 .8-1.1 1.9-2.1-.3L12 18l-1.8-1.3-2.1.3L7 15.1l-2-.8v-2.2l-1.4-1.7L5 8.7V6.5l2-.8 1.1-1.9 2.1.3L12 2.7Z" transform="translate(0 1.6)" />
+    </>
+  ),
+  moon: <Path d="M20.5 14.4A8.5 8.5 0 0 1 9.6 3.5 8.6 8.6 0 1 0 20.5 14.4Z" />,
 };
 
 export function Icon({ name, size = 24, color = 'currentColor' }: IconProps) {

@@ -4,13 +4,14 @@ import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, TextInput
 import Svg, { Circle, Polyline } from 'react-native-svg';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
-import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withSpring, type SharedValue } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, type SharedValue } from 'react-native-reanimated';
 import { Icon, motion } from '@tripline/ui';
 import {
   EXPENSE_CATEGORIES, ExpenseSchema, SCHEMA_VERSION, budgetSummary, categoryBreakdown, dailyExpenseTotals,
   type Expense, type ExpenseCategory, type Journey,
 } from '@tripline/shared';
 import { BouncyButton } from '../../../src/components/BouncyButton';
+import { CascadeIn } from '../../../src/components/CascadeIn';
 import { Page } from '../../../src/components/Page';
 import { TripText } from '../../../src/components/TripText';
 import { addExpense, deleteExpense, getJourney, listExpenses, updateJourney } from '../../../src/data/database';
@@ -18,6 +19,7 @@ import { ensureDemoExpenses } from '../../../src/data/demo';
 import { chineseFont, useTriplineTheme } from '../../../src/theme';
 
 const categoryColors = ['accent', 'primary', 'celebrate', 'success', 'shadow', 'textSecondary'] as const;
+const feedbackDuration = 600;
 
 function colorOf(category: string, theme: Record<string, string>): string {
   const index = (EXPENSE_CATEGORIES as readonly string[]).indexOf(category);
@@ -55,26 +57,14 @@ function RollingNumber({ value, size, color }: { value: number; size: number; co
   return <TripText size={size} numbers style={color ? { color } : undefined}>{yuan(display)}</TripText>;
 }
 
-function CascadeIn({ index, total, children }: { index: number; total: number; children: React.ReactNode }) {
-  const reduceMotion = useReducedMotion();
-  const progress = useSharedValue(0);
-  const animate = total <= 10;
-  useEffect(() => {
-    progress.value = !animate || reduceMotion
-      ? 1
-      : withDelay(index * motion.stagger, withSpring(1, { duration: motion.expand, dampingRatio: motion.dampingRatio }));
-  }, [animate, index, progress, reduceMotion]);
-  const style = useAnimatedStyle(() => ({ opacity: progress.value, transform: [{ translateY: (1 - progress.value) * 14 }] }));
-  return <Animated.View style={style}>{children}</Animated.View>;
-}
-
 function ConfettiBurst() {
   const { theme } = useTriplineTheme();
   const reduceMotion = useReducedMotion();
   const travel = useSharedValue(0);
   useEffect(() => {
-    travel.value = reduceMotion ? 1 : withSpring(1, { duration: motion.celebrate, dampingRatio: motion.dampingRatio });
+    travel.value = reduceMotion ? 1 : withSpring(1, { duration: feedbackDuration, dampingRatio: motion.dampingRatio });
   }, [reduceMotion, travel]);
+  if (reduceMotion) return null;
   return (
     <View pointerEvents="none" style={{ position: 'absolute', top: 6, right: 10, width: 0, height: 0 }}>
       {[-34, -12, 14, 36, 58, -52].map((x, index) => (
@@ -148,6 +138,7 @@ export default function Ledger() {
   const [removing, setRemoving] = useState<Expense | null>(null);
   const [savedFlash, setSavedFlash] = useState(false);
   const [error, setError] = useState('');
+  const addingExpense = useRef(false);
 
   const refresh = useCallback(async () => {
     if (!id) return;
@@ -173,7 +164,7 @@ export default function Ledger() {
       : '';
 
   async function add() {
-    if (!id) return;
+    if (!id || addingExpense.current) return;
     if (!/^\d+(\.\d{1,2})?$/.test(amount.trim()) || Number(amount) <= 0) {
       setError('金额请填写大于 0 的数字，最多两位小数');
       return;
@@ -188,6 +179,7 @@ export default function Ledger() {
       setError(parsed.error.issues[0]?.message ?? '请检查金额与分类');
       return;
     }
+    addingExpense.current = true;
     try {
       await addExpense(parsed.data);
       setAmount('');
@@ -196,10 +188,12 @@ export default function Ledger() {
       setAdding(false);
       if (Platform.OS !== 'web') void Haptics.selectionAsync();
       setSavedFlash(true);
-      setTimeout(() => setSavedFlash(false), 900);
+      setTimeout(() => setSavedFlash(false), feedbackDuration);
       await refresh();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '记账失败');
+    } finally {
+      addingExpense.current = false;
     }
   }
 
@@ -245,7 +239,7 @@ export default function Ledger() {
           <View style={{ backgroundColor: theme.onPrimary, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 }}>
             <TripText size={11} weight="bold" style={{ color: theme.primary }}>剩余预算</TripText>
           </View>
-          <Pressable onPress={() => { setBudgetDraft(String((journey?.budget ?? 0) / 100)); setBudgetEditing(true); }} hitSlop={8} style={{ flexShrink: 1, minWidth: 0 }}>
+          <Pressable onPress={() => { setError(''); setBudgetDraft(String((journey?.budget ?? 0) / 100)); setBudgetEditing(true); }} hitSlop={8} style={{ flexShrink: 1, minWidth: 0 }}>
             <TripText size={12} weight="semibold" style={{ color: theme.onPrimary, textAlign: 'right' }}>总预算 {yuan(summary.budget)} · 修改</TripText>
           </Pressable>
         </View>
@@ -339,7 +333,7 @@ export default function Ledger() {
         </View>
       )}
 
-      <BouncyButton onPress={() => setAdding(true)} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 16, alignItems: 'center' }}>
+      <BouncyButton onPress={() => { setError(''); setAdding(true); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 16, alignItems: 'center' }}>
         <TripText size={15} weight="bold" style={{ color: theme.onAccent }}>＋ 记一笔</TripText>
       </BouncyButton>
       {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
@@ -375,6 +369,7 @@ export default function Ledger() {
                 <TextInput value={note} onChangeText={setNote} placeholder="比如：古城北门那家牦牛火锅" placeholderTextColor={theme.textSecondary}
                   style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }} />
               </View>
+              {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
               <BouncyButton onPress={() => { void add(); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 15, alignItems: 'center' }}>
                 <TripText size={16} weight="bold" style={{ color: theme.onAccent }}>存进账本</TripText>
               </BouncyButton>
@@ -392,6 +387,7 @@ export default function Ledger() {
               <TripText size={24} weight="bold">修改总预算</TripText>
               <TextInput value={budgetDraft} onChangeText={setBudgetDraft} autoFocus placeholder="例如 4500" placeholderTextColor={theme.textSecondary} keyboardType="decimal-pad"
                 style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }} />
+              {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
               <BouncyButton onPress={() => { void saveBudget(); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 15, alignItems: 'center' }}>
                 <TripText size={16} weight="bold" style={{ color: theme.onAccent }}>保存预算</TripText>
               </BouncyButton>

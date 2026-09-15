@@ -1,8 +1,17 @@
 import { createMMKV } from 'react-native-mmkv';
 
+export type ThemeMode = 'system' | 'light' | 'dark';
+
 const storage = createMMKV({ id: 'tripline.settings' });
 
 export const settings = {
+  getThemeMode(): ThemeMode {
+    const mode = storage.getString('themeMode');
+    return mode === 'light' || mode === 'dark' ? mode : 'system';
+  },
+  setThemeMode(mode: ThemeMode): void {
+    storage.set('themeMode', mode);
+  },
   getLastOpenedJourneyId(): string | undefined {
     return storage.getString('lastOpenedJourneyId');
   },

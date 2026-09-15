@@ -1,15 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
-import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withSpring, type SharedValue } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, type SharedValue } from 'react-native-reanimated';
 import { Icon, motion } from '@tripline/ui';
 import {
   ITINERARY_STATE_LABELS, ItineraryItemSchema, SCHEMA_VERSION, journeyDays, nextItineraryState,
   type ItineraryItem, type Journey,
 } from '@tripline/shared';
 import { BouncyButton } from '../../../src/components/BouncyButton';
+import { CascadeIn } from '../../../src/components/CascadeIn';
 import { Page } from '../../../src/components/Page';
 import { TripText } from '../../../src/components/TripText';
 import { addItineraryItem, deleteItineraryItem, getJourney, listItineraryItems, setItineraryState } from '../../../src/data/database';
@@ -17,22 +18,7 @@ import { ensureDemoItinerary } from '../../../src/data/demo';
 import { chineseFont, useTriplineTheme } from '../../../src/theme';
 
 const nodeColors = ['primary', 'accent', 'celebrate', 'success'] as const;
-
-function CascadeIn({ index, total, children }: { index: number; total: number; children: React.ReactNode }) {
-  const reduceMotion = useReducedMotion();
-  const progress = useSharedValue(0);
-  const animate = total <= 10;
-  useEffect(() => {
-    progress.value = !animate || reduceMotion
-      ? 1
-      : withDelay(index * motion.stagger, withSpring(1, { duration: motion.expand, dampingRatio: motion.dampingRatio }));
-  }, [animate, index, progress, reduceMotion]);
-  const style = useAnimatedStyle(() => ({
-    opacity: progress.value,
-    transform: [{ translateY: (1 - progress.value) * 14 }],
-  }));
-  return <Animated.View style={style}>{children}</Animated.View>;
-}
+const feedbackDuration = 600;
 
 function StateBadge({ item, onPress }: { item: ItineraryItem; onPress: () => void }) {
   const { theme } = useTriplineTheme();
@@ -64,8 +50,9 @@ function ConfettiBurst() {
   const reduceMotion = useReducedMotion();
   const travel = useSharedValue(0);
   useEffect(() => {
-    travel.value = reduceMotion ? 1 : withSpring(1, { duration: motion.celebrate, dampingRatio: motion.dampingRatio });
+    travel.value = reduceMotion ? 1 : withSpring(1, { duration: feedbackDuration, dampingRatio: motion.dampingRatio });
   }, [reduceMotion, travel]);
+  if (reduceMotion) return null;
   return (
     <View pointerEvents="none" style={{ position: 'absolute', top: 10, right: 16, width: 0, height: 0 }}>
       {[-34, -12, 14, 36, 58, -52].map((x, index) => (
@@ -100,6 +87,8 @@ export default function Itinerary() {
   const [removing, setRemoving] = useState<ItineraryItem | null>(null);
   const [celebratingId, setCelebratingId] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const pendingStates = useRef(new Set<string>());
+  const addingItem = useRef(false);
 
   const refresh = useCallback(async () => {
     if (!id) return;
@@ -120,6 +109,8 @@ export default function Itinerary() {
   const dayItems = items.filter((item) => item.date === selectedDate);
 
   async function cycle(item: ItineraryItem) {
+    if (pendingStates.current.has(item.id)) return;
+    pendingStates.current.add(item.id);
     const next = nextItineraryState(item.state);
     setItems((current) => current.map((entry) => entry.id === item.id ? { ...entry, state: next } : entry));
     try {
@@ -127,17 +118,19 @@ export default function Itinerary() {
       if (Platform.OS !== 'web') void Haptics.selectionAsync();
       if (next === 'visited') {
         setCelebratingId(item.id);
-        setTimeout(() => setCelebratingId((current) => current === item.id ? null : current), 900);
+        setTimeout(() => setCelebratingId((current) => current === item.id ? null : current), feedbackDuration);
       }
       await refresh();
     } catch (cause) {
       setItems((current) => current.map((entry) => entry.id === item.id ? item : entry));
       setError(cause instanceof Error ? cause.message : '打卡失败');
+    } finally {
+      pendingStates.current.delete(item.id);
     }
   }
 
   async function add() {
-    if (!id || !selectedDate) return;
+    if (!id || !selectedDate || addingItem.current) return;
     const now = Date.now();
     const parsed = ItineraryItemSchema.safeParse({
       id: Crypto.randomUUID(), journeyId: id, date: selectedDate,
@@ -148,6 +141,7 @@ export default function Itinerary() {
       setError(parsed.error.issues[0]?.message ?? '请检查时间与内容');
       return;
     }
+    addingItem.current = true;
     try {
       await addItineraryItem(parsed.data);
       setTime('');
@@ -157,6 +151,8 @@ export default function Itinerary() {
       await refresh();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '添加失败');
+    } finally {
+      addingItem.current = false;
     }
   }
 
@@ -240,7 +236,7 @@ export default function Itinerary() {
         </View>
       )}
 
-      <BouncyButton onPress={() => setAdding(true)} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 16, alignItems: 'center' }}>
+      <BouncyButton onPress={() => { setError(''); setAdding(true); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 16, alignItems: 'center' }}>
         <TripText size={15} weight="bold" style={{ color: theme.onAccent }}>＋ 给 Day {dayIndex + 1} 加一笔安排</TripText>
       </BouncyButton>
       {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
@@ -271,6 +267,7 @@ export default function Itinerary() {
                 <TextInput value={note} onChangeText={setNote} placeholder="比如：先适应海拔，慢慢逛" placeholderTextColor={theme.textSecondary}
                   style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }} />
               </View>
+              {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
               <BouncyButton onPress={() => { void add(); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 15, alignItems: 'center' }}>
                 <TripText size={16} weight="bold" style={{ color: theme.onAccent }}>加入时间轴</TripText>
               </BouncyButton>

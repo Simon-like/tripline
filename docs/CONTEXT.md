@@ -49,8 +49,12 @@
 | `color.shadow` | `#4A3C80` | `#07050C` | 阴影 |
 | `color.onPrimary` | `#FFFFFF` | `#17132B` | 主色上的文字 |
 | `color.onAccent` | `#FFFFFF` | `#17132B` | 强调色上的文字 |
+| `color.glassFill` | `rgba(255,255,255,0.72)` | `rgba(33,29,49,0.82)` | 悬浮底栏的可读半透明底 |
+| `color.glassFallback` | `rgba(255,255,255,0.96)` | `rgba(33,29,49,0.96)` | Android/Web 无原生模糊时的高对比底 |
+| `color.glassStroke` | `rgba(255,255,255,0.88)` | `rgba(249,246,255,0.20)` | 玻璃边缘与高光 |
+| `color.glassSelection` | `rgba(231,227,255,0.88)` | `rgba(90,78,153,0.70)` | Tab 滑动选中胶囊 |
 
-以上 token 在 `packages/ui/src/theme.ts` 实现，由 `useColorScheme()` 驱动；splash/状态栏跟随主题。**禁止在组件中散落硬编码色值。**
+以上 token 在 `packages/ui/src/theme.ts` 实现；用户可从首页品牌旁的设置入口选自动/白天/夜间，自动档由 `useColorScheme()` 驱动，偏好存于本机 settings，状态栏随最终主题变化。**禁止在组件中散落硬编码色值。**
 
 **图标系统**：应用内所有图标位统一使用内联 SVG（`packages/ui` 的 `Icon` 组件，基于 react-native-svg，24×24 viewBox、stroke≈2、round cap/join、`size`/`color` 由调用方传入）；**禁止把 Emoji 当图标用**（iOS 26 Emoji 字体级联回归，RN #56183 / xcodes #468），决策详见 [ADR 0002](adr/0002-icon-system-svg.md)。用户内容中的 Emoji 不受影响。
 
@@ -87,7 +91,7 @@
 - 胶囊按钮：圆角 999px
 - Bento 卡片：大圆角 24px，首页大小不一拼贴
 - FAB：彩色填充
-- Tab 栏：悬浮圆角药丸形，毛玻璃底 + 彩色激活态
+- Tab 栏：左右留边的悬浮圆角药丸形；iOS 原生模糊、Android/Web 半透明回退，弹性滑动选中态（细节见 [ADR 0003](adr/0003-floating-glass-navigation.md)）
 - 超大号标题 32–40px + 圆角胶囊标签；行程时间轴节点为大号彩色圆球
 
 ## 核心交互清单（已在 Demo 中验证，来自产品简报）

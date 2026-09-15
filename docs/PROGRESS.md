@@ -4,6 +4,46 @@
 
 ---
 
+## 2026-09-15 · Codex（悬浮导航、外观选择与多旅程首页）
+
+**现在什么最重要**：iOS 26.3/iPhone 17 Pro 与 Android 16/Pixel 8 模拟器都已加载新版 development build。五个旅程功能 Tab 保持不变，设置与未来账号入口留在旅程外；本轮属于体验施工验证，M00/M01 正式评审与验收状态未改变。
+
+**本会话做了什么**：新增 SDK 55 对应的 `expo-blur` 原生依赖和语义玻璃 token，替换旅程内默认底栏为左右各留 20pt 的悬浮药丸；iOS 原生模糊，Android/Web 高对比近不透明回退，选中胶囊用 Reanimated 弹性位移且遵守减弱动态效果。根主题 Provider 统一自动/白天/夜间偏好，MMKV/Web 存储，首页品牌旁提供设置入口（避开 dev build 的悬浮工具按钮）。首页主卡改为最近打开旅程优先、旅途中/最近将出发/最近完成兜底；“全部旅程”按状态分组，新建旅程自动成为焦点。修复自定义 Tab 切换时漏传旅程 ID 导致账本读错数据、首页山景遮挡标题及箭头问号。独立纯函数与 4 个测试覆盖焦点选择及删除焦点回退；决策记录见 [ADR 0003](adr/0003-floating-glass-navigation.md)（Proposed）。
+
+**验证**：`pnpm lint`、`pnpm typecheck`、`pnpm test`、`git diff --check` 通过（shared 22 + mobile 4 测试）。iOS 重新 `pod install` 与原生编译成功，真模拟器点过五个 Tab、三种外观及重启持久化；用两趟旅程验证新增/分组/切换，账本仍显示香格里拉预算 ¥4,500 与 3 笔记录。Android 原生重新构建 `BUILD SUCCESSFUL`，Pixel 8 模拟器检查首页、Tab 切换及外观三选项。截图在 `artifacts/preview/ios-navigation-tab-final.png`、`ios-navigation-home-final.png`、`ios-journey-switcher.png`、`android-navigation-ledger-final.png`、`android-appearance-settings.png`。
+
+**下一步**：Simon 在模拟器直接体验底栏滑动与多旅程入口，继续产品验收；本轮没有将 M00/M01 升为“完成”，Android 多旅程增删及真实手机的视觉/触感仍需后续验收。新增原生依赖后，已装的旧 development build 要重新执行一次对应平台构建；此后普通页面改动保持 Metro 即可。
+
+**坑与提醒**：iOS 26 模拟器的开发悬浮齿轮会盖住屏幕右上角，因此应用设置放在品牌旁；不要把灰色大齿轮误认成旅迹设置。Android 不使用无目标 `BlurView`，近不透明回退避免下层文字透过底栏。
+
+---
+
+## 2026-09-14 · Codex（家庭网络 iPhone 真机重新连上 Metro）
+
+**现在什么最重要**：iPhone 17 Pro 真机与 Mac 在家庭网络上已连通开发服务，之前公司网络的客户端隔离不再阻塞真机调试。Simon 仍需在手机屏幕确认首页及 M03/M04 的实际交互表现；M00–M04 正式验收状态未变。
+
+**本会话做了什么与验证**：确认 iPhone 17 Pro 通过数据线连接且已安装 `com.yingdonglin.tripline` 开发版。Mac 新网络地址为 `192.168.1.7`，结束旧 Metro 后用该地址重新启动 `pnpm start`；`/status` 返回 `packager-status:running`，Expo 广播的新链接也指向 `192.168.1.7:8081`。通过 `devicectl --payload-url` 将该链接送到手机应用，手机上的 TripLine 进程启动；Metro 随即完成 iOS JS 打包，Mac 8081 端口与 `192.168.1.8` 建立多条连接。未重编译或改动原生工程。
+
+**下一步**：Simon 查看 iPhone 上的旅迹，若已进入首页，直接按 M03/M04 验收路径操作；普通页面改动保持 Metro 运行即可。以后换网络，重新启动 Metro 以刷新广播地址，不要沿用本次 `192.168.1.7`。
+
+**坑与提醒**：本轮有应用进程、JS 打包和 TCP 连接证据，但没有直接读取 iPhone 屏幕，所以没有把“看到首页”写成已验证结果。当前 Metro 留在后台运行供 Simon 继续调试。
+
+---
+
+## 2026-09-14 · Codex（M03/M04 独立审阅、修整与设备速查）
+
+**现在什么最重要**：M03/M04 的基础页面在 iPhone 17 Pro 模拟器中已显示，设计方向 B 与 SVG 图标正常；模块仍为「待验收」，Simon 尚未通过需求/技术/验收门。下一步优先在 Android 模拟器与双端真机逐项走 EARS；iPhone 真机到 Metro 的网络问题仍在。
+
+**本会话做了什么**：独立检查 Kimi 的模块文档、shared 纯逻辑、SQLite/Web 双实现、页面与 SVG 图标系统，形成 [审阅记录](reviews/2026-09-14-m03-m04-independent-review.md)。修复分类百分比合计不等于 100%、79.x% 预算过早警告、Web 删除旅程遗漏 M03/M04 子记录、Modal 表单错误藏在底层、彩带超过 600ms 且减弱动效时仍显示、快速连点导致状态乱序或重复账目；抽出 M03/M04 共用的级联入场组件。README 更新模块现状，[一页设备启动与打包速查](DEVICE_DEBUGGING.md) 改为 IDE 点击路径。没有变更实体 schema 或增加原生依赖。
+
+**验证**：`pnpm lint`、`pnpm typecheck`、`pnpm test`、`git diff --check` 全绿，shared 22 测试直接重跑通过。iOS 26.3/iPhone 17 Pro 模拟器真实启动 Metro 并直接打开行程和账本，截图 `artifacts/preview/ios-review-m03.png`、`ios-review-m04.png` 无红屏，布局和账目数字正常。Android 16/Pixel 8 模拟器启动既有开发版、JS 打包成功、首页正常；该模拟器现有库无演示旅程，因此未声称 Android 的 M03/M04 页面已验收。
+
+**下一步**：Simon 决定行程编辑、账目补记日期等范围；由独立验收会话按两模块各 12 条 EARS 做双端交互/持久化核验，Simon 通过验收门后才改「完成」。真机需先让手机能访问 Mac 的 8081 端口。
+
+**坑与提醒**：本次 iOS 验证通过 deep link 直接打开既有演示旅程；Android 模拟器存档没有演示旅程，不要把首页正常误记作模块验收。`motion.celebrate` 全局 token 仍为 800ms，本次仅把 M03/M04 两处局部反馈限定为 600ms 以符合各自 AC。`apps/mobile/ios`、`android` 是生成工程，重做 prebuild 前须考虑本机签名设置。
+
+---
+
 ## 2026-09-14 · Kimi-Coder（M03 行程规划 + M04 旅行账本施工完成，待独立验收）
 
 **现在什么最重要**：Wave 1 四个模块（M01–M04）已全部完成施工，Simon 2026-09-14 会话明确授权"进入后续模块的开发计划规划和开发"（与此前 Codex 施工 M01/M02 授权方式一致，已在两份模块文档中如实记录）。需求/技术评审门与验收门均未正式通过，**下一步是由独立会话对照 EARS 逐条验收，Simon 做验收门决策**。

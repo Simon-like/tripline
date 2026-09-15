@@ -5,7 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as SystemUI from 'expo-system-ui';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useTriplineTheme } from '../src/theme';
+import { TriplineThemeProvider, useTriplineTheme } from '../src/theme';
 import { initializeDatabase } from '../src/data/database';
 
 void SplashScreen.preventAutoHideAsync();
@@ -36,5 +36,5 @@ function RootNavigation() {
 }
 
 export default function RootLayout() {
-  return <SafeAreaProvider><RootNavigation /></SafeAreaProvider>;
+  return <TriplineThemeProvider><SafeAreaProvider><RootNavigation /></SafeAreaProvider></TriplineThemeProvider>;
 }

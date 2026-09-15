@@ -1,13 +1,15 @@
 # 旅迹 TripLine
 
-从收拾行李，到安全回家。当前 **M00 工程基座、M01 旅程管理、M02 行前清单**已有可操作的基础版：首页可创建/编辑/删除旅程，清单可勾选和增删，数据在本机保存。行程、账本、手账、返程仍是后续模块的占位页。
+从收拾行李，到安全回家。当前 **M00 工程基座、M01 旅程管理、M02 行前清单、M03 行程规划、M04 旅行账本基础**已有可操作的基础版：可创建旅程、管理行前清单、按日安排行程并打卡、记账和查看预算/分类/每日趋势，数据在本机保存。M03/M04 仍待产品评审和完整设备验收；手账、返程为后续模块占位页。
+
+首页显示最近打开的旅程，并可从「全部旅程」按状态切换；首页品牌旁的「设置」可选自动、白天、夜间外观。旅程内五个功能保留独立底栏，设置与未来账号功能从首页进入。
 
 ## 环境
 
 - 项目固定使用 Node.js 20.19.4（pnpm-workspace.yaml 的 useNodeVersion，.nvmrc 同步标记）；pnpm 10.33.4。.npmrc 保留 Expo monorepo 所需的 hoisted 配置。
 - iOS 本地构建：macOS、完整 Xcode、可用的 iPhone 或模拟器。
 - Android 本地构建：JDK 17、Android SDK Platform 36/Build Tools 36、可用的手机或模拟器。
-- 此应用使用 MMKV 原生模块；请使用 development build，**不要用 Expo Go 验证**。
+- 此应用使用 MMKV、expo-blur 原生模块；请使用 development build，**不要用 Expo Go 验证**。新增 `expo-blur` 后，已安装的旧开发版需重新执行一次平台构建。
 
 ## 安装与检查
 
@@ -30,7 +32,7 @@ BROWSER=none pnpm --filter @tripline/mobile web
 
 ## 在手机上运行
 
-当前 iOS/Android 模拟器的最短步骤见 [调试速查](docs/DEVICE_DEBUGGING.md)；iPhone 真机、其他设备、EAS 与详细排障见 [完整版指南](docs/DEVICE_DEBUGGING_FULL.md)。本项目使用 Expo SDK 55，先检查 Node 和 Xcode 版本要求，再按设备选择路线。
+Xcode / Android Studio 的模拟器与真机点击路径、安装包路线见 [一页启动与打包速查](docs/DEVICE_DEBUGGING.md)；详细排障见 [完整版指南](docs/DEVICE_DEBUGGING_FULL.md)。
 
 本机已配置 Android SDK、JDK 17、Xcode 26.3 和 CocoaPods，原生工程也已生成。从项目根目录运行：
 

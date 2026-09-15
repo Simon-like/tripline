@@ -78,11 +78,17 @@ export async function deleteJourney(id: string, now: number): Promise<void> {
   journey.deletedAt = now;
   journey.updatedAt = now;
   log(store, 'journey', id, 'delete', { id, deletedAt: now }, now);
-  for (const item of store.checklistItems) {
-    if (item.journeyId === id && item.deletedAt === null) {
-      item.deletedAt = now;
-      item.updatedAt = now;
-      log(store, 'checklist_item', item.id, 'delete', { id: item.id, deletedAt: now }, now);
+  for (const [entityType, items] of [
+    ['checklist_item', store.checklistItems],
+    ['itinerary_item', store.itineraryItems],
+    ['expense', store.expenses],
+  ] as const) {
+    for (const item of items) {
+      if (item.journeyId === id && item.deletedAt === null) {
+        item.deletedAt = now;
+        item.updatedAt = now;
+        log(store, entityType, item.id, 'delete', { id: item.id, deletedAt: now }, now);
+      }
     }
   }
   writeStore(store);

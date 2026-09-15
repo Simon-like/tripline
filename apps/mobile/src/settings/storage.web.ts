@@ -1,5 +1,7 @@
 const prefix = 'tripline.setting.';
 
+export type ThemeMode = 'system' | 'light' | 'dark';
+
 function get(key: string): string | undefined {
   if (typeof localStorage === 'undefined') return undefined;
   return localStorage.getItem(prefix + key) ?? undefined;
@@ -10,6 +12,11 @@ function set(key: string, value: string): void {
 }
 
 export const settings = {
+  getThemeMode: (): ThemeMode => {
+    const mode = get('themeMode');
+    return mode === 'light' || mode === 'dark' ? mode : 'system';
+  },
+  setThemeMode: (mode: ThemeMode) => set('themeMode', mode),
   getLastOpenedJourneyId: () => get('lastOpenedJourneyId'),
   setLastOpenedJourneyId: (id: string) => set('lastOpenedJourneyId', id),
   getSyncCursor: () => get('syncCursor'),
