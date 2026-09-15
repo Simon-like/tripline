@@ -56,6 +56,8 @@
 
 以上 token 在 `packages/ui/src/theme.ts` 实现；用户可从首页品牌旁的设置入口选自动/白天/夜间，自动档由 `useColorScheme()` 驱动，偏好存于本机 settings，状态栏随最终主题变化。**禁止在组件中散落硬编码色值。**
 
+首页旅程轮播另有四组语义色板 `lightJourneyPalettes` / `darkJourneyPalettes`，每组包含 `card`、`backdrop`、`onCard`、`detail`。卡片横滑时页面背景随归一化进度连续插值；组件只消费色板，不自行声明颜色。四组色板分别承担紫、青、珊瑚、暖金旅程气氛，明暗主题成对维护。
+
 **图标系统**：应用内所有图标位统一使用内联 SVG（`packages/ui` 的 `Icon` 组件，基于 react-native-svg，24×24 viewBox、stroke≈2、round cap/join、`size`/`color` 由调用方传入）；**禁止把 Emoji 当图标用**（iOS 26 Emoji 字体级联回归，RN #56183 / xcodes #468），决策详见 [ADR 0002](adr/0002-icon-system-svg.md)。用户内容中的 Emoji 不受影响。
 
 ### 字体
@@ -81,6 +83,7 @@
 | 打卡/记账成功 | 600ms 彩带庆祝 |
 | 数字变化 | 滚动计数（odometer） |
 | Tab 切换 | 图标形状变形（圆形↔圆角方）+ 指示器弹性滑动 |
+| 首页旅程切换 | 横向吸附；当前卡回正，侧卡轻旋转/缩放，背景色连续过渡；减弱动态时保留瞬时切换 |
 | 长按编辑 | 行程卡片抖动编辑态（iOS 式 jiggle） |
 | 触感 | 仅"确认时刻"（勾选/打卡/盖章）配一次轻 haptic |
 
@@ -90,6 +93,7 @@
 
 - 胶囊按钮：圆角 999px
 - Bento 卡片：大圆角 24px，首页大小不一拼贴
+- 首页旅程卡：最多展示 4 个正在进行或未来旅程，侧卡露出提示横滑；历史旅程在“全部旅程”中保留且不占额度
 - FAB：彩色填充
 - Tab 栏：左右留边的悬浮圆角药丸形；iOS 原生模糊、Android/Web 半透明回退，弹性滑动选中态（细节见 [ADR 0003](adr/0003-floating-glass-navigation.md)）
 - 超大号标题 32–40px + 圆角胶囊标签；行程时间轴节点为大号彩色圆球
@@ -136,11 +140,12 @@
 | 设计方向 | 原型 B「弹跳气泡」 | 调研 03，Simon 拍板 |
 | 共享方案 | 导出码（V1 手动同步，V2 云同步替代） | PRD 验证结论 |
 | 图标体系 | MVP 用 Emoji，V2 换定制插画 | PRD 验证结论 |
+| 首页多旅程 | 最多 4 个开放旅程的风叶轮播；背景随主题/卡片过渡；历史不占额度 | [ADR 0004](adr/0004-home-wind-carousel.md) |
 | MVP 边界 | 不做社区/攻略推荐/订票/复杂地图/AI 攻略/会员 | PRD §2.1 |
 
 ## 当前阶段
 
-M00 工程基座与 Wave 1 的 M01 旅程管理、M02 行前清单已按 Simon 明确授权提前施工；Expo 原生 App 同源的网页预览已可操作。双端原生构建、需求及契约评审、独立验收仍待完成；M03–M04 还是占位页。详见 [ROADMAP.md](ROADMAP.md) 与 [PROGRESS.md](PROGRESS.md)。
+M00 工程基座与 Wave 1 的 M01–M04 已按 Simon 明确授权提前施工并具备可操作基础版；首页支持四个开放旅程的风叶轮播，设置支持自动/白天/夜间。需求与技术评审门仍未正式通过，M03/M04 正处于待验收。详见 [ROADMAP.md](ROADMAP.md) 与 [PROGRESS.md](PROGRESS.md)。
 
 ## 更新时机（什么变化必须回来改本文档）
 

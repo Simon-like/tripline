@@ -1,32 +1,21 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Modal, Pressable, ScrollView, View } from 'react-native';
-import Svg, { Circle, Path } from 'react-native-svg';
+import { interpolateColor, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import * as Crypto from 'expo-crypto';
 import { checklistProgress, deriveJourneyStatus, SCHEMA_VERSION, toLocalDateString, type Journey } from '@tripline/shared';
-import { Icon } from '@tripline/ui';
+import { darkJourneyPalettes, Icon, lightJourneyPalettes } from '@tripline/ui';
 import { BouncyButton } from '../src/components/BouncyButton';
+import { JourneyCarousel } from '../src/components/JourneyCarousel';
 import { JourneyForm, type JourneyDraft } from '../src/components/JourneyForm';
 import { Page } from '../src/components/Page';
 import { ProgressRing } from '../src/components/ProgressRing';
 import { TripText } from '../src/components/TripText';
 import { createJourney, deleteJourney, listChecklistItems, listJourneys, updateJourney } from '../src/data/database';
 import { ensureDemoJourney } from '../src/data/demo';
-import { selectFeaturedJourney } from '../src/data/journeySelection';
+import { canCreateOpenJourney, MAX_OPEN_JOURNEYS, selectFeaturedJourney, selectHomeJourneys } from '../src/data/journeySelection';
 import { settings } from '../src/settings/storage';
 import { useTriplineTheme } from '../src/theme';
-
-function MountainScene() {
-  const { theme } = useTriplineTheme();
-  return (
-    <Svg width="100%" height="120" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" style={{ position: 'absolute', bottom: 0, left: 0, right: 0, opacity: 0.52 }}>
-      <Circle cx="315" cy="28" r="18" fill={theme.celebrate} />
-      <Path d="M0 142L62 72L92 103L159 24L240 132L282 82L340 143V170H0Z" fill={theme.primarySoft} opacity={0.42} />
-      <Path d="M0 161L76 103L122 145L200 68L292 157L340 118V170H0Z" fill={theme.onPrimary} opacity={0.24} />
-      <Path d="M0 170L59 140L115 163L183 121L258 170Z" fill={theme.primarySoft} opacity={0.35} />
-    </Svg>
-  );
-}
 
 function daysUntil(date: string): number {
   const today = toLocalDateString(new Date());
@@ -35,43 +24,66 @@ function daysUntil(date: string): number {
 
 export default function Home() {
   const router = useRouter();
-  const { theme } = useTriplineTheme();
+  const { theme, dark } = useTriplineTheme();
   const [journeys, setJourneys] = useState<Journey[]>([]);
+  const [selectedId, setSelectedId] = useState<string>();
   const [progress, setProgress] = useState({ done: 0, total: 0, remaining: 0, percent: 0, complete: false });
   const [formVisible, setFormVisible] = useState(false);
   const [editing, setEditing] = useState<Journey | null>(null);
   const [deleting, setDeleting] = useState<Journey | null>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
+  const [limitVisible, setLimitVisible] = useState(false);
   const [error, setError] = useState('');
+  const progressRequest = useRef(0);
+  const carouselProgress = useSharedValue(0);
+
+  const loadProgress = useCallback(async (journeyId?: string) => {
+    const request = ++progressRequest.current;
+    const next = journeyId ? checklistProgress(await listChecklistItems(journeyId)) : checklistProgress([]);
+    if (request === progressRequest.current) setProgress(next);
+  }, []);
 
   const refresh = useCallback(async () => {
     try {
       await ensureDemoJourney();
       const all = await listJourneys();
       setJourneys(all);
-      const current = selectFeaturedJourney(all, toLocalDateString(new Date()), settings.getLastOpenedJourneyId());
-      setProgress(current ? checklistProgress(await listChecklistItems(current.id)) : checklistProgress([]));
+      const today = toLocalDateString(new Date());
+      const current = selectFeaturedJourney(selectHomeJourneys(all, today), today, settings.getLastOpenedJourneyId());
+      setSelectedId(current?.id);
+      if (current) settings.setLastOpenedJourneyId(current.id);
+      await loadProgress(current?.id);
       setError('');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '旅程加载失败');
     }
-  }, []);
+  }, [loadProgress]);
 
   useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
 
   const today = toLocalDateString(new Date());
-  const current = selectFeaturedJourney(journeys, today, settings.getLastOpenedJourneyId());
+  const homeJourneys = selectHomeJourneys(journeys, today);
+  const current = homeJourneys.find((journey) => journey.id === selectedId) ?? homeJourneys[0];
   const status = current ? deriveJourneyStatus(today, current.startDate, current.endDate) : 'preparing';
-  const statusLabel = status === 'preparing' ? '出发准备中' : status === 'traveling' ? '正在旅途中' : '已完成的旅程';
   const countdown = current ? daysUntil(current.startDate) : 0;
   const groups = [
     { title: '正在路上', items: journeys.filter((journey) => journey.startDate <= today && journey.endDate >= today) },
     { title: '即将出发', items: journeys.filter((journey) => journey.startDate > today).sort((a, b) => a.startDate.localeCompare(b.startDate)) },
     { title: '走过的路', items: journeys.filter((journey) => journey.endDate < today) },
   ];
+  const palettes = useMemo(() => dark ? darkJourneyPalettes : lightJourneyPalettes, [dark]);
+  const pageStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(carouselProgress.value, [0, 1, 2, 3], palettes.map((palette) => palette.backdrop)),
+  }), [palettes]);
+
+  function selectJourney(journey: Journey) {
+    setSelectedId(journey.id);
+    settings.setLastOpenedJourneyId(journey.id);
+    void loadProgress(journey.id);
+  }
 
   function openJourney(journey: Journey) {
-    settings.setLastOpenedJourneyId(journey.id);
+    selectJourney(journey);
     setPickerVisible(false);
     router.push({ pathname: '/journey/[id]/checklist', params: { id: journey.id } });
   }
@@ -79,8 +91,15 @@ export default function Home() {
   async function saveJourney(draft: JourneyDraft) {
     const now = Date.now();
     if (editing) {
+      const opensNewSlot = editing.endDate < today && draft.endDate >= today;
+      if (opensNewSlot && !canCreateOpenJourney(journeys, today)) {
+        throw new Error('已经有四趟旅程在等你，先收好一程再继续吧');
+      }
       await updateJourney({ ...editing, ...draft, updatedAt: now });
     } else {
+      if (draft.endDate >= today && !canCreateOpenJourney(journeys, today)) {
+        throw new Error('已经有四趟旅程在等你，先收好一程再继续吧');
+      }
       const id = Crypto.randomUUID();
       await createJourney({
         ...draft, id, createdAt: now, updatedAt: now,
@@ -90,6 +109,15 @@ export default function Home() {
     }
     setEditing(null);
     await refresh();
+  }
+
+  function startCreatingJourney() {
+    if (!canCreateOpenJourney(journeys, today)) {
+      setLimitVisible(true);
+      return;
+    }
+    setEditing(null);
+    setFormVisible(true);
   }
 
   async function confirmDelete() {
@@ -104,7 +132,7 @@ export default function Home() {
   }
 
   return (
-    <Page>
+    <Page style={pageStyle}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
           <Icon name="sparkle" size={17} color={theme.accent} />
@@ -125,29 +153,17 @@ export default function Home() {
       {current ? (
         <>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <TripText size={18} weight="bold">眼前这一程</TripText>
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+              <TripText size={18} weight="bold">我的旅程</TripText>
+              <TripText size={12} numbers muted>{homeJourneys.length} / {MAX_OPEN_JOURNEYS}</TripText>
+            </View>
             <Pressable onPress={() => setPickerVisible(true)} accessibilityRole="button" accessibilityLabel={`查看全部${journeys.length}趟旅程`}
               style={{ backgroundColor: theme.primarySoft, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 }}>
-              <TripText size={12} weight="bold" style={{ color: theme.primary }}>全部旅程 {journeys.length}  ›</TripText>
+              <TripText size={12} weight="bold" style={{ color: theme.primary }}>全部 {journeys.length}  ›</TripText>
             </Pressable>
           </View>
-          <BouncyButton onPress={() => openJourney(current)} style={{ backgroundColor: theme.primary, borderRadius: 32, minHeight: 276, padding: 24, overflow: 'hidden', justifyContent: 'space-between', shadowColor: theme.shadow, shadowOpacity: 0.16, shadowRadius: 20, shadowOffset: { width: 0, height: 12 }, elevation: 7 }}>
-            <MountainScene />
-            <View style={{ zIndex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <View style={{ backgroundColor: theme.onPrimary, borderRadius: 999, paddingHorizontal: 13, paddingVertical: 7 }}>
-                <TripText size={12} weight="bold" style={{ color: theme.primary }}>● {statusLabel}</TripText>
-              </View>
-              <Icon name="arrow-up-right" size={23} color={theme.onPrimary} />
-            </View>
-            <View style={{ zIndex: 1, gap: 3 }}>
-              <TripText size={29} weight="bold" style={{ color: theme.onPrimary }}>{current.name}</TripText>
-              <TripText size={14} style={{ color: theme.onPrimary }}>{current.startDate.slice(5).replace('-', '月')}日 — {current.endDate.slice(5).replace('-', '月')}日</TripText>
-            </View>
-            <View style={{ zIndex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <TripText size={12} style={{ color: theme.onPrimary }}>{current.companions.length ? '和 ' + current.companions.join('、') + ' 一起' : '一个人的好旅程'}</TripText>
-              <TripText size={12} weight="semibold" style={{ color: theme.onPrimary }}>进入旅程  →</TripText>
-            </View>
-          </BouncyButton>
+          <JourneyCarousel journeys={homeJourneys} selectedId={current.id} today={today} dark={dark}
+            progress={carouselProgress} onSelect={selectJourney} onOpen={openJourney} />
 
           <View style={{ flexDirection: 'row', gap: 12, maxWidth: '100%' }}>
             <View style={{ flex: 1, flexShrink: 1, minWidth: 0, minHeight: 169, backgroundColor: theme.celebrate, borderRadius: 27, padding: 18, justifyContent: 'space-between', overflow: 'hidden' }}>
@@ -184,12 +200,32 @@ export default function Home() {
         </View>
       )}
 
-      <BouncyButton onPress={() => { setEditing(null); setFormVisible(true); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 17, alignItems: 'center' }}>
+      <BouncyButton onPress={startCreatingJourney} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 17, alignItems: 'center' }}>
         <TripText size={16} weight="bold" style={{ color: theme.onAccent }}>＋ 开启新旅程</TripText>
       </BouncyButton>
+      {homeJourneys.length >= MAX_OPEN_JOURNEYS ? (
+        <TripText size={12} muted style={{ textAlign: 'center', marginTop: -8 }}>旅程不是排期，生活不用赶集。</TripText>
+      ) : null}
       {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
 
       <JourneyForm visible={formVisible} initial={editing} onClose={() => { setFormVisible(false); setEditing(null); }} onSave={saveJourney} />
+      <Modal visible={limitVisible} transparent animationType="fade" onRequestClose={() => setLimitVisible(false)}>
+        <View style={{ flex: 1, justifyContent: 'center', padding: 28 }}>
+          <Pressable onPress={() => setLimitVisible(false)} style={{ position: 'absolute', inset: 0, backgroundColor: theme.shadow, opacity: 0.45 }} />
+          <View style={{ backgroundColor: theme.surface, borderRadius: 28, padding: 24, gap: 14 }}>
+            <Icon name="sparkle" size={25} color={theme.accent} />
+            <TripText size={22} weight="bold">旅程不是排期</TripText>
+            <TripText size={14} muted>生活不用赶集。首页最多留四趟正在路上或即将出发的旅程；走过的路会一直替你收好。</TripText>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 20, alignItems: 'center' }}>
+              <Pressable onPress={() => setLimitVisible(false)}><TripText size={14} muted>知道了</TripText></Pressable>
+              <Pressable onPress={() => { setLimitVisible(false); setPickerVisible(true); }}
+                style={{ backgroundColor: theme.primary, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 999 }}>
+                <TripText size={14} weight="bold" style={{ color: theme.onPrimary }}>看看已有旅程</TripText>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <Modal visible={pickerVisible} transparent animationType="slide" onRequestClose={() => setPickerVisible(false)}>
         <View style={{ flex: 1, justifyContent: 'flex-end' }}>
           <Pressable onPress={() => setPickerVisible(false)} style={{ position: 'absolute', inset: 0, backgroundColor: theme.shadow, opacity: 0.45 }} />
