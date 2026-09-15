@@ -145,7 +145,9 @@ export function JourneyCarousel({ journeys, selectedId, today, dark, progress, o
   const stride = cardWidth + CARD_GAP;
   const listRef = useRef<FlatList<Journey>>(null);
   const dragging = useRef(false);
+  const programmaticTarget = useRef<number | null>(null);
   const selectOnlyUntil = useRef(0);
+  const reduceMotion = useReducedMotion();
   const [activeIndex, setActiveIndex] = useState(Math.max(0, journeys.findIndex((item) => item.id === selectedId)));
   const palettes = dark ? darkJourneyPalettes : lightJourneyPalettes;
 
@@ -174,16 +176,21 @@ export function JourneyCarousel({ journeys, selectedId, today, dark, progress, o
               if (dragging.current) return;
               if (index !== activeIndex) {
                 selectOnlyUntil.current = Date.now() + 500;
+                if (reduceMotion) {
+                  listRef.current?.scrollToOffset({ offset: index * stride, animated: false });
+                  setActiveIndex(index);
+                  onSelect(journey);
+                  void Haptics.selectionAsync();
+                  return;
+                }
+                programmaticTarget.current = index;
                 listRef.current?.scrollToOffset({ offset: index * stride, animated: true });
-                setActiveIndex(index);
-                onSelect(journey);
-                void Haptics.selectionAsync();
                 return;
               }
               onSelect(journey);
             }}
             onOpen={(journey) => {
-              if (dragging.current || Date.now() < selectOnlyUntil.current) return;
+              if (dragging.current || programmaticTarget.current !== null || Date.now() < selectOnlyUntil.current) return;
               onOpen(journey);
             }} />
         )}
@@ -197,7 +204,10 @@ export function JourneyCarousel({ journeys, selectedId, today, dark, progress, o
         bounces={journeys.length > 1}
         onScroll={onScroll}
         scrollEventThrottle={16}
-        onScrollBeginDrag={() => { dragging.current = true; }}
+        onScrollBeginDrag={() => {
+          dragging.current = true;
+          programmaticTarget.current = null;
+        }}
         onScrollEndDrag={(event) => {
           if (Math.abs(event.nativeEvent.velocity?.x ?? 0) < 0.05) {
             requestAnimationFrame(() => { dragging.current = false; });
@@ -211,6 +221,7 @@ export function JourneyCarousel({ journeys, selectedId, today, dark, progress, o
           const journey = journeys[index];
           if (journey) onSelect(journey);
           dragging.current = false;
+          programmaticTarget.current = null;
         }}
       />
       {journeys.length > 1 ? (
