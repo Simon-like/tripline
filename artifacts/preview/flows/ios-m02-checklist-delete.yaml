@@ -1,0 +1,6 @@
+appId: com.yingdonglin.tripline
+---
+- openLink: "tripline://journey/426ca609-e737-4b7c-94d1-31d8e7d20c15/checklist"
+- assertVisible: "行前清单"
+- tapOn: "删除充电器"
+- assertVisible: "删除这条？"

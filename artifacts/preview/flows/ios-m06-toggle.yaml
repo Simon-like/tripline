@@ -1,0 +1,6 @@
+appId: com.yingdonglin.tripline
+---
+- openLink: "tripline://journey/426ca609-e737-4b7c-94d1-31d8e7d20c15/return"
+- assertVisible: "返程进度"
+- tapOn: "充电器"
+- assertVisible: "1/11"

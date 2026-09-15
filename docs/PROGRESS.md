@@ -4,6 +4,25 @@
 
 ---
 
+## 2026-09-15 · Kimi（详情卡五个 Tab 基础功能全部补齐：M05 手账 + M06 返程 + 详情页头部）
+
+**现在什么最重要**：详情卡五个 Tab 全部具备基础功能，M05/M06 状态为「待验收（Simon 2026-09-15 批准需求与拍板点后授权施工，技术评审/验收门未正式通过）」。下一步是独立会话对照 M05 AC-1~10 与 M06 AC-1~8 逐项验收，以及 M05 照片扩展（拍板点 P1 的后续）与 M08 导出入口的立项评审。
+
+**本会话做了什么**：
+- **规划先行**：盘点详情页实现与契约准备度（手账契约/原生表 M00 已备好但无 CRUD；返程复用 `ChecklistItemSchema.phase='return'`），起草 [modules/M05-journal.md](modules/M05-journal.md)（AC-1~10）与 [modules/M06-return-checklist.md](modules/M06-return-checklist.md)（AC-1~8），M01 追加详情页头部增量 AC-6/AC-7；Simon 审批通过三个拍板点：P1 照片拆下期、P2 行前清单删除对齐二次确认、P3 导出入口随 M08 推迟。
+- **施工（4 个 checkpoint，`a95f981`→`23da74b`）**：shared 新增 `journal.ts`（标签预设、确定性演示条目、`groupJournalEntriesByDay` 今天/昨天/MM-DD 分组）与 `makeReturnTemplate`（四类十一条，category 实为自由 string 无需扩枚举，已在 M06 技术方案登记）；双端数据层补齐 journal CRUD + `listChecklistItems` phase 参数化（默认向后兼容）+ `createJourney` 同事务种行前/返程模板 + Web 端 `deleteJourney` 级联补齐 journal；抽取共用组件 `ChecklistPanel`（行前/返程两 Tab 同源）与 `ConfettiCelebration`（收编三处重复彩带实现）；`journal.tsx`/`return.tsx` 占位页变完整页面；`_layout.tsx` 头部加状态胶囊（primary/accent/success 语义色）+ 铅笔编辑入口（复用 JourneyForm，`packages/ui` 新增 `pencil` 图标）。
+- **验证**：`lint` / `typecheck` / `test`（shared 28 + mobile 6，只增不减）/ `git diff --check` 全绿；Web 390×844 CDP 真视口截图三张目检通过；**iOS 26.3/iPhone 17 Pro 与 Android 16/Pixel 8 双端模拟器**逐项走通：头部胶囊+编辑表单预填保存、手账记一条置顶+标签+删除二次确认、返程勾选 0/11→1/11 圆环联动、行前清单 × 弹确认且取消不变。截图 12 张在 `artifacts/preview/`（ios-/android- 前缀）。
+- **沉淀**：skill 的 `references/project-structure.md` 增加「复用资产清单」表（ChecklistPanel/ConfettiCelebration/CascadeIn/JourneyForm 等 + shared 纯函数清单）；`references/module-playbook.md` 增加三条经验：新实体必须双端同 commit 配对（含 PreviewStore 回填与 Web 级联）、演示种入的 seeded 标记与 DB 行一致性陷阱、模板类功能对存量安装要有补种路径。
+
+**坑与提醒**：
+- iOS 26.3 模拟器上用户内容 Emoji（✨）渲染为方框——仍是已知的 iOS 26 模拟器字体回归（RN #56183），Android 正常，真机待 Simon 确认，不要在应用层绕过。
+- **冷启动深链直达 + 数据未种入**组合会显示空页面（`ensureDemoJourney` 只在首页触发，seeded 标记可能与 DB 脱节）；演示数据问题，不影响真实用户数据，但验收时注意先开首页。
+- expo-dev-menu 悬浮球在双端都会遮住详情页头部铅笔按钮热区（dev-only，手工点无碍，自动化需绕过）。
+- 存量非演示旅程没有返程模板（只有新建旅程同种 + 演示旅程补种两条路径）；如需全量回填需一次性迁移逻辑，已列为待拍板。
+- 8081 端口的 Metro（PID 76626）是既有进程，保持运行未动；验证用的 Maestro 装在 `~/.maestro`，流程文件在 `artifacts/preview/flows/`。
+
+---
+
 ## 2026-09-15 · Kimi（详情卡剩余基础功能规划，待 Simon 需求评审）
 
 **现在什么最重要**：详情卡五个 Tab 中清单/行程/账本三页基础功能已齐，手账（M05）与返程（M06）仍为占位页，详情页头部缺状态标签与编辑入口。本轮已完成规划与需求起草，**等 Simon 对三处拍板点做需求评审决策后再动代码**。

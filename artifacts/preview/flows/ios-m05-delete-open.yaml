@@ -1,0 +1,4 @@
+appId: com.yingdonglin.tripline
+---
+- tapOn: "删除这条见闻"
+- assertVisible: "删除这条见闻？"

@@ -8,6 +8,17 @@
 | `apps/mobile/app/index.tsx` | Home journey selection, creation, overview | Keep journey ordering and capacity rules in pure helpers |
 | `apps/mobile/app/journey/[id]/` | Five journey-scoped feature routes | Always read the route journey ID; keep the five-tab shell stable |
 | `apps/mobile/src/components/` | Reusable mobile components | Theme-aware and accessible; no direct database ownership |
+
+Reusable assets already extracted (use these before writing new UI):
+
+| Component / helper | What it provides |
+|---|---|
+| `ChecklistPanel.tsx` | Phase-parameterized checklist page body: progress hero card + ring, grouped list, toggle, add sheet, delete confirmation. Powers both preparation (M02) and return (M06) tabs |
+| `ConfettiCelebration.tsx` | ≤600ms confetti burst honoring reduced motion and the `motion.celebrate` cap; shared by checklist / itinerary / ledger / journal |
+| `CascadeIn.tsx` | 40ms stagger entrance, degrades past 10 items |
+| `JourneyForm.tsx` | Journey create/edit form; reused by home and the detail header edit entry |
+| `ProgressRing.tsx`, `TripText.tsx`, `BouncyButton.tsx`, `Page.tsx`, `FeaturePage.tsx` | Visual primitives |
+| shared helpers | `deriveJourneyStatus`, `checklistProgress`, `makeChecklistTemplate` / `makeReturnTemplate`, `nextItineraryState`, `journeyDays`, `budgetSummary`, `categoryBreakdown`, `dailyExpenseTotals`, `groupJournalEntriesByDay` |
 | `apps/mobile/src/data/database.ts` | SQLite repository for native builds | Same public API as the web adapter |
 | `apps/mobile/src/data/database.web.ts` | Browser local-storage adapter | Preserve cascade/delete and behavior parity with SQLite |
 | `apps/mobile/src/data/` pure helpers | App-level selection and derived view rules | No React or platform dependencies |

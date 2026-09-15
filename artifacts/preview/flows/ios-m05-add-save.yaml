@@ -1,0 +1,4 @@
+appId: com.yingdonglin.tripline
+---
+- tapOn: "收进手账"
+- assertVisible: "雪山脚下的风很干净"

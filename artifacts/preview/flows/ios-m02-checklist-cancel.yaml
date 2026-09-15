@@ -1,0 +1,4 @@
+appId: com.yingdonglin.tripline
+---
+- tapOn: "取消"
+- assertVisible: "充电器"

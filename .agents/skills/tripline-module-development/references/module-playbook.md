@@ -9,7 +9,9 @@
 
 ## 2. Design before editing
 
-- Reuse existing entity fields and pure functions before extending a schema.
+- Reuse existing entity fields and pure functions before extending a schema. Check the reusable-assets inventory in [project-structure.md](project-structure.md) before writing new UI — checklist-style features should consume `ChecklistPanel` with a `phase` parameter, and celebration feedback should consume `ConfettiCelebration`, not a fourth copy.
+- When a new entity is added, native and web persistence change as a pair in the same commit: SQLite CRUD, `PreviewStore` fields with backward-compatible backfill, and web `deleteJourney` cascade. A native-only change is a silent parity break.
+- Demo seeding has two traps: the seeded flag can outlive the DB row (cold deep-link before visiting home shows an empty page), and templates added after existing installs need a backfill path (`ensureDemo*`-style existence check), not only create-time seeding.
 - Define one public storage operation per user intent; keep transaction and cascade behavior inside the repository.
 - Keep route screens thin: load data, coordinate state, compose components, and navigate.
 - Cover empty, loading, failure, and restored/reopened states. Include reduced motion and light/dark behavior for visual changes.

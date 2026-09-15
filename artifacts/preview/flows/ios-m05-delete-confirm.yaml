@@ -1,0 +1,4 @@
+appId: com.yingdonglin.tripline
+---
+- tapOn: "确认删除"
+- assertNotVisible: "雪山脚下的风很干净"
