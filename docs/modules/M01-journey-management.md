@@ -1,6 +1,6 @@
 # M01 · 旅程管理
 
-- **状态**：施工中（Simon 明确授权提前开发；需求与技术评审尚未冻结）
+- **状态**：✅ 完成（Simon 2026-09-15 会话验收通过）
 - **Wave / 优先级**：Wave 1 / P0
 - **依赖**：M00
 - **PRD 出处**：M1
@@ -46,4 +46,9 @@
 | 2026-09-15 | 详情页头部增量（AC-6/AC-7） | Kimi 施工子会话 | headerTitle 改为旅程名 + 状态胶囊（`deriveJourneyStatus`，准备中/游玩中/已结束分别走 primary/accent/success token）；headerRight 新增 pencil 编辑按钮，弹层复用 `JourneyForm`，保存走 `updateJourney` 并即时刷新标题与状态；`packages/ui` Icon 新增 `pencil`；导出入口按拍板推迟到 M08。lint/typecheck/test 全绿，Web 预览截图 `artifacts/preview/m01-header.png` 目检通过。需求/技术评审门未正式通过，不冒称冻结。 |
 
 ## ⑥ 验收
-待独立验收与 Simon 签字。
+
+| AC 编号 | 核验结果 | 核验人 |
+|---|---|---|
+| AC-1 ~ AC-7 | 通过（Simon 2026-09-15 会话直接验收；未走独立验收会话逐条核验，此为补记） | Simon |
+
+**Simon 签字**：Simon 日期：2026-09-15
