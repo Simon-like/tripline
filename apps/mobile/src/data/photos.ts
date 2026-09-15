@@ -1,3 +1,4 @@
+import { assertPhotoCount, MAX_JOURNAL_PHOTOS, MAX_PHOTO_BYTES } from './photoPolicy';
 import { JOURNAL_PHOTO_DIR, isInlinePhoto, journalPhotoRelativePath } from '@tripline/shared';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,31 +19,45 @@ function extensionOf(asset: ImagePicker.ImagePickerAsset): string {
   return 'jpg';
 }
 
-/** 打开相册多选（quality 0.5 压缩到 ≤200KB 量级）；用户取消返回空数组 */
+/** 打开相册多选（输出大小会在持久化前实际检查）；用户取消返回空数组 */
 export async function pickJournalPhotos(): Promise<PickedPhoto[]> {
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ['images'],
     allowsMultipleSelection: true,
-    quality: 0.5,
+    quality: 0.25,
+    selectionLimit: MAX_JOURNAL_PHOTOS,
   });
   if (result.canceled) return [];
+  assertPhotoCount(result.assets.length);
   return result.assets.map((asset) => ({ uri: asset.uri, extension: extensionOf(asset) }));
 }
 
 /** 把选中的照片拷入沙盒 journal/<entryId>/ 下，返回 DB 落库用的相对路径数组 */
 export async function persistJournalPhotos(entryId: string, photos: PickedPhoto[]): Promise<string[]> {
+  assertPhotoCount(photos.length);
   const base = FileSystem.documentDirectory;
-  if (!base || photos.length === 0) return [];
+  if (photos.length === 0) return [];
+  if (!base) throw new Error('无法访问本地照片目录，请重试');
   const directory = `${base}${JOURNAL_PHOTO_DIR}/${entryId}/`;
-  const info = await FileSystem.getInfoAsync(directory);
-  if (!info.exists) await FileSystem.makeDirectoryAsync(directory, { intermediates: true });
-  const paths: string[] = [];
-  for (const [index, photo] of photos.entries()) {
-    const relative = journalPhotoRelativePath(entryId, index, photo.extension);
-    await FileSystem.copyAsync({ from: photo.uri, to: `${base}${relative}` });
-    paths.push(relative);
+  // Fail before copying rather than saving unbounded images or a partial selection.
+  for (const photo of photos) {
+    const info = await FileSystem.getInfoAsync(photo.uri);
+    if (!info.exists) throw new Error('所选照片已不可读取，请重新选择');
+    if (info.isDirectory || info.size > MAX_PHOTO_BYTES) throw new Error('照片较大，请选较小图片后重试（每张最多200KB）');
   }
-  return paths;
+  await FileSystem.makeDirectoryAsync(directory, { intermediates: true });
+  try {
+    const paths: string[] = [];
+    for (const [index, photo] of photos.entries()) {
+      const relative = journalPhotoRelativePath(entryId, index, photo.extension);
+      await FileSystem.copyAsync({ from: photo.uri, to: `${base}${relative}` });
+      paths.push(relative);
+    }
+    return paths;
+  } catch (cause) {
+    await FileSystem.deleteAsync(directory, { idempotent: true }).catch(() => {});
+    throw cause;
+  }
 }
 
 /** 删除手账条目对应的沙盒照片目录（best-effort，目录不存在不报错） */

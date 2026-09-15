@@ -1,3 +1,7 @@
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useReducedMotion } from 'react-native-reanimated';
+import { JournalPhoto } from '../../../src/components/JournalPhoto';
+import { MAX_JOURNAL_PHOTOS } from '../../../src/data/photoPolicy';
 import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
@@ -15,7 +19,7 @@ import { Page } from '../../../src/components/Page';
 import { TripText } from '../../../src/components/TripText';
 import { addJournalEntry, deleteJournalEntry, getJourney, listJournalEntries } from '../../../src/data/database';
 import { ensureDemoJournal } from '../../../src/data/demo';
-import { persistJournalPhotos, pickJournalPhotos, removeJournalPhotos, resolvePhotoUri, type PickedPhoto } from '../../../src/data/photos';
+import { persistJournalPhotos, pickJournalPhotos, removeJournalPhotos, type PickedPhoto } from '../../../src/data/photos';
 import { chineseFont, useTriplineTheme } from '../../../src/theme';
 
 const TEXT_LIMIT = 500;
@@ -28,6 +32,8 @@ function timeOf(timestamp: number): string {
 }
 
 export default function Journal() {
+  const insets = useSafeAreaInsets();
+  const reducedMotion = useReducedMotion();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { theme } = useTriplineTheme();
   const [journey, setJourney] = useState<Journey | null>(null);
@@ -70,6 +76,7 @@ export default function Journal() {
     setPicking(true);
     try {
       const picked = await pickJournalPhotos();
+      if (photos.length + picked.length > MAX_JOURNAL_PHOTOS) throw new Error(`每条见闻最多 ${MAX_JOURNAL_PHOTOS} 张照片，慢慢挑最喜欢的吧`);
       if (picked.length > 0) setPhotos((current) => [...current, ...picked]);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '选照片失败，再试一次');
@@ -182,7 +189,7 @@ export default function Journal() {
                         {entry.photoPaths.map((path, photoIndex) => (
                           <Pressable key={path} onPress={() => setViewing({ paths: entry.photoPaths, index: photoIndex })}
                             accessibilityRole="imagebutton" accessibilityLabel={`放大第 ${photoIndex + 1} 张照片`}>
-                            <Image source={{ uri: resolvePhotoUri(path) }} resizeMode="cover"
+                            <JournalPhoto path={path}
                               style={{ width: 72, height: 72, borderRadius: 14, backgroundColor: theme.surfaceAlt }} />
                           </Pressable>
                         ))}
@@ -252,7 +259,7 @@ export default function Journal() {
                   style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }} />
               </View>
               <View style={{ gap: 8 }}>
-                <TripText size={13} weight="semibold">照片（可多选，只存本机）</TripText>
+                <TripText size={13} weight="semibold">照片（最多9张，只存本机）</TripText>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
                   {photos.map((photo, index) => (
                     <View key={photo.uri}>
@@ -280,14 +287,18 @@ export default function Journal() {
         </KeyboardAvoidingView>
       </Modal>
 
-      <Modal visible={!!viewing} animationType="fade" onRequestClose={() => setViewing(null)}>
-        <Pressable onPress={() => setViewing(null)} accessibilityRole="button" accessibilityLabel="关闭照片查看"
-          style={{ flex: 1, backgroundColor: theme.photoBackdrop, justifyContent: 'center' }}>
-          {viewing ? (
-            <Image source={{ uri: resolvePhotoUri(viewing.paths[viewing.index]) }} resizeMode="contain"
-              style={{ width: '100%', height: '100%' }} />
-          ) : null}
-        </Pressable>
+      <Modal visible={!!viewing} animationType={reducedMotion ? 'none' : 'fade'} onRequestClose={() => setViewing(null)}>
+        <View style={{ flex: 1, backgroundColor: theme.bg, paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 16) }}>
+          <Pressable onPress={() => setViewing(null)} accessibilityRole="button" accessibilityLabel="关闭照片查看" style={{ padding: 16, alignSelf: 'flex-end' }}><TripText>关闭 ×</TripText></Pressable>
+          {viewing ? <>
+            <JournalPhoto path={viewing.paths[viewing.index]} full style={{ width: '100%', flex: 1 }} />
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', padding: 16 }}>
+              <Pressable disabled={viewing.index === 0} onPress={() => setViewing({ ...viewing, index: viewing.index - 1 })} accessibilityLabel="上一张照片" style={{ padding: 12, opacity: viewing.index === 0 ? 0.3 : 1 }}><TripText>上一张</TripText></Pressable>
+              <TripText numbers muted>{viewing.index + 1} / {viewing.paths.length}</TripText>
+              <Pressable disabled={viewing.index === viewing.paths.length - 1} onPress={() => setViewing({ ...viewing, index: viewing.index + 1 })} accessibilityLabel="下一张照片" style={{ padding: 12, opacity: viewing.index === viewing.paths.length - 1 ? 0.3 : 1 }}><TripText>下一张</TripText></Pressable>
+            </View>
+          </> : null}
+        </View>
       </Modal>
 
       <Modal visible={!!removing} transparent animationType="fade" onRequestClose={() => setRemoving(null)}>
