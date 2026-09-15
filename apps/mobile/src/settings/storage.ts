@@ -42,4 +42,16 @@ export const settings = {
   setDemoExpensesSeeded(): void {
     storage.set('demoExpensesSeeded', true);
   },
+  getDemoJournalSeeded(): boolean {
+    return storage.getBoolean('demoJournalSeeded') === true;
+  },
+  setDemoJournalSeeded(): void {
+    storage.set('demoJournalSeeded', true);
+  },
+  getDemoReturnSeeded(): boolean {
+    return storage.getBoolean('demoReturnSeeded') === true;
+  },
+  setDemoReturnSeeded(): void {
+    storage.set('demoReturnSeeded', true);
+  },
 };

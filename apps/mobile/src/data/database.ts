@@ -1,5 +1,5 @@
-import type { ChecklistItem, Expense, ItineraryItem, Journey } from '@tripline/shared';
-import { ChecklistItemSchema, ExpenseSchema, ItineraryItemSchema, JourneySchema, makeChecklistTemplate } from '@tripline/shared';
+import type { ChecklistItem, Expense, ItineraryItem, JournalEntry, Journey } from '@tripline/shared';
+import { ChecklistItemSchema, ExpenseSchema, ItineraryItemSchema, JournalEntrySchema, JourneySchema, makeChecklistTemplate, makeReturnTemplate } from '@tripline/shared';
 import * as Crypto from 'expo-crypto';
 import * as SQLite from 'expo-sqlite';
 
@@ -69,7 +69,10 @@ async function openAndMigrate(): Promise<SQLite.SQLiteDatabase> {
 
 export async function createJourney(input: Journey): Promise<void> {
   const journey = JourneySchema.parse(input);
-  const template = makeChecklistTemplate(journey.id, journey.createdAt, Crypto.randomUUID);
+  const template = [
+    ...makeChecklistTemplate(journey.id, journey.createdAt, Crypto.randomUUID),
+    ...makeReturnTemplate(journey.id, journey.createdAt, Crypto.randomUUID),
+  ];
   const db = await initializeDatabase();
   await db.withExclusiveTransactionAsync(async (tx) => {
     await tx.runAsync(
@@ -144,11 +147,11 @@ function readChecklistItem(row: ChecklistRow): ChecklistItem {
   return ChecklistItemSchema.parse({ ...row, checked: row.checked === 1 });
 }
 
-export async function listChecklistItems(journeyId: string): Promise<ChecklistItem[]> {
+export async function listChecklistItems(journeyId: string, phase: ChecklistItem['phase'] = 'preparation'): Promise<ChecklistItem[]> {
   const db = await initializeDatabase();
   const rows = await db.getAllAsync<ChecklistRow>(
-    `SELECT * FROM checklist_item WHERE journeyId = ? AND phase = 'preparation' AND deletedAt IS NULL ORDER BY sortOrder, createdAt`,
-    [journeyId],
+    'SELECT * FROM checklist_item WHERE journeyId = ? AND phase = ? AND deletedAt IS NULL ORDER BY sortOrder, createdAt',
+    [journeyId, phase],
   );
   return rows.map(readChecklistItem);
 }
@@ -299,6 +302,46 @@ export async function deleteExpense(id: string, now: number): Promise<void> {
     const result = await tx.runAsync('UPDATE expense SET deletedAt = ?, updatedAt = ? WHERE id = ? AND deletedAt IS NULL', [now, now, id]);
     if (result.changes !== 1) throw new Error('账目不存在或已删除');
     await enqueue(tx, 'expense', id, 'delete', { id, deletedAt: now }, now);
+  });
+}
+
+// ---- M05 旅行手账 ----
+
+type JournalRow = Omit<JournalEntry, 'photoPaths' | 'tags'> & { photoPaths: string; tags: string };
+
+function readJournalEntry(row: JournalRow): JournalEntry {
+  return JournalEntrySchema.parse({ ...row, photoPaths: JSON.parse(row.photoPaths), tags: JSON.parse(row.tags) });
+}
+
+export async function listJournalEntries(journeyId: string): Promise<JournalEntry[]> {
+  const db = await initializeDatabase();
+  const rows = await db.getAllAsync<JournalRow>(
+    'SELECT * FROM journal_entry WHERE journeyId = ? AND deletedAt IS NULL ORDER BY timestamp DESC',
+    [journeyId],
+  );
+  return rows.map(readJournalEntry);
+}
+
+export async function addJournalEntry(input: JournalEntry): Promise<void> {
+  const entry = JournalEntrySchema.parse(input);
+  const db = await initializeDatabase();
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    await tx.runAsync(
+      `INSERT INTO journal_entry (id, journeyId, text, photoPaths, tags, mood, timestamp, createdAt, updatedAt, deletedAt, schemaVersion)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [entry.id, entry.journeyId, entry.text, JSON.stringify(entry.photoPaths), JSON.stringify(entry.tags),
+        entry.mood, entry.timestamp, entry.createdAt, entry.updatedAt, entry.deletedAt, entry.schemaVersion],
+    );
+    await enqueue(tx, 'journal_entry', entry.id, 'create', entry, entry.updatedAt);
+  });
+}
+
+export async function deleteJournalEntry(id: string, now: number): Promise<void> {
+  const db = await initializeDatabase();
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    const result = await tx.runAsync('UPDATE journal_entry SET deletedAt = ?, updatedAt = ? WHERE id = ? AND deletedAt IS NULL', [now, now, id]);
+    if (result.changes !== 1) throw new Error('手账条目不存在或已删除');
+    await enqueue(tx, 'journal_entry', id, 'delete', { id, deletedAt: now }, now);
   });
 }
 

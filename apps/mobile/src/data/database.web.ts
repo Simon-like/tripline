@@ -1,5 +1,5 @@
-import type { ChecklistItem, Expense, ItineraryItem, Journey } from '@tripline/shared';
-import { ChecklistItemSchema, ExpenseSchema, ItineraryItemSchema, JourneySchema, makeChecklistTemplate } from '@tripline/shared';
+import type { ChecklistItem, Expense, ItineraryItem, JournalEntry, Journey } from '@tripline/shared';
+import { ChecklistItemSchema, ExpenseSchema, ItineraryItemSchema, JournalEntrySchema, JourneySchema, makeChecklistTemplate, makeReturnTemplate } from '@tripline/shared';
 import * as Crypto from 'expo-crypto';
 
 const STORAGE_KEY = 'tripline.preview.v1';
@@ -9,11 +9,12 @@ type PreviewStore = {
   checklistItems: ChecklistItem[];
   itineraryItems: ItineraryItem[];
   expenses: Expense[];
+  journalEntries: JournalEntry[];
   syncQueue: { entityType: string; entityId: string; operation: string; payload: unknown; updatedAt: number }[];
 };
 
 function emptyStore(): PreviewStore {
-  return { journeys: [], checklistItems: [], itineraryItems: [], expenses: [], syncQueue: [] };
+  return { journeys: [], checklistItems: [], itineraryItems: [], expenses: [], journalEntries: [], syncQueue: [] };
 }
 
 function readStore(): PreviewStore {
@@ -45,7 +46,10 @@ export async function createJourney(input: Journey): Promise<void> {
   if (store.journeys.some((item) => item.id === journey.id)) throw new Error('旅程已存在');
   store.journeys.push(journey);
   log(store, 'journey', journey.id, 'create', journey, journey.updatedAt);
-  const template = makeChecklistTemplate(journey.id, journey.createdAt, Crypto.randomUUID);
+  const template = [
+    ...makeChecklistTemplate(journey.id, journey.createdAt, Crypto.randomUUID),
+    ...makeReturnTemplate(journey.id, journey.createdAt, Crypto.randomUUID),
+  ];
   for (const item of template) {
     store.checklistItems.push(item);
     log(store, 'checklist_item', item.id, 'create', item, item.updatedAt);
@@ -82,6 +86,7 @@ export async function deleteJourney(id: string, now: number): Promise<void> {
     ['checklist_item', store.checklistItems],
     ['itinerary_item', store.itineraryItems],
     ['expense', store.expenses],
+    ['journal_entry', store.journalEntries],
   ] as const) {
     for (const item of items) {
       if (item.journeyId === id && item.deletedAt === null) {
@@ -94,9 +99,9 @@ export async function deleteJourney(id: string, now: number): Promise<void> {
   writeStore(store);
 }
 
-export async function listChecklistItems(journeyId: string): Promise<ChecklistItem[]> {
+export async function listChecklistItems(journeyId: string, phase: ChecklistItem['phase'] = 'preparation'): Promise<ChecklistItem[]> {
   return readStore().checklistItems
-    .filter((item) => item.journeyId === journeyId && item.phase === 'preparation' && item.deletedAt === null)
+    .filter((item) => item.journeyId === journeyId && item.phase === phase && item.deletedAt === null)
     .sort((a, b) => a.sortOrder - b.sortOrder || a.createdAt - b.createdAt);
 }
 
@@ -199,5 +204,31 @@ export async function deleteExpense(id: string, now: number): Promise<void> {
   expense.deletedAt = now;
   expense.updatedAt = now;
   log(store, 'expense', id, 'delete', { id, deletedAt: now }, now);
+  writeStore(store);
+}
+
+// ---- M05 旅行手账 ----
+
+export async function listJournalEntries(journeyId: string): Promise<JournalEntry[]> {
+  return readStore().journalEntries
+    .filter((entry) => entry.journeyId === journeyId && entry.deletedAt === null)
+    .sort((a, b) => b.timestamp - a.timestamp);
+}
+
+export async function addJournalEntry(input: JournalEntry): Promise<void> {
+  const entry = JournalEntrySchema.parse(input);
+  const store = readStore();
+  store.journalEntries.push(entry);
+  log(store, 'journal_entry', entry.id, 'create', entry, entry.updatedAt);
+  writeStore(store);
+}
+
+export async function deleteJournalEntry(id: string, now: number): Promise<void> {
+  const store = readStore();
+  const entry = store.journalEntries.find((item) => item.id === id && item.deletedAt === null);
+  if (!entry) throw new Error('手账条目不存在或已删除');
+  entry.deletedAt = now;
+  entry.updatedAt = now;
+  log(store, 'journal_entry', id, 'delete', { id, deletedAt: now }, now);
   writeStore(store);
 }

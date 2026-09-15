@@ -1,5 +1,6 @@
-import { SCHEMA_VERSION, makeDemoExpenses, makeDemoItinerary } from '@tripline/shared';
-import { addExpenses, addItineraryItems, createJourney, getJourney, listChecklistItems, listExpenses, listItineraryItems, listJourneys, setChecklistChecked } from './database';
+import * as Crypto from 'expo-crypto';
+import { SCHEMA_VERSION, makeDemoExpenses, makeDemoItinerary, makeDemoJournalEntry, makeReturnTemplate } from '@tripline/shared';
+import { addChecklistItem, addExpenses, addItineraryItems, addJournalEntry, createJourney, getJourney, listChecklistItems, listExpenses, listItineraryItems, listJournalEntries, listJourneys, setChecklistChecked } from './database';
 import { settings } from '../settings/storage';
 
 export const DEMO_JOURNEY_ID = '426ca609-e737-4b7c-94d1-31d8e7d20c15';
@@ -55,4 +56,31 @@ export async function ensureDemoExpenses(): Promise<void> {
     await addExpenses(makeDemoExpenses(DEMO_JOURNEY_ID, Date.now()));
   }
   settings.setDemoExpensesSeeded();
+}
+
+/** M05：演示旅程一条见闻，幂等（独立 seeded 标记 + 存在性双保险） */
+export async function ensureDemoJournal(): Promise<void> {
+  if (settings.getDemoJournalSeeded()) return;
+  const journey = await getJourney(DEMO_JOURNEY_ID);
+  if (!journey) return;
+  const existing = await listJournalEntries(DEMO_JOURNEY_ID);
+  if (existing.length === 0) {
+    await addJournalEntry(makeDemoJournalEntry(DEMO_JOURNEY_ID, Date.now()));
+  }
+  settings.setDemoJournalSeeded();
+}
+
+/** M06：为已存在的演示旅程补种返程模板，幂等（独立 seeded 标记 + 存在性双保险） */
+export async function ensureDemoReturnChecklist(): Promise<void> {
+  if (settings.getDemoReturnSeeded()) return;
+  const journey = await getJourney(DEMO_JOURNEY_ID);
+  if (!journey) return;
+  const existing = await listChecklistItems(DEMO_JOURNEY_ID, 'return');
+  if (existing.length === 0) {
+    const now = Date.now();
+    for (const item of makeReturnTemplate(DEMO_JOURNEY_ID, now, Crypto.randomUUID)) {
+      await addChecklistItem(item);
+    }
+  }
+  settings.setDemoReturnSeeded();
 }

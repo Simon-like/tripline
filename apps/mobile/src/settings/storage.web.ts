@@ -27,4 +27,8 @@ export const settings = {
   setDemoItinerarySeeded: () => set('demoItinerarySeeded', 'true'),
   getDemoExpensesSeeded: () => get('demoExpensesSeeded') === 'true',
   setDemoExpensesSeeded: () => set('demoExpensesSeeded', 'true'),
+  getDemoJournalSeeded: () => get('demoJournalSeeded') === 'true',
+  setDemoJournalSeeded: () => set('demoJournalSeeded', 'true'),
+  getDemoReturnSeeded: () => get('demoReturnSeeded') === 'true',
+  setDemoReturnSeeded: () => set('demoReturnSeeded', 'true'),
 };
