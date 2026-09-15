@@ -4,6 +4,7 @@ import type { Journey } from '@tripline/shared';
 import { JourneySchema, toLocalDateString } from '@tripline/shared';
 import { Icon } from '@tripline/ui';
 import { BouncyButton } from './BouncyButton';
+import { DatePickerSheet, formatDateLabel } from './DatePickerSheet';
 import { TripText } from './TripText';
 import { chineseFont, useTriplineTheme } from '../theme';
 
@@ -28,6 +29,7 @@ export function JourneyForm({ visible, initial, onClose, onSave }: {
   const [tags, setTags] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [pickerVisible, setPickerVisible] = useState(false);
 
   useEffect(() => {
     if (!visible) return;
@@ -45,8 +47,6 @@ export function JourneyForm({ visible, initial, onClose, onSave }: {
 
   const fields = [
     { label: '旅程名称', value: name, onChangeText: setName, placeholder: '比如：香格里拉 · 5天4晚', keyboardType: 'default' as const },
-    { label: '出发日期', value: startDate, onChangeText: setStartDate, placeholder: 'YYYY-MM-DD', keyboardType: 'numbers-and-punctuation' as const },
-    { label: '返程日期', value: endDate, onChangeText: setEndDate, placeholder: 'YYYY-MM-DD', keyboardType: 'numbers-and-punctuation' as const },
     { label: '总预算（元）', value: budget, onChangeText: setBudget, placeholder: '例如 4500', keyboardType: 'decimal-pad' as const },
     { label: '同行人', value: companions, onChangeText: setCompanions, placeholder: '多人用逗号隔开', keyboardType: 'default' as const },
     { label: '标签', value: tags, onChangeText: setTags, placeholder: '如：秋游，美食', keyboardType: 'default' as const },
@@ -84,7 +84,8 @@ export function JourneyForm({ visible, initial, onClose, onSave }: {
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <>
+      <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
         <Pressable onPress={onClose} style={{ position: 'absolute', inset: 0, backgroundColor: theme.shadow, opacity: 0.45 }} />
         <View style={{ backgroundColor: theme.surface, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingTop: 16, maxHeight: '88%', width: '100%', maxWidth: 560, alignSelf: 'center' }}>
@@ -98,7 +99,37 @@ export function JourneyForm({ visible, initial, onClose, onSave }: {
               <Pressable onPress={onClose}><TripText size={22} muted>×</TripText></Pressable>
             </View>
             <TripText size={13} muted>先定个方向，其他精彩可以路上慢慢补。</TripText>
-            {fields.map((field) => (
+            {fields.slice(0, 1).map((field) => (
+              <View key={field.label} style={{ gap: 7 }}>
+                <TripText size={13} weight="semibold">{field.label}</TripText>
+                <TextInput
+                  value={field.value} onChangeText={field.onChangeText} placeholder={field.placeholder}
+                  placeholderTextColor={theme.textSecondary} keyboardType={field.keyboardType}
+                  style={{ borderWidth: 1, borderColor: theme.border, backgroundColor: theme.bg, borderRadius: 16, paddingHorizontal: 15, paddingVertical: 12, color: theme.text, fontFamily: chineseFont, fontSize: 15, lineHeight: 22 }}
+                />
+              </View>
+            ))}
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              {([
+                { label: '出发日期', value: startDate },
+                { label: '返程日期', value: endDate },
+              ]).map((item) => (
+                <View key={item.label} style={{ flex: 1, gap: 7, minWidth: 0 }}>
+                  <TripText size={13} weight="semibold">{item.label}</TripText>
+                  <Pressable
+                    onPress={() => setPickerVisible(true)}
+                    accessibilityLabel={`${item.label}，${formatDateLabel(item.value)}，点按打开日期选择`}
+                    style={{ borderWidth: 1, borderColor: theme.border, backgroundColor: theme.bg, borderRadius: 16, paddingHorizontal: 15, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}
+                  >
+                    <TripText size={14} numberOfLines={1} style={{ flexShrink: 1 }}>{formatDateLabel(item.value)}</TripText>
+                    <View style={{ transform: [{ rotate: '-90deg' }] }}>
+                      <Icon name="chevron-left" size={16} color={theme.textSecondary} />
+                    </View>
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+            {fields.slice(1).map((field) => (
               <View key={field.label} style={{ gap: 7 }}>
                 <TripText size={13} weight="semibold">{field.label}</TripText>
                 <TextInput
@@ -115,6 +146,20 @@ export function JourneyForm({ visible, initial, onClose, onSave }: {
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
-    </Modal>
+      </Modal>
+      <DatePickerSheet
+        visible={pickerVisible}
+        mode="range"
+        initialStart={startDate || null}
+        initialEnd={endDate || null}
+        title="选择出发与返程日期"
+        onClose={() => setPickerVisible(false)}
+        onConfirm={(start, end) => {
+          setStartDate(start);
+          setEndDate(end);
+          setPickerVisible(false);
+        }}
+      />
+    </>
   );
 }
