@@ -69,6 +69,7 @@ export function ShareSheet({ visible, text, journeyName, onClose }: Props) {
               {copied ? <ConfettiCelebration top={2} right={4} /> : null}
             </View>
             <TripText size={13} muted>「{journeyName}」的清单、行程、账本、手账都在这段文字里，粘贴给同行的人即可。</TripText>
+            <TripText size={12} muted>照片保存在本机；原生端的照片不会随分享码传送。</TripText>
             <View style={{ backgroundColor: theme.surface, borderRadius: 20, borderWidth: 1, borderColor: theme.border, maxHeight: 260 }}>
               <ScrollView contentContainerStyle={{ padding: 16 }} showsVerticalScrollIndicator>
                 {text === null ? (

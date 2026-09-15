@@ -91,6 +91,7 @@ export default function Journal() {
     const custom = customTag.trim();
     const entryId = Crypto.randomUUID();
     saving.current = true;
+    let committed = false;
     try {
       // 先把照片拷入沙盒持久路径（Web 端为压缩后的 data URL），DB 只存相对路径
       const photoPaths = await persistJournalPhotos(entryId, photos);
@@ -107,6 +108,7 @@ export default function Journal() {
         return;
       }
       await addJournalEntry(parsed.data);
+      committed = true;
       setText('');
       setSelectedTags([]);
       setCustomTag('');
@@ -118,6 +120,7 @@ export default function Journal() {
       setTimeout(() => setCelebrating(false), feedbackDuration);
       await refresh();
     } catch (cause) {
+      if (!committed) await removeJournalPhotos(entryId).catch(() => {});
       setError(cause instanceof Error ? cause.message : '保存失败');
     } finally {
       saving.current = false;

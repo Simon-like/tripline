@@ -320,3 +320,10 @@
 - 脚手架未建，AGENTS.md 里的命令是预期占位，以 M00 落地后的 package.json 为准。
 
 **文档阅读顺序（新会话冷启动）**：`AGENTS.md` → `docs/HANDOFF.md` → `docs/CONTEXT.md` → `docs/WORKFLOW.md` → 本文件 → `docs/ROADMAP.md`。
+
+
+## 2026-09-15 · Codex 基础迭代审阅与日期动效整改
+
+审阅 Kimi 工程记录并对齐看板：已验收的 M01–M06 基础版保留完成；M05 照片/M08 改为待验收，M07 未实现，不代签整体 V1 完成。AI/服务端留到下一迭代。完整缺项、架构判断及恢复验收路径见 [收尾审阅](reviews/2026-09-15-foundation-closeout-review.md)。
+
+先用 e5ea804 固化 Kimi 的既有日期弹层/表单修改，再修复 Modal 入场启动过早、关闭截断，新增两端导入归属守卫及3条测试，补照片失败清理与分享照片限制说明。lint/typecheck/test通过，共58条测试。模拟器观察首页/编辑成功，但控制服务点击失败 noWindowsAvailable，日期动效及Android交互不宣称本轮验收；恢复电脑控制后补测打开/确认/取消/重复打开/减弱动态。Metro仍运行。历史 artifacts 截图与未跟踪调试产物原样保留，不批量提交；主干实现可安装，未添加依赖或修改冻结契约。

@@ -1,3 +1,4 @@
+import { assertImportOwnership, importGroups } from './importGuard';
 import type { ChecklistItem, Expense, ItineraryItem, JournalEntry, Journey, JourneyBundle } from '@tripline/shared';
 import { ChecklistItemSchema, ExpenseSchema, ItineraryItemSchema, JournalEntrySchema, JourneyBundleSchema, JourneySchema, makeChecklistTemplate, makeReturnTemplate } from '@tripline/shared';
 import * as Crypto from 'expo-crypto';
@@ -153,6 +154,14 @@ export async function importJourneyBundle(input: JourneyBundle): Promise<void> {
   const db = await initializeDatabase();
   const now = Date.now();
   await db.withExclusiveTransactionAsync(async (tx) => {
+    for (const [table, incoming] of importGroups(bundle)) {
+      const existingRows = [];
+      for (const item of incoming) {
+        const row = await tx.getFirstAsync<{ id: string; journeyId: string }>(`SELECT id, journeyId FROM ${table} WHERE id = ?`, [item.id]);
+        if (row) existingRows.push(row);
+      }
+      assertImportOwnership(incoming, existingRows);
+    }
     const existing = await tx.getFirstAsync<{ id: string }>(
       'SELECT id FROM journey WHERE id = ? AND deletedAt IS NULL', [bundle.journey.id],
     );

@@ -24,10 +24,10 @@ import { TripText } from './TripText';
 import { useTriplineTheme } from '../theme';
 
 const WEEK_LABELS = ['一', '二', '三', '四', '五', '六', '日'] as const;
-// 入场：backdrop 淡入先行，面板延迟 ~60ms 弹簧上浮（dampingRatio 0.65 ≈ stiffness 300 / damping 20 的轻过冲）
+// 入场：backdrop 淡入先行，面板延迟 ~60ms 弹簧上浮（轻微过冲，避免长距离上滑后大幅反弹）
 const ENTER_STAGGER = 60;
 const ENTER_DURATION = 320;
-const ENTER_DAMPING = 0.65;
+const ENTER_DAMPING = 0.85;
 // 关闭：下滑 + 淡出
 const EXIT_DURATION = 240;
 // 切月：横向轻滑 + 淡入
@@ -85,36 +85,52 @@ export function DatePickerSheet({
 
   // 动效 shared values：backdrop / 面板 / 网格 三组独立控制
   const backdrop = useSharedValue(0);
-  const sheetY = useSharedValue(72);
+  const sheetY = useSharedValue(700);
+  const sheetOpacity = useSharedValue(0);
   const sheetScale = useSharedValue(0.97);
   const gridX = useSharedValue(0);
   const gridOpacity = useSharedValue(1);
   const closingRef = useRef(false);
   const afterCloseRef = useRef<(() => void) | null>(null);
+  const sheetHeight = useRef(700);
 
   // 入场：backdrop 淡入，面板错开 60ms 上滑 + 轻微过冲；减弱动效时全部瞬时到位
   useEffect(() => {
-    if (!visible) return;
+    if (!visible) {
+      backdrop.value = 0;
+      sheetY.value = sheetHeight.current;
+      sheetOpacity.value = 0;
+      sheetScale.value = 0.98;
+      return;
+    }
     closingRef.current = false;
     afterCloseRef.current = null;
     gridX.value = 0;
     gridOpacity.value = 1;
+  }, [visible, backdrop, sheetY, sheetOpacity, sheetScale, gridX, gridOpacity]);
+
+  // Native Modal presentation must finish before starting UI-thread motion.
+  function enter() {
     if (reducedMotion) {
       backdrop.value = 1;
       sheetY.value = 0;
+      sheetOpacity.value = 1;
       sheetScale.value = 1;
       return;
     }
     backdrop.value = 0;
-    sheetY.value = 72;
-    sheetScale.value = 0.97;
+    sheetY.value = sheetHeight.current;
+    sheetOpacity.value = 0;
+    sheetScale.value = 0.98;
     backdrop.value = withTiming(1, { duration: 200 });
+    sheetOpacity.value = withDelay(ENTER_STAGGER, withTiming(1, { duration: 120 }));
     sheetY.value = withDelay(ENTER_STAGGER, withSpring(0, { duration: ENTER_DURATION, dampingRatio: ENTER_DAMPING }));
     sheetScale.value = withDelay(ENTER_STAGGER, withSpring(1, { duration: ENTER_DURATION, dampingRatio: ENTER_DAMPING }));
-  }, [visible, reducedMotion, backdrop, sheetY, sheetScale, gridX, gridOpacity]);
+  }
 
   const backdropStyle = useAnimatedStyle(() => ({ opacity: backdrop.value * 0.45 }));
   const sheetStyle = useAnimatedStyle(() => ({
+    opacity: sheetOpacity.value,
     transform: [{ translateY: sheetY.value }, { scale: sheetScale.value }],
   }));
   const gridStyle = useAnimatedStyle(() => ({
@@ -155,12 +171,12 @@ export function DatePickerSheet({
     if (closingRef.current) return;
     closingRef.current = true;
     afterCloseRef.current = after ?? null;
-    sheetY.value = withTiming(360, { duration: EXIT_DURATION });
-    sheetScale.value = withTiming(0.98, { duration: EXIT_DURATION });
-    backdrop.value = withTiming(0, { duration: EXIT_DURATION - 40 }, (finished) => {
-      'worklet';
+    sheetY.value = withTiming(sheetHeight.current, { duration: EXIT_DURATION }, (finished) => {
       if (finished) runOnJS(finishClose)();
     });
+    sheetOpacity.value = withTiming(0, { duration: EXIT_DURATION });
+    sheetScale.value = withTiming(0.98, { duration: EXIT_DURATION });
+    backdrop.value = withTiming(0, { duration: EXIT_DURATION });
   }
 
   // 切月：新网格从切月方向横滑淡入（下一月从右 +24px，上一月从左 -24px）
@@ -193,12 +209,12 @@ export function DatePickerSheet({
   }
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={() => dismiss()}>
+    <Modal visible={visible} transparent animationType="none" onShow={enter} onRequestClose={() => dismiss()}>
       <View style={{ flex: 1, justifyContent: 'flex-end' }}>
         <Animated.View style={[{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: theme.shadow }, backdropStyle]}>
           <Pressable onPress={() => dismiss()} style={{ flex: 1 }} accessibilityLabel="关闭日期选择" />
         </Animated.View>
-        <Animated.View style={[sheetStyle, {
+        <Animated.View onLayout={(event) => { sheetHeight.current = event.nativeEvent.layout.height; }} style={[sheetStyle, {
           backgroundColor: theme.surface,
           borderTopLeftRadius: 32, borderTopRightRadius: 32,
           paddingTop: 16, paddingHorizontal: 24, paddingBottom: 28,

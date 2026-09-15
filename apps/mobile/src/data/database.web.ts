@@ -1,3 +1,4 @@
+import { assertImportOwnership, importGroups } from './importGuard';
 import type { ChecklistItem, Expense, ItineraryItem, JournalEntry, Journey, JourneyBundle } from '@tripline/shared';
 import { ChecklistItemSchema, ExpenseSchema, ItineraryItemSchema, JournalEntrySchema, JourneyBundleSchema, JourneySchema, makeChecklistTemplate, makeReturnTemplate } from '@tripline/shared';
 import * as Crypto from 'expo-crypto';
@@ -109,6 +110,9 @@ export async function importJourneyBundle(input: JourneyBundle): Promise<void> {
   const bundle = JourneyBundleSchema.parse(input);
   const store = readStore();
   const now = Date.now();
+
+  const tables = { checklist_item: store.checklistItems, itinerary_item: store.itineraryItems, expense: store.expenses, journal_entry: store.journalEntries };
+  for (const [table, incoming] of importGroups(bundle)) assertImportOwnership(incoming, tables[table]);
 
   const existing = store.journeys.find((item) => item.id === bundle.journey.id && item.deletedAt === null);
   if (existing) {
