@@ -51,8 +51,8 @@ export function ImportSheet({ visible, onClose, onImported }: Props) {
     try {
       setPreview(decodeExportCode(next));
     } catch (cause) {
-      // 识别失败不打扰：码不完整时静默等待，含 TL 前缀但校验失败才提示
-      if (cause instanceof ExportCodeError && /TL\d+\./.test(next)) setError(cause.message);
+      // 识别失败不打扰逐字输入；粘贴（一次性长文本）或含 TL 前缀的坏码才提示中文可读错误
+      if (cause instanceof ExportCodeError && (/TL\d+\./.test(next) || next.trim().length >= 8)) setError(cause.message);
     }
   }
 
