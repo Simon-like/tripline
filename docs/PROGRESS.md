@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-09-15 · Kimi（详情卡剩余基础功能规划，待 Simon 需求评审）
+
+**现在什么最重要**：详情卡五个 Tab 中清单/行程/账本三页基础功能已齐，手账（M05）与返程（M06）仍为占位页，详情页头部缺状态标签与编辑入口。本轮已完成规划与需求起草，**等 Simon 对三处拍板点做需求评审决策后再动代码**。
+
+**本会话做了什么**：通读 PROGRESS/ROADMAP/CONTEXT/WORKFLOW 对齐各 agent 进度（Codex：首页风叶轮播与导航；Kimi-Coder：M03/M04 施工）；派探索代理盘点详情页实现与契约准备度。结论：`JournalEntrySchema` 契约与原生 `journal_entry` 表 M00 已备好但无 CRUD、Web 端 PreviewStore 缺 journalEntries；返程检查可复用 `ChecklistItemSchema.phase='return'`，需模板函数与 `listChecklistItems` phase 参数化；导出码编解码已测但 UI 层未接（属 M08）。据此起草 [modules/M05-journal.md](modules/M05-journal.md)（AC-1~10，文字基础版）与 [modules/M06-return-checklist.md](modules/M06-return-checklist.md)（AC-1~8，四类返程模板），并在 [modules/M01-journey-management.md](modules/M01-journey-management.md) 追加详情页头部增量需求 AC-6/AC-7；ROADMAP/MODULES 状态同步为需求评审中。
+
+**下一步**：Simon 审批三个拍板点——P1 手账照片是否本期做（需 expo-image-picker + expo-file-system 新原生依赖与双端重新 prebuild）；P2 行前清单删除是否对齐为二次确认；P3 导出入口是否随 M08 推迟。审批通过后按 playbook 施工：shared 纯逻辑+测试 → 双端数据层 → 共用清单组件抽取 → 页面 → 双端 dev build 验证。
+
+**坑与提醒**：M03/M04 确立的惯例继续有效——Simon's 会话授权可先行施工，但需求/技术/验收门状态必须如实标注，不冒称冻结。本轮只写文档未动代码；lint/typecheck/test 基线保持上一提交 `fb207c2` 的全绿状态。
+
+---
+
 ## 2026-09-15 · Codex（修复 iOS 点击侧卡瞬移）
 
 **现在什么最重要**：iOS 上点击侧卡的生硬过渡已确认是轮播状态时序冲突，不是 iOS 26、Reanimated 或 Expo Router 兼容问题。M01 状态仍为提前授权施工、待正式评审。
