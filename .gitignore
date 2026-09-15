@@ -10,3 +10,6 @@ ios/
 
 # 本地 Chrome 预览调试 profile
 artifacts/preview/.chrome-profile*/
+
+# 本地安装包、签名归档与构建日志
+artifacts/build/
