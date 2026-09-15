@@ -1,6 +1,6 @@
 # M05 · 旅行手账（journal）
 
-* **状态**：需求评审中（待 Simon 需求评审门决策）
+* **状态**：待验收（Simon 2026-09-15 授权先行施工；需求/技术评审门未正式通过，不冒称契约冻结）
 
 * **Wave / 优先级**：Wave 2 / P1（按 Simon 2026-09-15 指示提前立项：详情卡五个 Tab 基础功能补齐）
 
@@ -9,6 +9,8 @@
 * **PRD 出处**：M6 + M10（相册选图并入）
 
 > 立项说明：Simon 2026-09-15 会话指示「把详情卡剩余的基础功能全部完成」。手账 Tab 当前为占位页；`JournalEntrySchema` 契约、`journal_entry` 表（原生端）与导出码载荷在 M00 已备好，本模块把页面与数据层 CRUD 补齐。**相册选图涉及 expo-image-picker / expo-file-system 两个新原生依赖，单独列为拍板点 P1，未批准前不施工。**
+>
+> 授权说明：2026-09-15 Simon 明确授权先行施工（与 M03/M04 同一授权方式），需求评审门、技术评审门、验收门均未正式通过，验收段留空，待独立会话对照 EARS 逐条核验后由 Simon 决策。
 
 ## ① 需求（待 Simon 评审）
 
@@ -67,20 +69,62 @@
 
 ## ② 技术调研
 
-待需求评审冻结后填写；既有实体契约与表结构沿用 M00（见 [ARCHITECTURE.md](../ARCHITECTURE.md) 与 [ADR 0001](../adr/0001-tech-stack.md)），无新选型需求。
+既有选型依据见 [技术栈调研 05](../../deliverables/research/05-技术栈调研.md)、[ARCHITECTURE.md](../ARCHITECTURE.md) 与 [ADR 0001](../adr/0001-tech-stack.md)、[ADR 0002](../adr/0002-icon-system-svg.md)。本模块无新增技术选型：实体契约与 `journal_entry` 表为 M00 既有资产，UI 复用 Page/TripText/BouncyButton/Modal/CascadeIn 模式，彩带庆祝抽取为共用组件 `ConfettiCelebration`（同时收编行程/账本两处重复实现）。
+
+| 候选方案 | 优点 | 缺点 | 结论 |
+|---|---|---|---|
+| 复用 M00 既有 `journal_entry` 表与 CRUD 模式 | 零迁移、零新依赖，sync 语义一致 | 无 | 采纳 |
+| 手账照片本期一起做（expo-image-picker + expo-file-system） | 一次到位 | 两个新原生依赖须评审 + 重打 dev build | 不采纳（拍板点 P1，拆到照片扩展） |
 
 ## ③ 技术方案
 
-待需求评审后填写并提交 Simon 冻结。
+### 接口契约
+
+`packages/shared` **增量新增** `journal.ts`（不改任何已冻结导出），并在 `index.ts` 追加一行导出：
+
+- `JOURNAL_TAG_PRESETS = ['推荐','避雷','美食','风景','心情']`：预设标签常量。
+- `makeDemoJournalEntry(journeyId, now)`：演示条目「转经筒下许了个愿 ✨」（tags ['推荐']、无图、确定性 UUID `00000000-0000-4000-8000-0000000000a5`，配合存在性检查天然幂等，参照 `makeDemoItinerary`）。
+- `groupJournalEntriesByDay(entries, now)`：按本机日期分组纯函数，组标签 今天/昨天/MM-DD，组间新日期在前、组内按 `timestamp` 倒序；返回 `JournalDayGroup { key, label, entries }[]`。
+
+数据层公开 API（双端同名同语义）：
+
+- `listJournalEntries(journeyId)` / `addJournalEntry(input)` / `deleteJournalEntry(id, now)`：Zod 校验、软删除、写操作落 sync_queue（`entityType='journal_entry'`）。
+- settings 追加 `demoJournalSeeded` 读写（MMKV 与 Web 同 key 同 API）。
+
+实体 schema 沿用 M00 的 `JournalEntrySchema`（`{ id, journeyId, text, photoPaths, tags, mood, timestamp, ...公共字段 }`），**无 schema 变更、无表结构变更、schemaVersion 保持 1**。
+
+### 改动文件清单
+
+- `packages/shared/src/journal.ts`（新增）、`packages/shared/src/index.ts`（追加导出）、`packages/shared/test/journal.test.ts`（新增）
+- `apps/mobile/src/data/database.ts`（追加 journal CRUD）
+- `apps/mobile/src/data/database.web.ts`（同步实现；`PreviewStore` 增 `journalEntries` 字段，旧存档缺省回填；`deleteJourney` 级联补 journal 软删，对齐原生端）
+- `apps/mobile/src/data/demo.ts`（追加 `ensureDemoJournal` 幂等种入）
+- `apps/mobile/src/settings/storage.ts` / `storage.web.ts`（追加 `demoJournalSeeded` 标记读写）
+- `apps/mobile/src/components/ConfettiCelebration.tsx`（新增共用彩带组件，收编 itinerary/ledger 重复实现）
+- `apps/mobile/app/journey/[id]/journal.tsx`（占位页 → 完整实现）
+
+### 数据模型影响
+
+复用 `journal_entry` 表（M00 已建，含 `idx_journal_journey(journeyId, timestamp)` 索引）。写操作沿用独占事务 + sync_queue 追加。删除为软删除；`deleteJourney` 双端均级联软删手账。无迁移、无 schemaVersion 递增。
+
+### 动效与兼容落实点
+
+- 见闻流 CascadeIn 40ms stagger（>10 条降级瞬时）；保存成功触发 `ConfettiCelebration`（600ms，上限 `motion.celebrate`）+ 原生端一次轻 Haptics，Web 端跳过。
+- `useReducedMotion()` 全量接入：减弱动效时彩带不渲染、级联降级瞬时。
+- 图标全部走 `@tripline/ui` Icon，颜色全部走 token；文字上限 500 字在表单层校验（`maxLength` + 提交前检查双保险）。
 
 ## ④ 任务清单
 
-待技术评审后拆分正式任务。
+- [x] T1 shared 手账纯逻辑 + 单测 ｜ DoD：演示条目确定性、分组标签（今天/昨天/MM-DD）、组内倒序、空数组用例全绿 ｜ 依赖：M00 契约 ｜ 影响文件：`packages/shared/src/journal.ts`、`index.ts`、`test/journal.test.ts`
+- [x] T2 数据层 CRUD（SQLite + Web 双实现）+ Web 级联补齐 ｜ DoD：增删查经 Zod 校验、写操作落 sync_queue、旧存档兼容、`deleteJourney` 双端级联一致 ｜ 依赖：T1 ｜ 影响文件：`database.ts`、`database.web.ts`
+- [x] T3 演示种入幂等 ｜ DoD：重复调用不产生重复条目；独立 `demoJournalSeeded` 标记不影响既有种入 ｜ 依赖：T2 ｜ 影响文件：`demo.ts`、`settings/storage*.ts`
+- [x] T4 journal.tsx 页面（底部弹层表单 + 按日分组见闻流 + 彩带/触感 + 删除二次确认 + 空态） ｜ DoD：lint/typecheck 通过；Web 预览 390×844 截图目检无 [?]、无溢出 ｜ 依赖：T2、T3 ｜ 影响文件：`app/journey/[id]/journal.tsx`、`components/ConfettiCelebration.tsx`
 
 ## ⑤ 施工记录
 
 | 日期 | 任务 | 认领人 | 结果 |
 | -- | -- | --- | -- |
+| 2026-09-15 | T1–T4 | Kimi 施工子会话 | shared 纯逻辑与单测、SQLite/Web 双数据层（含 Web 级联补齐）、幂等演示种入、完整页面已落地；lint / typecheck / test 全绿；Web 预览 390×844 截图目检通过（`artifacts/preview/m05-journal.png`）。验收待独立会话。 |
 
 ## ⑥ 验收
 

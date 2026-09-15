@@ -41,5 +41,9 @@
 ## ⑤ 施工记录
 待正式任务认领后填写；提前施工记录见 [../PROGRESS.md](../PROGRESS.md)。
 
+| 日期 | 任务 | 认领人 | 结果 |
+|---|---|---|---|
+| 2026-09-15 | 详情页头部增量（AC-6/AC-7） | Kimi 施工子会话 | headerTitle 改为旅程名 + 状态胶囊（`deriveJourneyStatus`，准备中/游玩中/已结束分别走 primary/accent/success token）；headerRight 新增 pencil 编辑按钮，弹层复用 `JourneyForm`，保存走 `updateJourney` 并即时刷新标题与状态；`packages/ui` Icon 新增 `pencil`；导出入口按拍板推迟到 M08。lint/typecheck/test 全绿，Web 预览截图 `artifacts/preview/m01-header.png` 目检通过。需求/技术评审门未正式通过，不冒称冻结。 |
+
 ## ⑥ 验收
 待独立验收与 Simon 签字。

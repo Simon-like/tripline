@@ -1,6 +1,6 @@
 # M06 · 返程检查（return-checklist）
 
-* **状态**：需求评审中（待 Simon 需求评审门决策）
+* **状态**：待验收（Simon 2026-09-15 授权先行施工；需求/技术评审门未正式通过，不冒称契约冻结）
 
 * **Wave / 优先级**：Wave 2 / P1（按 Simon 2026-09-15 指示提前立项：详情卡五个 Tab 基础功能补齐）
 
@@ -9,6 +9,8 @@
 * **PRD 出处**：M7
 
 > 立项说明：Simon 2026-09-15 会话指示「把详情卡剩余的基础功能全部完成」。返程 Tab 当前为占位页；`ChecklistItemSchema.phase` 枚举已含 `'return'`，无需新实体。本模块 = 返程模板 + 查询 phase 参数化 + 与行前清单抽取共用 UI 组件。
+>
+> 授权说明：2026-09-15 Simon 明确授权先行施工（含拍板点 P2 删除交互对齐与 `listChecklistItems` 契约变更），需求评审门、技术评审门、验收门均未正式通过，验收段留空，待独立会话对照 EARS 逐条核验后由 Simon 决策。
 
 ## ① 需求（待 Simon 评审）
 
@@ -68,20 +70,61 @@
 
 ## ② 技术调研
 
-待需求评审冻结后填写；复用 checklist\_item 表与 M02 交互模式，无新选型需求。
+既有选型依据见 [技术栈调研 05](../../deliverables/research/05-技术栈调研.md)、[ARCHITECTURE.md](../ARCHITECTURE.md) 与 [ADR 0001](../adr/0001-tech-stack.md)。本模块无新增技术选型：复用 `checklist_item` 表与 M02 清单交互模式，返程模板与行前模板同构；UI 差异仅在 phase、四类分组与文案。
+
+| 候选方案 | 优点 | 缺点 | 结论 |
+|---|---|---|---|
+| 复用 checklist_item 表 + phase 过滤 | 零迁移、零新实体，双端改动小 | 无 | 采纳 |
+| 返程单独建表 | 隔离彻底 | 重复一套 CRUD 与 sync 语义，收益为零 | 不采纳 |
+| 行前/返程各自维护页面组件 | 互不影响 | 两份重复实现必然漂移 | 不采纳（抽 ChecklistPanel 共用） |
 
 ## ③ 技术方案
 
-待需求评审后填写并提交 Simon 冻结。
+### 接口契约
+
+`packages/shared/src/checklist.ts` **追加** `makeReturnTemplate(journeyId, now, createId)`（不改既有导出）：
+
+- phase='return'，四类十一条：行李清点（充电器、充电宝、换洗衣物）/ 退房检查（房卡退还、检查抽屉与床头、押金发票收好）/ 票据报销（行程发票、车票机票凭证）/ 到家待办（洗衣服、导照片、还借来的物品）。
+- 签名带 `createId`，与既有 `makeChecklistTemplate` 保持同构（避免确定性 ID 在跨旅程场景下撞主键）。
+
+契约变更登记（本次变更已获 Simon 2026-09-15 批准）：
+
+- `ChecklistItemSchema.category` 为自由 string（非枚举），四类分组**无需扩枚举**，无 schema 变更。
+- 数据层 `listChecklistItems(journeyId, phase = 'preparation')` 双端增加 `phase` 参数，默认值保持向后兼容；该接口尚未正式冻结，按契约变更纪律在此登记。
+- UI 图标映射：行李清点→luggage、退房检查→home、票据报销→bankcard、到家待办→check。
+
+### 改动文件清单
+
+- `packages/shared/src/checklist.ts`（追加 `makeReturnTemplate`）、`packages/shared/test/checklist.test.ts`（追加返程模板用例，只增不改）
+- `apps/mobile/src/data/database.ts` / `database.web.ts`（`listChecklistItems` 增 phase 参数；`createJourney` 行前+返程模板同事务同种）
+- `apps/mobile/src/data/demo.ts`（追加 `ensureDemoReturnChecklist` 为已存在演示旅程补种，幂等）
+- `apps/mobile/src/settings/storage.ts` / `storage.web.ts`（追加 `demoReturnSeeded` 标记读写）
+- `apps/mobile/src/components/ChecklistPanel.tsx`（新增共用组件：进度英雄卡 + 分组勾选列表 + 添加弹层 + 删除二次确认 Modal）
+- `apps/mobile/app/journey/[id]/checklist.tsx`（改为消费 ChecklistPanel；删除交互由单击 × 对齐为 Modal 二次确认，P2 已批准）
+- `apps/mobile/app/journey/[id]/return.tsx`（占位页 → 消费 ChecklistPanel，phase='return'）
+
+### 数据模型影响
+
+复用 `checklist_item` 表（M00 已建，含 `idx_checklist_journey(journeyId, phase, sortOrder)` 索引，天然覆盖 phase 过滤）。`createJourney` 同一事务种入行前 8 条 + 返程 11 条；写操作沿用独占事务 + sync_queue。删除为软删除，`deleteJourney` 级联天然覆盖两个 phase。无迁移、无 schemaVersion 递增。
+
+### 动效与兼容落实点
+
+- 清单条目 CascadeIn 40ms 级联入场（>10 项降级瞬时，行前/返程同规则）；全部完成时展示庆祝卡 + `ConfettiCelebration` 常驻碎片（减弱动效时退化为静态）。
+- 勾选成功原生端一次轻 Haptics，Web 端跳过；所有动画只动 `transform`/`opacity`。
+- 图标全部走 `@tripline/ui` Icon，颜色全部走 token；双端数据层行为对齐。
 
 ## ④ 任务清单
 
-待技术评审后拆分正式任务。
+- [x] T1 shared 返程模板 + 单测 ｜ DoD：四类、十一条、phase='return'、ID 唯一用例全绿，既有用例不动 ｜ 依赖：M00 契约 ｜ 影响文件：`packages/shared/src/checklist.ts`、`test/checklist.test.ts`
+- [x] T2 数据层 phase 参数化 + 创建同种 + 演示补种 ｜ DoD：双端 `listChecklistItems` 默认参数向后兼容；`createJourney` 行前+返程同事务；`ensureDemoReturnChecklist` 幂等 ｜ 依赖：T1 ｜ 影响文件：`database.ts`、`database.web.ts`、`demo.ts`、`settings/storage*.ts`
+- [x] T3 ChecklistPanel 共用组件抽取 + 删除二次确认对齐（P2） ｜ DoD：行前/返程两页消费同一组件；行尾 × 改为 Modal 二次确认 ｜ 依赖：T2 ｜ 影响文件：`components/ChecklistPanel.tsx`、`checklist.tsx`
+- [x] T4 return.tsx 页面集成 ｜ DoD：lint/typecheck 通过；Web 预览 390×844 截图目检无 [?]、无溢出、四类分组正确 ｜ 依赖：T3 ｜ 影响文件：`return.tsx`
 
 ## ⑤ 施工记录
 
 | 日期 | 任务 | 认领人 | 结果 |
 | -- | -- | --- | -- |
+| 2026-09-15 | T1–T4 | Kimi 施工子会话 | 返程模板与单测、双端 phase 参数化与创建同种、幂等补种、ChecklistPanel 抽取（删除二次确认对齐）、返程页落地；lint / typecheck / test 全绿；Web 预览 390×844 截图目检通过（`artifacts/preview/m06-return.png`）。验收待独立会话。 |
 
 ## ⑥ 验收
 
