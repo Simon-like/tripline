@@ -1,0 +1,4 @@
+interface:
+  display_name: "TripLine 模块开发"
+  short_description: "按照旅迹项目架构、评审流程和双端约束安全迭代各业务模块"
+  default_prompt: "使用 $tripline-module-development 规划、实现并验证旅迹模块。"

@@ -32,6 +32,7 @@
 | [docs/HANDOFF.md](docs/HANDOFF.md) | 给下一位 agent 的交接说明 | 首次进入项目时 |
 | [docs/adr/](docs/adr/) | 架构决策记录（只增不改） | 做重大取舍时 |
 | [docs/modules/README.md](docs/modules/README.md) | 模块文档模板与生命周期 | 起草任何模块文档前 |
+| [.agents/skills/tripline-module-development/SKILL.md](.agents/skills/tripline-module-development/SKILL.md) | 本仓库模块迭代流程、结构边界与交付清单 | 规划、施工、重构或验收模块时 |
 | 原始 PRD | [旅迹TripLine_PRD_副本.md](旅迹TripLine_PRD_副本.md) | 回溯需求出处时 |
 | 调研底稿 | `deliverables/research/00–05` | 写技术调研段时引用 |
 

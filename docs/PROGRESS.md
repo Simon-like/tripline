@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-09-15 · Codex（首页四旅程风叶轮播与项目级 Skill）
+
+**现在什么最重要**：首页已按 Simon 批准的方案改为最多四个开放旅程的风叶轮播；历史旅程不占额度并继续由“全部旅程”管理。M01 仍是提前授权施工、待正式评审状态，本轮没有越过评审门。
+
+**本会话做了什么**：`JourneyCarousel` 抽出横向吸附、侧卡露出、旋转/缩放交接、圆点、触感和减弱动态逻辑；明暗各四组旅程色板集中在 `packages/ui`，首页背景随归一化滚动进度连续过渡。卡片切换同步最近打开旅程、倒计时和清单进度；整卡只选择，选中卡的独立按钮才进入详情，避免吸附时误跳。开放旅程达到 4 个后阻止继续创建或把历史旅程编辑为开放状态，并显示“旅程不是排期，生活不用赶集”。决策记录见 [ADR 0004](adr/0004-home-wind-carousel.md)。功能回滚点为 `2c59c92`。
+
+**项目沉淀**：新增仓库级 [TripLine 模块开发 Skill](../.agents/skills/tripline-module-development/SKILL.md)，入口文件只保留触发范围、证据读取、分层红线、设计语言与收尾要求；`references/project-structure.md` 记录目录职责和放置规则，`references/module-playbook.md` 记录模块施工顺序、双端验证与交付清单。AGENTS 文档地图已登记，Skill 官方 validator 返回 `Skill is valid!`，后续模块可直接使用 `$tripline-module-development`。
+
+**验证**：`pnpm lint`、`pnpm typecheck`、`pnpm test`、`git diff --check` 通过（shared 22 + mobile 6 测试）。iOS 26.3/iPhone 17 Pro 模拟器验证两趟旅程的侧卡选择、独立进入按钮、背景/圆点/清单进度联动；Android 16/Pixel 8 模拟器重新安装 development build 后用真实横滑验证吸附、卡片回正、背景与数据联动。截图为 `artifacts/preview/ios-home-wind-carousel-final.png`、`android-home-wind-carousel.png`、`android-home-wind-carousel-swiped.png`。
+
+**下一步与提醒**：Simon 体验卡片手感并继续 M01 产品验收；四旅程上限的纯逻辑已有测试，但本轮没有在模拟器人工创建到第 5 个。Android `expo run:android` 已构建并安装成功，安装后的 Expo CLI 输出阶段触发 pnpm `ReferenceError: kTimeout is not defined`，手动通过 `adb reverse` 和 development-client URL 启动后页面正常；这是 CLI 收尾异常，不是 Gradle 或应用构建失败。
+
+---
+
 ## 2026-09-15 · Codex（悬浮导航、外观选择与多旅程首页）
 
 **现在什么最重要**：iOS 26.3/iPhone 17 Pro 与 Android 16/Pixel 8 模拟器都已加载新版 development build。五个旅程功能 Tab 保持不变，设置与未来账号入口留在旅程外；本轮属于体验施工验证，M00/M01 正式评审与验收状态未改变。

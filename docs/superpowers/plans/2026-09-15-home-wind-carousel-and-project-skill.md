@@ -14,11 +14,11 @@
 - [x] 首页使用选中 ID 驱动主卡、清单进度和背景，切换后持久化最近旅程。
 - [x] 活跃/待出发旅程最多展示和创建四个；历史旅程不占额度，达到上限显示温馨提示。
 - [x] 补充旅程选择与限额纯逻辑测试。
-- [ ] iOS 与 Android 模拟器交互、截图和质量检查通过后提交。
+- [x] iOS 与 Android 模拟器交互、截图和质量检查通过后提交。
 
 ## 阶段三：项目级 Skill
 
-- [ ] 建立 `.agents/skills/tripline-module-development/`。
-- [ ] `SKILL.md` 只保留模块迭代必需的入口流程与红线；详细结构和验证路线分离到 references。
-- [ ] 在 `AGENTS.md` 文档地图登记 Skill，运行 skill validator。
-- [ ] 更新 ROADMAP / PROGRESS 并单独提交 Skill 与交接文档。
+- [x] 建立 `.agents/skills/tripline-module-development/`。
+- [x] `SKILL.md` 只保留模块迭代必需的入口流程与红线；详细结构和验证路线分离到 references。
+- [x] 在 `AGENTS.md` 文档地图登记 Skill，运行 skill validator。
+- [x] 更新 ROADMAP / PROGRESS 并单独提交 Skill 与交接文档。
