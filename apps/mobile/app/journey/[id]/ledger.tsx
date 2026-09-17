@@ -11,6 +11,7 @@ import {
   type Expense, type ExpenseCategory, type Journey,
 } from '@tripline/shared';
 import { BouncyButton } from '../../../src/components/BouncyButton';
+import { BouncyChip } from '../../../src/components/BouncyChip';
 import { BottomSheet } from '../../../src/components/BottomSheet';
 import { CascadeIn } from '../../../src/components/CascadeIn';
 import { ConfettiCelebration } from '../../../src/components/ConfettiCelebration';
@@ -351,12 +352,8 @@ export default function Ledger() {
               <TripText size={13} weight="semibold">花在哪一类？</TripText>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {EXPENSE_CATEGORIES.map((name) => (
-                  <Pressable key={name} onPress={() => setCategory(name)} style={{ paddingHorizontal: 15, paddingVertical: 9, borderRadius: 999, backgroundColor: category === name ? theme.primary : theme.surfaceAlt }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Icon name={iconOf(name)} size={14} color={category === name ? theme.onPrimary : colorOf(name, theme)} />
-                      <TripText size={13} weight="semibold" style={{ color: category === name ? theme.onPrimary : theme.text }}>{name}</TripText>
-                    </View>
-                  </Pressable>
+                  <BouncyChip key={name} label={name} selected={category === name} onPress={() => setCategory(name)}
+                    icon={iconOf(name)} iconColor={colorOf(name, theme)} />
                 ))}
               </View>
               <View style={{ gap: 7 }}>

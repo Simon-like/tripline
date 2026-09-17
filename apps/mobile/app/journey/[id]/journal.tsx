@@ -13,6 +13,7 @@ import {
   type JournalEntry, type Journey,
 } from '@tripline/shared';
 import { BouncyButton } from '../../../src/components/BouncyButton';
+import { BouncyChip } from '../../../src/components/BouncyChip';
 import { BottomSheet } from '../../../src/components/BottomSheet';
 import { CascadeIn } from '../../../src/components/CascadeIn';
 import { ConfettiCelebration } from '../../../src/components/ConfettiCelebration';
@@ -241,14 +242,9 @@ export default function Journal() {
               </View>
               <TripText size={13} weight="semibold">加个小标签（可多选）</TripText>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                {JOURNAL_TAG_PRESETS.map((tag) => {
-                  const active = selectedTags.includes(tag);
-                  return (
-                    <Pressable key={tag} onPress={() => toggleTag(tag)} style={{ paddingHorizontal: 15, paddingVertical: 9, borderRadius: 999, backgroundColor: active ? theme.primary : theme.surfaceAlt }}>
-                      <TripText size={13} weight="semibold" style={{ color: active ? theme.onPrimary : theme.text }}># {tag}</TripText>
-                    </Pressable>
-                  );
-                })}
+                {JOURNAL_TAG_PRESETS.map((tag) => (
+                  <BouncyChip key={tag} label={'# ' + tag} selected={selectedTags.includes(tag)} onPress={() => toggleTag(tag)} />
+                ))}
               </View>
               <View style={{ gap: 7 }}>
                 <TripText size={13} weight="semibold">自定义标签（至多一个，可空）</TripText>

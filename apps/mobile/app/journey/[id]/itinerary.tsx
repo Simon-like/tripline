@@ -10,6 +10,7 @@ import {
   type ItineraryItem, type Journey,
 } from '@tripline/shared';
 import { BouncyButton } from '../../../src/components/BouncyButton';
+import { BouncyChip } from '../../../src/components/BouncyChip';
 import { BottomSheet } from '../../../src/components/BottomSheet';
 import { CascadeIn } from '../../../src/components/CascadeIn';
 import { ConfettiCelebration } from '../../../src/components/ConfettiCelebration';
@@ -160,12 +161,13 @@ export default function Itinerary() {
           {days.map((date, index) => {
             const active = date === selectedDate;
             return (
-              <Pressable key={date} onPress={() => setDayIndex(index)} accessibilityRole="button" accessibilityLabel={'Day ' + (index + 1)}
-                style={{ borderRadius: 999, paddingHorizontal: 17, paddingVertical: 10, backgroundColor: active ? theme.primary : theme.surface, borderWidth: 1, borderColor: active ? theme.primary : theme.border }}>
-                <TripText size={13} weight="bold" style={{ color: active ? theme.onPrimary : theme.text }}>
-                  Day {index + 1} · {date.slice(5).replace('-', '/')}
-                </TripText>
-              </Pressable>
+              <BouncyChip key={date} label={`Day ${index + 1} · ${date.slice(5).replace('-', '/')}`}
+                selected={active} onPress={() => setDayIndex(index)} accessibilityLabel={'Day ' + (index + 1)}
+                style={{
+                  paddingHorizontal: 17, paddingVertical: 10,
+                  backgroundColor: active ? theme.primary : theme.surface,
+                  borderWidth: 1, borderColor: active ? theme.primary : theme.border,
+                }} />
             );
           })}
         </ScrollView>

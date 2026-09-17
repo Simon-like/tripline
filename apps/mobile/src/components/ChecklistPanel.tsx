@@ -1,11 +1,22 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { Modal, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
-import { Icon, type IconName } from '@tripline/ui';
+import Svg, { Path } from 'react-native-svg';
+import Animated, {
+  useAnimatedProps,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+import { Icon, motion, type IconName } from '@tripline/ui';
 import { ChecklistItemSchema, SCHEMA_VERSION, checklistProgress, type ChecklistItem, type Journey } from '@tripline/shared';
 import { BouncyButton } from './BouncyButton';
+import { BouncyChip } from './BouncyChip';
 import { BottomSheet } from './BottomSheet';
 import { CascadeIn } from './CascadeIn';
 import { ConfettiCelebration } from './ConfettiCelebration';
@@ -15,6 +26,101 @@ import { addChecklistItem, deleteChecklistItem, getJourney, listChecklistItems, 
 import { chineseFont, useTriplineTheme } from '../theme';
 
 export type ChecklistCategory = { name: string; icon: IconName };
+
+const AnimatedCheckPath = Animated.createAnimatedComponent(Path);
+/** 对勾描边路径（27×27 盒体内），全长 ≈ 19pt */
+const CHECK_PATH = 'M7.5 14 L11.8 18.3 L19.8 9';
+const CHECK_LEN = 19;
+/** 勾选描绘时长（150–200ms 区间） */
+const CHECK_DURATION = 170;
+
+/** 勾选框：勾选时描边描绘打勾 + 盒体 Q 弹填充；取消勾选反向瞬时；减弱动效瞬变（保留变色反馈） */
+function ChecklistBox({ checked }: { checked: boolean }) {
+  const { theme } = useTriplineTheme();
+  const reducedMotion = useReducedMotion();
+  const progress = useSharedValue(checked ? 1 : 0);
+  const scale = useSharedValue(1);
+  const mounted = useRef(false);
+  useEffect(() => {
+    const first = !mounted.current;
+    mounted.current = true;
+    if (reducedMotion || first) {
+      // 首帧（如载入已勾选项）与减弱动效：瞬时到位，不播回弹
+      progress.value = checked ? 1 : 0;
+      scale.value = 1;
+      return;
+    }
+    if (checked) {
+      progress.value = withTiming(1, { duration: CHECK_DURATION });
+      scale.value = 0.72;
+      scale.value = withSpring(1, { duration: motion.instant, dampingRatio: 0.55 });
+    } else {
+      progress.value = 0; // 取消勾选：瞬时消失
+    }
+  }, [checked, reducedMotion, progress, scale]);
+  const checkProps = useAnimatedProps(() => ({ strokeDashoffset: (1 - progress.value) * CHECK_LEN }));
+  const boxStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  return (
+    <Animated.View style={[{
+      width: 27, height: 27, borderRadius: 10, borderWidth: 2,
+      borderColor: checked ? theme.primary : theme.border,
+      backgroundColor: checked ? theme.primary : theme.surface,
+      alignItems: 'center', justifyContent: 'center',
+    }, boxStyle]}>
+      <Svg width={25} height={25} viewBox="0 0 27 27">
+        <AnimatedCheckPath d={CHECK_PATH} fill="none" stroke={theme.onPrimary} strokeWidth={3}
+          strokeLinecap="round" strokeLinejoin="round"
+          strokeDasharray={`${CHECK_LEN} ${CHECK_LEN}`} animatedProps={checkProps} />
+      </Svg>
+    </Animated.View>
+  );
+}
+
+/** 单条清单：勾选瞬间整卡轻下沉回弹（0.98→1，≤200ms）；删除线/变灰/haptic 逻辑不变 */
+function ChecklistRow({ item, index, total, onToggle, onRemove }: {
+  item: ChecklistItem;
+  index: number;
+  total: number;
+  onToggle: () => void;
+  onRemove: () => void;
+}) {
+  const { theme } = useTriplineTheme();
+  const reducedMotion = useReducedMotion();
+  const scale = useSharedValue(1);
+  const previousChecked = useRef(item.checked);
+  useEffect(() => {
+    const was = previousChecked.current;
+    previousChecked.current = item.checked;
+    if (reducedMotion) {
+      scale.value = 1;
+      return;
+    }
+    if (item.checked && !was) {
+      scale.value = withSequence(
+        withTiming(0.98, { duration: 90 }),
+        withSpring(1, { duration: motion.instant, dampingRatio: motion.dampingRatio }),
+      );
+    }
+  }, [item.checked, reducedMotion, scale]);
+  const cardStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  return (
+    <CascadeIn index={index} total={total}>
+      <Animated.View style={cardStyle}>
+        <View style={{ backgroundColor: theme.surface, borderRadius: 21, minHeight: 60, flexDirection: 'row', alignItems: 'center', paddingLeft: 16, paddingRight: 9 }}>
+          <Pressable onPress={onToggle} accessibilityRole="checkbox" accessibilityState={{ checked: item.checked }} accessibilityLabel={item.title} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 13, paddingVertical: 12 }}>
+            <ChecklistBox checked={item.checked} />
+            <TripText size={15} weight="semibold" style={{ color: item.checked ? theme.textSecondary : theme.text, textDecorationLine: item.checked ? 'line-through' : 'none', flex: 1 }}>{item.title}</TripText>
+          </Pressable>
+          <Pressable onPress={onRemove} accessibilityRole="button" accessibilityLabel={'删除' + item.title}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="trash" size={18} color={theme.textSecondary} />
+          </Pressable>
+        </View>
+      </Animated.View>
+    </CascadeIn>
+  );
+}
 
 export type ChecklistPanelCopy = {
   heading: string;
@@ -176,21 +282,8 @@ export function ChecklistPanel({ journeyId, phase, categories, copy, beforeLoad 
             {group.items.map((item) => {
               const index = cascadeIndex++;
               return (
-                <CascadeIn key={item.id} index={index} total={items.length}>
-                  <View style={{ backgroundColor: theme.surface, borderRadius: 21, minHeight: 60, flexDirection: 'row', alignItems: 'center', paddingLeft: 16, paddingRight: 9 }}>
-                    <Pressable onPress={() => { void toggle(item); }} accessibilityRole="checkbox" accessibilityState={{ checked: item.checked }} accessibilityLabel={item.title} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 13, paddingVertical: 12 }}>
-                      <View style={{ width: 27, height: 27, borderRadius: 10, borderWidth: 2, borderColor: item.checked ? theme.primary : theme.border, backgroundColor: item.checked ? theme.primary : theme.surface, alignItems: 'center', justifyContent: 'center' }}>
-                        {item.checked ? <TripText size={16} weight="bold" style={{ color: theme.onPrimary, lineHeight: 19 }}>✓</TripText> : null}
-                      </View>
-                      <TripText size={15} weight="semibold" style={{ color: item.checked ? theme.textSecondary : theme.text, textDecorationLine: item.checked ? 'line-through' : 'none', flex: 1 }}>{item.title}</TripText>
-                    </Pressable>
-                    <Pressable onPress={() => setRemoving(item)} accessibilityRole="button" accessibilityLabel={'删除' + item.title}
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                      style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
-                      <Icon name="trash" size={18} color={theme.textSecondary} />
-                    </Pressable>
-                  </View>
-                </CascadeIn>
+                <ChecklistRow key={item.id} item={item} index={index} total={items.length}
+                  onToggle={() => { void toggle(item); }} onRemove={() => setRemoving(item)} />
               );
             })}
           </View>
@@ -215,12 +308,8 @@ export function ChecklistPanel({ journeyId, phase, categories, copy, beforeLoad 
               <TripText size={13} weight="semibold">放在哪一类？</TripText>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {categories.map((entry) => (
-                  <Pressable key={entry.name} onPress={() => setCategory(entry.name)} style={{ paddingHorizontal: 15, paddingVertical: 9, borderRadius: 999, backgroundColor: category === entry.name ? theme.primary : theme.surfaceAlt }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Icon name={entry.icon} size={14} color={category === entry.name ? theme.onPrimary : theme.textSecondary} />
-                      <TripText size={13} weight="semibold" style={{ color: category === entry.name ? theme.onPrimary : theme.text }}>{entry.name}</TripText>
-                    </View>
-                  </Pressable>
+                  <BouncyChip key={entry.name} label={entry.name} selected={category === entry.name}
+                    onPress={() => setCategory(entry.name)} icon={entry.icon} />
                 ))}
               </View>
               <BouncyButton onPress={() => { void add(); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 15, alignItems: 'center' }}>
