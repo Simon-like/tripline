@@ -93,7 +93,11 @@ export function JourneyForm({ visible, initial, onClose, onSave }: {
                 <TripText size={27} weight="bold">{initial ? '编辑旅程' : '新建旅程'}</TripText>
                 <Icon name="sparkle" size={21} color={theme.accent} />
               </View>
-              <Pressable onPress={onClose}><TripText size={22} muted>×</TripText></Pressable>
+              <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="关闭表单"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: -12 }}>
+                <Icon name="close" size={21} color={theme.textSecondary} />
+              </Pressable>
             </View>
             <TripText size={13} muted>先定个方向，其他精彩可以路上慢慢补。</TripText>
             {fields.slice(0, 1).map((field) => (

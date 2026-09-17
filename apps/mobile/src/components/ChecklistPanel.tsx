@@ -184,7 +184,11 @@ export function ChecklistPanel({ journeyId, phase, categories, copy, beforeLoad 
                       </View>
                       <TripText size={15} weight="semibold" style={{ color: item.checked ? theme.textSecondary : theme.text, textDecorationLine: item.checked ? 'line-through' : 'none', flex: 1 }}>{item.title}</TripText>
                     </Pressable>
-                    <Pressable onPress={() => setRemoving(item)} accessibilityLabel={'删除' + item.title} style={{ padding: 10 }}><TripText size={20} muted>×</TripText></Pressable>
+                    <Pressable onPress={() => setRemoving(item)} accessibilityRole="button" accessibilityLabel={'删除' + item.title}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon name="trash" size={18} color={theme.textSecondary} />
+                    </Pressable>
                   </View>
                 </CascadeIn>
               );
@@ -194,7 +198,10 @@ export function ChecklistPanel({ journeyId, phase, categories, copy, beforeLoad 
       )}
 
       <BouncyButton onPress={() => { setError(''); setAdding(true); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 16, alignItems: 'center' }}>
-        <TripText size={15} weight="bold" style={{ color: theme.onAccent }}>{copy.addCta}</TripText>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+          <Icon name="plus" size={17} color={theme.onAccent} />
+          <TripText size={15} weight="bold" style={{ color: theme.onAccent }}>{copy.addCta}</TripText>
+        </View>
       </BouncyButton>
       {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
 

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
+import { Icon } from '@tripline/ui';
 import { toLocalDateString } from '@tripline/shared';
 import { getJourney, listExpenses, listItineraryItems, listJournalEntries } from '../data/database';
 import { summarizeJourney } from '../data/journeySummary';
@@ -48,7 +49,11 @@ export function JourneySummarySheet({ journeyId, visible, onClose }: Props) {
           <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: Math.max(insets.bottom, 20) + 12, gap: 18 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <TripText size={24} weight="bold">把这一程，收进回忆</TripText>
-              <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="关闭总结" style={{ padding: 8 }}><TripText size={22} muted>×</TripText></Pressable>
+              <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="关闭总结"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: -12 }}>
+                <Icon name="close" size={21} color={theme.textSecondary} />
+              </Pressable>
             </View>
             {summary ? <>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>

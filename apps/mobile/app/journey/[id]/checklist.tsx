@@ -26,7 +26,7 @@ export default function Checklist() {
         completeBody: '行李和期待都打包好了，祝你一路精彩。',
         listTitle: '我的准备清单',
         listHint: '点一下，勾掉一件',
-        addCta: '＋ 添加要准备的事',
+        addCta: '添加要准备的事',
         addTitle: '再加一件小事',
         addPlaceholder: '比如：带上拍立得',
         emptyTitle: '清单还空着',

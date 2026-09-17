@@ -202,8 +202,10 @@ export default function Itinerary() {
                     <TripText size={16} weight="bold" style={item.state === 'cancelled' ? { textDecorationLine: 'line-through', color: theme.textSecondary } : undefined}>{item.content}</TripText>
                     {item.note ? <TripText size={13} muted>{item.note}</TripText> : null}
                     <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-                      <Pressable onPress={() => setRemoving(item)} accessibilityLabel={'删除' + item.content} hitSlop={8} style={{ padding: 4 }}>
-                        <TripText size={13} muted>删除</TripText>
+                      <Pressable onPress={() => setRemoving(item)} accessibilityRole="button" accessibilityLabel={'删除' + item.content}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: -8, marginBottom: -8 }}>
+                        <Icon name="trash" size={17} color={theme.textSecondary} />
                       </Pressable>
                     </View>
                   </View>
@@ -215,7 +217,10 @@ export default function Itinerary() {
       )}
 
       <BouncyButton onPress={() => { setError(''); setAdding(true); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 16, alignItems: 'center' }}>
-        <TripText size={15} weight="bold" style={{ color: theme.onAccent }}>＋ 给 Day {dayIndex + 1} 加一笔安排</TripText>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+          <Icon name="plus" size={17} color={theme.onAccent} />
+          <TripText size={15} weight="bold" style={{ color: theme.onAccent }}>给 Day {dayIndex + 1} 加一笔安排</TripText>
+        </View>
       </BouncyButton>
       {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
 

@@ -180,8 +180,10 @@ export default function Journal() {
                   <View style={{ backgroundColor: theme.surface, borderRadius: 24, padding: 18, gap: 8 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                       <TripText size={13} numbers muted>{timeOf(entry.timestamp)}</TripText>
-                      <Pressable onPress={() => setRemoving(entry)} accessibilityLabel={'删除这条见闻'} hitSlop={8} style={{ padding: 4 }}>
-                        <TripText size={13} muted>删除</TripText>
+                      <Pressable onPress={() => setRemoving(entry)} accessibilityRole="button" accessibilityLabel={'删除这条见闻'}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: -10, marginVertical: -10 }}>
+                        <Icon name="trash" size={17} color={theme.textSecondary} />
                       </Pressable>
                     </View>
                     <TripText size={16} weight="semibold" style={{ lineHeight: 24 }}>{entry.text}</TripText>
@@ -215,7 +217,10 @@ export default function Journal() {
       )}
 
       <BouncyButton onPress={() => { setError(''); setPhotos([]); setAdding(true); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 16, alignItems: 'center' }}>
-        <TripText size={15} weight="bold" style={{ color: theme.onAccent }}>＋ 记一条见闻</TripText>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+          <Icon name="plus" size={17} color={theme.onAccent} />
+          <TripText size={15} weight="bold" style={{ color: theme.onAccent }}>记一条见闻</TripText>
+        </View>
       </BouncyButton>
       {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
 
@@ -262,9 +267,10 @@ export default function Journal() {
                     <View key={photo.uri}>
                       <Image source={{ uri: photo.uri }} resizeMode="cover"
                         style={{ width: 68, height: 68, borderRadius: 14, backgroundColor: theme.surfaceAlt }} />
-                      <Pressable onPress={() => removePickedPhoto(index)} accessibilityRole="button" accessibilityLabel={`移除第 ${index + 1} 张照片`} hitSlop={6}
-                        style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: theme.accent, alignItems: 'center', justifyContent: 'center' }}>
-                        <TripText size={12} weight="bold" style={{ color: theme.onAccent, lineHeight: 15 }}>×</TripText>
+                      <Pressable onPress={() => removePickedPhoto(index)} accessibilityRole="button" accessibilityLabel={`移除第 ${index + 1} 张照片`}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        style={{ position: 'absolute', top: -7, right: -7, width: 24, height: 24, borderRadius: 12, backgroundColor: theme.accent, alignItems: 'center', justifyContent: 'center' }}>
+                        <Icon name="close" size={11} color={theme.onAccent} />
                       </Pressable>
                     </View>
                   ))}
@@ -284,13 +290,25 @@ export default function Journal() {
 
       <Modal visible={!!viewing} animationType={reducedMotion ? 'none' : 'fade'} onRequestClose={() => setViewing(null)}>
         <View style={{ flex: 1, backgroundColor: theme.bg, paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 16) }}>
-          <Pressable onPress={() => setViewing(null)} accessibilityRole="button" accessibilityLabel="关闭照片查看" style={{ padding: 16, alignSelf: 'flex-end' }}><TripText>关闭 ×</TripText></Pressable>
+          <Pressable onPress={() => setViewing(null)} accessibilityRole="button" accessibilityLabel="关闭照片查看"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{ margin: 4, width: 44, height: 44, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-end' }}>
+            <Icon name="close" size={24} color={theme.textSecondary} />
+          </Pressable>
           {viewing ? <>
             <JournalPhoto path={viewing.paths[viewing.index]} full style={{ width: '100%', flex: 1 }} />
-            <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', padding: 16 }}>
-              <Pressable disabled={viewing.index === 0} onPress={() => setViewing({ ...viewing, index: viewing.index - 1 })} accessibilityLabel="上一张照片" style={{ padding: 12, opacity: viewing.index === 0 ? 0.3 : 1 }}><TripText>上一张</TripText></Pressable>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', padding: 12 }}>
+              <Pressable disabled={viewing.index === 0} onPress={() => setViewing({ ...viewing, index: viewing.index - 1 })} accessibilityRole="button" accessibilityLabel="上一张照片"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={{ width: 48, height: 48, borderRadius: 999, backgroundColor: theme.surfaceAlt, alignItems: 'center', justifyContent: 'center', opacity: viewing.index === 0 ? 0.3 : 1 }}>
+                <Icon name="chevron-left" size={24} color={theme.text} />
+              </Pressable>
               <TripText numbers muted>{viewing.index + 1} / {viewing.paths.length}</TripText>
-              <Pressable disabled={viewing.index === viewing.paths.length - 1} onPress={() => setViewing({ ...viewing, index: viewing.index + 1 })} accessibilityLabel="下一张照片" style={{ padding: 12, opacity: viewing.index === viewing.paths.length - 1 ? 0.3 : 1 }}><TripText>下一张</TripText></Pressable>
+              <Pressable disabled={viewing.index === viewing.paths.length - 1} onPress={() => setViewing({ ...viewing, index: viewing.index + 1 })} accessibilityRole="button" accessibilityLabel="下一张照片"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={{ width: 48, height: 48, borderRadius: 999, backgroundColor: theme.surfaceAlt, alignItems: 'center', justifyContent: 'center', opacity: viewing.index === viewing.paths.length - 1 ? 0.3 : 1 }}>
+                <Icon name="chevron-right" size={24} color={theme.text} />
+              </Pressable>
             </View>
           </> : null}
         </View>

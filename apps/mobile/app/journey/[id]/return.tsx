@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
+import { Icon } from '@tripline/ui';
 import { TripText } from '../../../src/components/TripText';
 import { JourneySummarySheet } from '../../../src/components/JourneySummarySheet';
 import { useTriplineTheme } from '../../../src/theme';
@@ -23,7 +24,13 @@ export default function Return() {
     <>
     <Page tabbed>
       <Pressable onPress={() => setSummarizing(true)} accessibilityRole="button" accessibilityLabel="查看旅行总结" style={{ backgroundColor: theme.primarySoft, padding: 20, borderRadius: 24 }}>
-        <View style={{ gap: 6 }}><TripText size={18} weight="bold">这一程，值得回味</TripText><TripText size={13} muted>查看旅行小结，留住走过的路与故事 →</TripText></View>
+        <View style={{ gap: 6 }}>
+          <TripText size={18} weight="bold">这一程，值得回味</TripText>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <TripText size={13} muted>查看旅行小结，留住走过的路与故事</TripText>
+            <Icon name="arrow-up-right" size={14} color={theme.textSecondary} />
+          </View>
+        </View>
       </Pressable>
       <ChecklistPanel journeyId={id} phase="return" categories={categories} beforeLoad={ensureDemoReturnChecklist} copy={{
         heading: '最后一程，也照顾周全',
@@ -34,7 +41,7 @@ export default function Return() {
         completeBody: '行李、票据和家里的事都安排好了，欢迎回家。',
         listTitle: '返程检查清单',
         listHint: '点一下，勾掉一件',
-        addCta: '＋ 添加要核对的事',
+        addCta: '添加要核对的事',
         addTitle: '再记一件返程小事',
         addPlaceholder: '比如：退回租借的相机',
         emptyTitle: '返程清单还空着',

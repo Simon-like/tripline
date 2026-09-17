@@ -166,8 +166,9 @@ export default function Home() {
               <TripText size={12} numbers muted>{homeJourneys.length} / {MAX_OPEN_JOURNEYS}</TripText>
             </View>
             <Pressable onPress={() => setPickerVisible(true)} accessibilityRole="button" accessibilityLabel={`查看全部${journeys.length}趟旅程`}
-              style={{ backgroundColor: theme.primarySoft, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 }}>
-              <TripText size={12} weight="bold" style={{ color: theme.primary }}>全部 {journeys.length}  ›</TripText>
+              style={{ backgroundColor: theme.primarySoft, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+              <TripText size={12} weight="bold" style={{ color: theme.primary }}>全部 {journeys.length}</TripText>
+              <Icon name="chevron-right" size={13} color={theme.primary} />
             </Pressable>
           </View>
           <JourneyCarousel journeys={homeJourneys} selectedId={current.id} today={today} dark={dark}
@@ -196,9 +197,19 @@ export default function Home() {
             </BouncyButton>
           </View>
 
-          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 18 }}>
-            <Pressable onPress={() => { setEditing(current); setFormVisible(true); }}><TripText size={13} style={{ color: theme.primary }}>编辑旅程</TripText></Pressable>
-            <Pressable onPress={() => setDeleting(current)}><TripText size={13} muted>删除旅程</TripText></Pressable>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
+            <Pressable onPress={() => { setEditing(current); setFormVisible(true); }} accessibilityRole="button" accessibilityLabel="编辑旅程"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={{ minHeight: 40, borderRadius: 999, paddingHorizontal: 14, backgroundColor: theme.primarySoft, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Icon name="edit" size={14} color={theme.primary} />
+              <TripText size={13} weight="semibold" style={{ color: theme.primary }}>编辑旅程</TripText>
+            </Pressable>
+            <Pressable onPress={() => setDeleting(current)} accessibilityRole="button" accessibilityLabel="删除旅程"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={{ minHeight: 40, borderRadius: 999, paddingHorizontal: 14, backgroundColor: theme.surface, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Icon name="trash" size={14} color={theme.textSecondary} />
+              <TripText size={13} muted>删除旅程</TripText>
+            </Pressable>
           </View>
         </>
       ) : (
@@ -209,7 +220,10 @@ export default function Home() {
       )}
 
       <BouncyButton onPress={startCreatingJourney} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 17, alignItems: 'center' }}>
-        <TripText size={16} weight="bold" style={{ color: theme.onAccent }}>＋ 开启新旅程</TripText>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+          <Icon name="plus" size={17} color={theme.onAccent} />
+          <TripText size={16} weight="bold" style={{ color: theme.onAccent }}>开启新旅程</TripText>
+        </View>
       </BouncyButton>
       {homeJourneys.length >= MAX_OPEN_JOURNEYS ? (
         <TripText size={12} muted style={{ textAlign: 'center', marginTop: -8 }}>旅程不是排期，生活不用赶集。</TripText>
@@ -254,7 +268,7 @@ export default function Home() {
                         <TripText size={16} weight="bold">{journey.name}</TripText>
                         <TripText size={12} muted>{journey.startDate} — {journey.endDate}</TripText>
                       </View>
-                      <TripText size={18} style={{ color: theme.primary }}>›</TripText>
+                      <Icon name="chevron-right" size={19} color={theme.primary} />
                     </Pressable>
                   ))}
                 </View>

@@ -109,8 +109,12 @@ function WindCard({ journey, index, width, today, scrollX, palette, selected, on
                 paddingHorizontal: 12,
                 paddingVertical: 7,
                 opacity: pressed ? 0.82 : 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
               })}>
-              <TripText size={12} weight="semibold" style={{ color: palette.card }}>进入旅程 →</TripText>
+              <TripText size={12} weight="semibold" style={{ color: palette.card }}>进入旅程</TripText>
+              <Icon name="arrow-up-right" size={13} color={palette.card} />
             </Pressable>
           ) : (
             <TripText pointerEvents="none" size={12} weight="semibold" style={{ color: palette.onCard }}>轻触切换</TripText>

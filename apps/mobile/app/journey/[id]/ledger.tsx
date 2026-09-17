@@ -5,7 +5,7 @@ import Svg, { Circle, Polyline } from 'react-native-svg';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
-import { Icon, motion } from '@tripline/ui';
+import { Icon, motion, type IconName } from '@tripline/ui';
 import {
   EXPENSE_CATEGORIES, ExpenseSchema, SCHEMA_VERSION, budgetSummary, categoryBreakdown, dailyExpenseTotals,
   type Expense, type ExpenseCategory, type Journey,
@@ -21,11 +21,24 @@ import { ensureDemoExpenses } from '../../../src/data/demo';
 import { chineseFont, useTriplineTheme } from '../../../src/theme';
 
 const categoryColors = ['accent', 'primary', 'celebrate', 'success', 'shadow', 'textSecondary'] as const;
+/** 账本六分类 → 图标映射（与 EXPENSE_CATEGORIES 顺序无关，按名称取） */
+const categoryIcons: Record<ExpenseCategory, IconName> = {
+  餐饮: 'food',
+  住宿: 'home',
+  交通: 'train',
+  门票: 'ticket',
+  购物: 'bag',
+  其他: 'sparkle',
+};
 const feedbackDuration = 600;
 
 function colorOf(category: string, theme: Record<string, string>): string {
   const index = (EXPENSE_CATEGORIES as readonly string[]).indexOf(category);
   return theme[categoryColors[index >= 0 ? index % categoryColors.length : categoryColors.length - 1]];
+}
+
+function iconOf(category: string): IconName {
+  return (categoryIcons as Record<string, IconName>)[category] ?? 'sparkle';
 }
 
 function yuan(cents: number): string {
@@ -293,17 +306,22 @@ export default function Ledger() {
         <View style={{ gap: 10 }}>
           {expenses.map((expense, index) => (
             <CascadeIn key={expense.id} index={index} total={expenses.length}>
-              <View style={{ backgroundColor: theme.surface, borderRadius: 21, paddingLeft: 16, paddingRight: 12, paddingVertical: 13, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <View style={{ width: 34, height: 34, borderRadius: 12, backgroundColor: theme.surfaceAlt, alignItems: 'center', justifyContent: 'center' }}>
-                  <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: colorOf(expense.category, theme) }} />
+              <View style={{ backgroundColor: theme.surface, borderRadius: 21, paddingLeft: 14, paddingRight: 6, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <View style={{ width: 40, height: 40, borderRadius: 999, backgroundColor: colorOf(expense.category, theme) + '1F', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon name={iconOf(expense.category)} size={19} color={colorOf(expense.category, theme)} />
                 </View>
                 <View style={{ flex: 1, minWidth: 0, gap: 1 }}>
-                  <TripText size={15} weight="semibold">{expense.category}{expense.note ? ' · ' + expense.note : ''}</TripText>
+                  <TripText size={15} weight="semibold" numberOfLines={1}>
+                    {expense.category}
+                    {expense.note ? <TripText size={13} muted>{' · ' + expense.note}</TripText> : null}
+                  </TripText>
                   <TripText size={11} muted>{stamp(expense.createdAt)}</TripText>
                 </View>
                 <TripText size={16} numbers>{yuan(expense.amount)}</TripText>
-                <Pressable onPress={() => setRemoving(expense)} accessibilityLabel={'删除' + expense.category + ' ' + yuan(expense.amount)} hitSlop={8} style={{ padding: 6 }}>
-                  <TripText size={17} muted>×</TripText>
+                <Pressable onPress={() => setRemoving(expense)} accessibilityRole="button" accessibilityLabel={'删除' + expense.category + ' ' + yuan(expense.amount)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon name="trash" size={18} color={theme.textSecondary} />
                 </Pressable>
               </View>
             </CascadeIn>
@@ -312,7 +330,10 @@ export default function Ledger() {
       )}
 
       <BouncyButton onPress={() => { setError(''); setAdding(true); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 16, alignItems: 'center' }}>
-        <TripText size={15} weight="bold" style={{ color: theme.onAccent }}>＋ 记一笔</TripText>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+          <Icon name="plus" size={17} color={theme.onAccent} />
+          <TripText size={15} weight="bold" style={{ color: theme.onAccent }}>记一笔</TripText>
+        </View>
       </BouncyButton>
       {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
 
@@ -332,7 +353,7 @@ export default function Ledger() {
                 {EXPENSE_CATEGORIES.map((name) => (
                   <Pressable key={name} onPress={() => setCategory(name)} style={{ paddingHorizontal: 15, paddingVertical: 9, borderRadius: 999, backgroundColor: category === name ? theme.primary : theme.surfaceAlt }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: category === name ? theme.onPrimary : colorOf(name, theme) }} />
+                      <Icon name={iconOf(name)} size={14} color={category === name ? theme.onPrimary : colorOf(name, theme)} />
                       <TripText size={13} weight="semibold" style={{ color: category === name ? theme.onPrimary : theme.text }}>{name}</TripText>
                     </View>
                   </Pressable>
