@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, TextInput, View } from 'react-native';
 import type { Journey } from '@tripline/shared';
 import { JourneySchema, toLocalDateString } from '@tripline/shared';
@@ -7,6 +7,8 @@ import { BouncyButton } from './BouncyButton';
 import { BottomSheet } from './BottomSheet';
 import { DatePickerSheet, formatDateLabel } from './DatePickerSheet';
 import { TripText } from './TripText';
+import { useFocusField } from './formStyles';
+import { groupThousands } from './rollingNumberMath';
 import { chineseFont, useTriplineTheme } from '../theme';
 
 export type JourneyDraft = Pick<Journey, 'name' | 'startDate' | 'endDate' | 'budget' | 'companions' | 'tags'>;
@@ -46,12 +48,37 @@ export function JourneyForm({ visible, initial, onClose, onSave }: {
     setError('');
   }, [visible, initial]);
 
+  const nameField = useFocusField();
+  const budgetField = useFocusField(error.includes('预算'));
+  const companionsField = useFocusField();
+  const tagsField = useFocusField();
+  const inputRefs = useRef<(TextInput | null)[]>([]);
+
   const fields = [
-    { label: '旅程名称', value: name, onChangeText: setName, placeholder: '比如：香格里拉 · 5天4晚', keyboardType: 'default' as const },
-    { label: '总预算（元）', value: budget, onChangeText: setBudget, placeholder: '例如 4500', keyboardType: 'decimal-pad' as const },
-    { label: '同行人', value: companions, onChangeText: setCompanions, placeholder: '多人用逗号隔开', keyboardType: 'default' as const },
-    { label: '标签', value: tags, onChangeText: setTags, placeholder: '如：秋游，美食', keyboardType: 'default' as const },
+    { label: '旅程名称', value: name, onChangeText: setName, placeholder: '比如：香格里拉 · 5天4晚', keyboardType: 'default' as const, focus: nameField },
+    { label: '总预算（元）', value: budgetField.focused ? budget : groupThousands(budget), onChangeText: (text: string) => setBudget(text.replace(/,/g, '')), placeholder: '例如 4500', keyboardType: 'decimal-pad' as const, focus: budgetField },
+    { label: '同行人', value: companions, onChangeText: setCompanions, placeholder: '多人用逗号隔开', keyboardType: 'default' as const, focus: companionsField },
+    { label: '标签', value: tags, onChangeText: setTags, placeholder: '如：秋游，美食', keyboardType: 'default' as const, focus: tagsField },
   ];
+
+  function renderField(field: (typeof fields)[number]) {
+    const index = fields.indexOf(field);
+    const last = index === fields.length - 1;
+    return (
+      <View key={field.label} style={{ gap: 7 }}>
+        <TripText size={13} weight="semibold">{field.label}</TripText>
+        <TextInput
+          ref={(el) => { inputRefs.current[index] = el; }}
+          value={field.value} onChangeText={field.onChangeText} placeholder={field.placeholder}
+          placeholderTextColor={theme.textSecondary} keyboardType={field.keyboardType}
+          returnKeyType={last ? 'done' : 'next'} blurOnSubmit={last}
+          onSubmitEditing={() => { if (!last) inputRefs.current[index + 1]?.focus(); }}
+          {...field.focus.focusProps}
+          style={[{ backgroundColor: theme.bg, borderRadius: 16, paddingHorizontal: 15, paddingVertical: 12, color: theme.text, fontFamily: chineseFont, fontSize: 15, lineHeight: 22 }, field.focus.borderStyle]}
+        />
+      </View>
+    );
+  }
 
   async function submit() {
     if (!/^\d+(\.\d{1,2})?$/.test(budget.trim())) {
@@ -100,16 +127,7 @@ export function JourneyForm({ visible, initial, onClose, onSave }: {
               </Pressable>
             </View>
             <TripText size={13} muted>先定个方向，其他精彩可以路上慢慢补。</TripText>
-            {fields.slice(0, 1).map((field) => (
-              <View key={field.label} style={{ gap: 7 }}>
-                <TripText size={13} weight="semibold">{field.label}</TripText>
-                <TextInput
-                  value={field.value} onChangeText={field.onChangeText} placeholder={field.placeholder}
-                  placeholderTextColor={theme.textSecondary} keyboardType={field.keyboardType}
-                  style={{ borderWidth: 1, borderColor: theme.border, backgroundColor: theme.bg, borderRadius: 16, paddingHorizontal: 15, paddingVertical: 12, color: theme.text, fontFamily: chineseFont, fontSize: 15, lineHeight: 22 }}
-                />
-              </View>
-            ))}
+            {fields.slice(0, 1).map(renderField)}
             <View style={{ flexDirection: 'row', gap: 12 }}>
               {([
                 { label: '出发日期', value: startDate },
@@ -130,16 +148,7 @@ export function JourneyForm({ visible, initial, onClose, onSave }: {
                 </View>
               ))}
             </View>
-            {fields.slice(1).map((field) => (
-              <View key={field.label} style={{ gap: 7 }}>
-                <TripText size={13} weight="semibold">{field.label}</TripText>
-                <TextInput
-                  value={field.value} onChangeText={field.onChangeText} placeholder={field.placeholder}
-                  placeholderTextColor={theme.textSecondary} keyboardType={field.keyboardType}
-                  style={{ borderWidth: 1, borderColor: theme.border, backgroundColor: theme.bg, borderRadius: 16, paddingHorizontal: 15, paddingVertical: 12, color: theme.text, fontFamily: chineseFont, fontSize: 15, lineHeight: 22 }}
-                />
-              </View>
-            ))}
+            {fields.slice(1).map(renderField)}
             {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
             <BouncyButton onPress={submit} disabled={saving} style={{ backgroundColor: theme.accent, paddingVertical: 15, borderRadius: 999, alignItems: 'center', marginTop: 4 }}>
               <TripText size={16} weight="bold" style={{ color: theme.onAccent }}>{saving ? '保存中…' : initial ? '保存修改' : '创建旅程'}</TripText>

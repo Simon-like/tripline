@@ -10,6 +10,8 @@ import { useTriplineTheme } from '../theme';
 import { TripText } from './TripText';
 import { BouncyButton } from './BouncyButton';
 import { BottomSheet } from './BottomSheet';
+import { CascadeIn } from './CascadeIn';
+import { RollingNumber } from './RollingNumber';
 
 type Props = { journeyId: string; visible: boolean; onClose: () => void };
 export function JourneySummarySheet({ journeyId, visible, onClose }: Props) {
@@ -57,14 +59,31 @@ export function JourneySummarySheet({ journeyId, visible, onClose }: Props) {
             </View>
             {summary ? <>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-                {[[`${summary.completed}/${summary.total}`, '已去行程'], [`${summary.entries}`, '见闻'], [`${summary.photos}`, '照片记录']].map(([value, label]) => (
-                  <View key={label} style={{ flex: 1, minWidth: 85, backgroundColor: theme.primarySoft, borderRadius: 22, padding: 16, gap: 5 }}>
-                    <TripText size={24} numbers weight="bold" style={{ color: theme.primary }}>{value}</TripText><TripText size={12} muted>{label}</TripText>
-                  </View>
+                {[
+                  { value: summary.completed, label: '已去行程', format: (n: number) => `${n}/${summary.total}` },
+                  { value: summary.entries, label: '见闻', format: String },
+                  { value: summary.photos, label: '照片记录', format: String },
+                ].map((item, index) => (
+                  <CascadeIn key={item.label} index={index} total={3} style={{ flex: 1, minWidth: 85 }}>
+                    <View style={{ backgroundColor: theme.primarySoft, borderRadius: 22, padding: 16, gap: 5 }}>
+                      <RollingNumber value={item.value} size={24} weight="bold" format={item.format} style={{ color: theme.primary }} />
+                      <TripText size={12} muted>{item.label}</TripText>
+                    </View>
+                  </CascadeIn>
                 ))}
               </View>
               <TripText size={14} weight="semibold">{summary.budgetLine}</TripText>
-              <View style={{ backgroundColor: theme.surface, borderRadius: 24, padding: 18 }}><TripText size={14} selectable style={{ lineHeight: 24 }}>{summary.text}</TripText></View>
+              {/* 白卡只放叙事文字：胶囊/budgetLine 已展示的数字行与工程向说明在呈现层过滤，复制分享仍用完整 text */}
+              <View style={{ backgroundColor: theme.surface, borderRadius: 24, padding: 18 }}>
+                <TripText size={14} selectable style={{ lineHeight: 24 }}>
+                  {summary.text.split('\n').filter((line) =>
+                    line !== summary.budgetLine &&
+                    !line.startsWith('已去 ') &&
+                    !line.startsWith('留下 ') &&
+                    !line.startsWith('照片数按')
+                  ).join('\n')}
+                </TripText>
+              </View>
               {summary.total + summary.entries === 0 ? <TripText size={13} muted>还没留下记录也没关系，回忆可以慢慢补。</TripText> : null}
             </> : !error ? <TripText muted>正在整理这一程…</TripText> : null}
             {error ? <><TripText style={{ color: theme.accent }}>{error}</TripText>{!summary ? <Pressable onPress={() => setRetry((n) => n + 1)} accessibilityRole="button"><TripText>重新读取</TripText></Pressable> : null}</> : null}

@@ -16,7 +16,10 @@ import { BottomSheet } from '../../../src/components/BottomSheet';
 import { CascadeIn } from '../../../src/components/CascadeIn';
 import { ConfettiCelebration } from '../../../src/components/ConfettiCelebration';
 import { Page } from '../../../src/components/Page';
+import { RollingNumber } from '../../../src/components/RollingNumber';
 import { TripText } from '../../../src/components/TripText';
+import { useFocusField } from '../../../src/components/formStyles';
+import { groupThousands } from '../../../src/components/rollingNumberMath';
 import { addExpense, deleteExpense, getJourney, listExpenses, updateJourney } from '../../../src/data/database';
 import { ensureDemoExpenses } from '../../../src/data/demo';
 import { chineseFont, useTriplineTheme } from '../../../src/theme';
@@ -50,27 +53,6 @@ function stamp(ms: number): string {
   const date = new Date(ms);
   const pad = (value: number) => String(value).padStart(2, '0');
   return `${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
-function RollingNumber({ value, size, color }: { value: number; size: number; color?: string }) {
-  const reduceMotion = useReducedMotion();
-  const [display, setDisplay] = useState(value);
-  const previous = useRef(value);
-  useEffect(() => {
-    const from = previous.current;
-    previous.current = value;
-    if (reduceMotion || from === value) { setDisplay(value); return; }
-    const startedAt = performance.now();
-    let frame = 0;
-    const tick = (now: number) => {
-      const p = Math.min(1, (now - startedAt) / 600);
-      setDisplay(Math.round(from + (value - from) * (1 - Math.pow(1 - p, 3))));
-      if (p < 1) frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [value, reduceMotion]);
-  return <TripText size={size} numbers style={color ? { color } : undefined}>{yuan(display)}</TripText>;
 }
 
 function ConfettiBurst() {
@@ -131,6 +113,10 @@ export default function Ledger() {
   const [savedFlash, setSavedFlash] = useState(false);
   const [error, setError] = useState('');
   const addingExpense = useRef(false);
+  const noteRef = useRef<TextInput>(null);
+  const amountField = useFocusField(!!error && adding);
+  const noteField = useFocusField();
+  const budgetField = useFocusField(!!error && budgetEditing);
 
   const refresh = useCallback(async () => {
     if (!id) return;
@@ -235,7 +221,7 @@ export default function Ledger() {
             <TripText size={12} weight="semibold" style={{ color: theme.onPrimary, textAlign: 'right' }}>总预算 {yuan(summary.budget)} · 修改</TripText>
           </Pressable>
         </View>
-        <RollingNumber value={summary.remaining} size={38} color={theme.onPrimary} />
+        <RollingNumber value={summary.remaining} size={38} format={yuan} style={{ color: theme.onPrimary }} />
         <View style={{ gap: 7 }}>
           <View style={{ height: 10, borderRadius: 999, backgroundColor: theme.primarySoft, overflow: 'hidden' }}>
             <View style={{ width: `${Math.min(100, summary.percent)}%`, height: '100%', borderRadius: 999, backgroundColor: summary.status === 'normal' ? theme.success : theme.accent }} />
@@ -346,8 +332,10 @@ export default function Ledger() {
               </View>
               <View style={{ gap: 7 }}>
                 <TripText size={13} weight="semibold">金额（元）</TripText>
-                <TextInput value={amount} onChangeText={setAmount} placeholder="比如：86" placeholderTextColor={theme.textSecondary} keyboardType="decimal-pad"
-                  style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }} />
+                <TextInput value={amountField.focused ? amount : groupThousands(amount)} onChangeText={(text) => setAmount(text.replace(/,/g, ''))}
+                  placeholder="比如：86" placeholderTextColor={theme.textSecondary} keyboardType="decimal-pad"
+                  returnKeyType="next" blurOnSubmit={false} onSubmitEditing={() => noteRef.current?.focus()} {...amountField.focusProps}
+                  style={[{ backgroundColor: theme.bg, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }, amountField.borderStyle]} />
               </View>
               <TripText size={13} weight="semibold">花在哪一类？</TripText>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -358,8 +346,9 @@ export default function Ledger() {
               </View>
               <View style={{ gap: 7 }}>
                 <TripText size={13} weight="semibold">备注（可空）</TripText>
-                <TextInput value={note} onChangeText={setNote} placeholder="比如：古城北门那家牦牛火锅" placeholderTextColor={theme.textSecondary}
-                  style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }} />
+                <TextInput ref={noteRef} value={note} onChangeText={setNote} placeholder="比如：古城北门那家牦牛火锅" placeholderTextColor={theme.textSecondary}
+                  returnKeyType="done" {...noteField.focusProps}
+                  style={[{ backgroundColor: theme.bg, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }, noteField.borderStyle]} />
               </View>
               {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
               <BouncyButton onPress={() => { void add(); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 15, alignItems: 'center' }}>
@@ -371,8 +360,10 @@ export default function Ledger() {
       <BottomSheet visible={budgetEditing} onClose={() => setBudgetEditing(false)}>
             <View style={{ padding: 24, gap: 14 }}>
               <TripText size={24} weight="bold">修改总预算</TripText>
-              <TextInput value={budgetDraft} onChangeText={setBudgetDraft} placeholder="例如 4500" placeholderTextColor={theme.textSecondary} keyboardType="decimal-pad"
-                style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }} />
+              <TextInput value={budgetField.focused ? budgetDraft : groupThousands(budgetDraft)} onChangeText={(text) => setBudgetDraft(text.replace(/,/g, ''))}
+                placeholder="例如 4500" placeholderTextColor={theme.textSecondary} keyboardType="decimal-pad"
+                returnKeyType="done" onSubmitEditing={() => { void saveBudget(); }} {...budgetField.focusProps}
+                style={[{ backgroundColor: theme.bg, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }, budgetField.borderStyle]} />
               {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
               <BouncyButton onPress={() => { void saveBudget(); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 15, alignItems: 'center' }}>
                 <TripText size={16} weight="bold" style={{ color: theme.onAccent }}>保存预算</TripText>

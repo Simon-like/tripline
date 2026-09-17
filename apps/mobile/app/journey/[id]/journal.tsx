@@ -19,6 +19,7 @@ import { CascadeIn } from '../../../src/components/CascadeIn';
 import { ConfettiCelebration } from '../../../src/components/ConfettiCelebration';
 import { Page } from '../../../src/components/Page';
 import { TripText } from '../../../src/components/TripText';
+import { useFocusField } from '../../../src/components/formStyles';
 import { addJournalEntry, deleteJournalEntry, getJourney, listJournalEntries } from '../../../src/data/database';
 import { ensureDemoJournal } from '../../../src/data/demo';
 import { persistJournalPhotos, pickJournalPhotos, removeJournalPhotos, type PickedPhoto } from '../../../src/data/photos';
@@ -52,6 +53,7 @@ export default function Journal() {
   const [celebrating, setCelebrating] = useState(false);
   const [error, setError] = useState('');
   const saving = useRef(false);
+  const customTagField = useFocusField();
 
   const refresh = useCallback(async () => {
     if (!id) return;
@@ -249,7 +251,8 @@ export default function Journal() {
               <View style={{ gap: 7 }}>
                 <TripText size={13} weight="semibold">自定义标签（至多一个，可空）</TripText>
                 <TextInput value={customTag} onChangeText={setCustomTag} maxLength={12} placeholder="比如：阿 May 最爱" placeholderTextColor={theme.textSecondary}
-                  style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }} />
+                  returnKeyType="done" {...customTagField.focusProps}
+                  style={[{ backgroundColor: theme.bg, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }, customTagField.borderStyle]} />
               </View>
               <View style={{ gap: 7 }}>
                 <TripText size={13} weight="semibold">心情（可空）</TripText>

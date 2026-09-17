@@ -5,6 +5,7 @@ import { Icon } from '@tripline/ui';
 import { BouncyButton } from './BouncyButton';
 import { BottomSheet } from './BottomSheet';
 import { TripText } from './TripText';
+import { useFocusField } from './formStyles';
 import { importJourneyBundle } from '../data/database';
 import { chineseFont, useTriplineTheme } from '../theme';
 
@@ -35,6 +36,7 @@ export function ImportSheet({ visible, onClose, onImported }: Props) {
   const [preview, setPreview] = useState<JourneyBundle | null>(null);
   const [error, setError] = useState('');
   const importing = useRef(false);
+  const pasteField = useFocusField(!!error);
 
   useEffect(() => {
     if (!visible) {
@@ -81,8 +83,8 @@ export function ImportSheet({ visible, onClose, onImported }: Props) {
             </View>
             <TripText size={13} muted>把朋友发来的旅迹分享文案整段粘贴进来，自动识别。</TripText>
             <TextInput value={text} onChangeText={handleChange} multiline
-              placeholder="粘贴分享文案（含 TL1. 开头的那一行码）" placeholderTextColor={theme.textSecondary}
-              style={{ backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, minHeight: 110, maxHeight: 180, textAlignVertical: 'top', fontFamily: chineseFont, color: theme.text, fontSize: 15, lineHeight: 22 }} />
+              placeholder="粘贴分享文案（含 TL1. 开头的那一行码）" placeholderTextColor={theme.textSecondary} {...pasteField.focusProps}
+              style={[{ backgroundColor: theme.surface, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, minHeight: 110, maxHeight: 180, textAlignVertical: 'top', fontFamily: chineseFont, color: theme.text, fontSize: 15, lineHeight: 22 }, pasteField.borderStyle]} />
             {preview ? (
               <View style={{ backgroundColor: theme.primarySoft, borderRadius: 20, padding: 18, gap: 6 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>

@@ -17,6 +17,7 @@ import { ConfettiCelebration } from '../../../src/components/ConfettiCelebration
 import { Page } from '../../../src/components/Page';
 import { TripText } from '../../../src/components/TripText';
 import { TimePickerSheet } from '../../../src/components/TimePickerSheet';
+import { useFocusField } from '../../../src/components/formStyles';
 import { addItineraryItem, deleteItineraryItem, getJourney, listItineraryItems, setItineraryState } from '../../../src/data/database';
 import { ensureDemoItinerary } from '../../../src/data/demo';
 import { chineseFont, useTriplineTheme } from '../../../src/theme';
@@ -68,6 +69,9 @@ export default function Itinerary() {
   const [error, setError] = useState('');
   const pendingStates = useRef(new Set<string>());
   const addingItem = useRef(false);
+  const noteRef = useRef<TextInput>(null);
+  const contentField = useFocusField(!!error && adding);
+  const noteField = useFocusField();
 
   const refresh = useCallback(async () => {
     if (!id) return;
@@ -244,12 +248,14 @@ export default function Itinerary() {
               <View style={{ gap: 7 }}>
                 <TripText size={13} weight="semibold">去做什么</TripText>
                 <TextInput value={content} onChangeText={setContent} placeholder="比如：独克宗古城" placeholderTextColor={theme.textSecondary}
-                  style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }} />
+                  returnKeyType="next" blurOnSubmit={false} onSubmitEditing={() => noteRef.current?.focus()} {...contentField.focusProps}
+                  style={[{ backgroundColor: theme.bg, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }, contentField.borderStyle]} />
               </View>
               <View style={{ gap: 7 }}>
                 <TripText size={13} weight="semibold">备注（可空）</TripText>
-                <TextInput value={note} onChangeText={setNote} placeholder="比如：先适应海拔，慢慢逛" placeholderTextColor={theme.textSecondary}
-                  style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }} />
+                <TextInput ref={noteRef} value={note} onChangeText={setNote} placeholder="比如：先适应海拔，慢慢逛" placeholderTextColor={theme.textSecondary}
+                  returnKeyType="done" {...noteField.focusProps}
+                  style={[{ backgroundColor: theme.bg, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }, noteField.borderStyle]} />
               </View>
               {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
               <BouncyButton onPress={() => { void add(); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 15, alignItems: 'center' }}>

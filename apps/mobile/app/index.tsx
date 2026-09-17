@@ -12,6 +12,7 @@ import { JourneyCarousel } from '../src/components/JourneyCarousel';
 import { JourneyForm, type JourneyDraft } from '../src/components/JourneyForm';
 import { Page } from '../src/components/Page';
 import { ProgressRing } from '../src/components/ProgressRing';
+import { RollingNumber } from '../src/components/RollingNumber';
 import { TripText } from '../src/components/TripText';
 import { createJourney, deleteJourney, listChecklistItems, listJourneys, updateJourney } from '../src/data/database';
 import { ensureDemoJourney } from '../src/data/demo';
@@ -181,7 +182,9 @@ export default function Home() {
                 <Icon name="sun" size={15} color={theme.sun} />
               </View>
               <View>
-                <TripText size={38} numbers style={{ color: theme.text }}>{status === 'preparing' ? countdown : status === 'traveling' ? 'GO' : '✓'}</TripText>
+                {status === 'preparing'
+                  ? <RollingNumber value={countdown} size={38} style={{ color: theme.text }} />
+                  : <TripText size={38} numbers style={{ color: theme.text }}>{status === 'traveling' ? 'GO' : '✓'}</TripText>}
                 <TripText size={12} weight="semibold" style={{ color: theme.text }}>{status === 'preparing' ? '天后，故事开始' : status === 'traveling' ? '正在路上' : '把回忆收好'}</TripText>
               </View>
             </View>
