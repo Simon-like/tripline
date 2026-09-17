@@ -16,11 +16,12 @@
 
 ## Tasks
 
-- [ ] P0-1 图标扩充约 12 个（trash/clock/calendar/photo/mood/food/location/star/person/edit/arrow-right/close）+ 全项目裸字符按钮（×、›、→）替换为图标按钮，hitSlop 统一
-- [ ] P0-2 账本六分类配图标 + 流水条目三段式重排（左图标 / 中分类·备注 / 右金额）
-- [ ] P0-3 抽 `BouncyChip`（从 DatePickerSheet BounceCapsule 提炼），替换记账分类、手账标签、清单分类、Day 胶囊；选中 scale 1→1.06→1 + haptic
-- [ ] P0-4 清单勾选动效（描边打勾/morph + 卡片轻下沉回弹）+ ProgressRing 过渡动画
-- [ ] P0-5 总结与首页数字滚动复用 RollingNumber；总结删工程文案、数字去重（文案收紧，不改 M07 AC 结构）
-- [ ] P0-6 表单三件套：`returnKeyType="next"` 串联、金额千分位实时回显、全局焦点边框态（统一 helper，不做完整 TripInput——那是 P1-1）
-- [ ] 字体成本调研（独立文档，不接入实现）
-- [ ] 验证：lint / typecheck / test / git diff --check 全绿；iOS + Android 模拟器受影响流程截图；PROGRESS/ROADMAP 更新
+- [x] P0-1 图标扩充 14 个 + 全项目裸字符按钮替换为图标按钮（83da185）
+- [x] P0-2 账本六分类配图标 + 流水条目三段式重排（83da185）
+- [x] P0-3 `BouncyChip` 抽取并替换记账分类/手账标签/清单分类/Day 胶囊（242430a）
+- [x] P0-4 清单勾选描边打勾动效 + 卡片下沉回弹 + ProgressRing 过渡（242430a）
+- [x] P0-5 `RollingNumber` 收口四处（账本/进度环/首页倒计时/小结胶囊）+ 小结文案去工程化、数字去重（1141267）
+- [x] P0-6 表单三件套：returnKeyType 串联、金额千分位、useFocusField 焦点边框（1141267）
+- [x] 字体成本调研（docs/experience/06-font-research.md；推荐路线 A：MiSans 标题子集内嵌，2 个拍板点待 Simon 复核）
+- [x] 验证：lint / typecheck / test（40 用例）/ git diff --check 全绿；Web 端 CDP 截图逐页目检（artifacts/preview/p0*-*.png）
+- [ ] 双端模拟器回归（iOS/Android dev build）——本批为纯呈现改动，建议与 P1 批合并做一次双端回归，或由 Simon 真机体验

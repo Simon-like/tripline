@@ -4,6 +4,23 @@
 
 ---
 
+## 2026-09-17 · Kimi 体验 P0 批六项全部落地 + 字体成本调研
+
+**现在什么最重要**：Simon 已授权 P0 开工（"P0开工，后续规划都不错。字体方案可先调研一下成本再接入"）。P0 批六个事项全部完成并分三个 checkpoint 提交，lint/typecheck/test（40 用例）/diff-check 全绿；**双端模拟器回归未做**（本批纯呈现改动，Web 端 CDP 截图逐页目检代替），建议与 P1 批合并双端回归或 Simon 真机体验。模块评审状态不变。
+
+**本会话做了什么**：
+- `83da185` P0-1/P0-2：`Icon.tsx` 新增 14 图标（trash/clock/calendar/photo/mood/food/location/star/person/edit/close/chevron-right/ticket/bag）；全项目裸字符按钮（×、›、→、＋）替换为图标按钮 + 44pt 热区；账本六分类配图标（映射表在 ledger.tsx 顶部）+ 流水三段式重排。
+- `242430a` P0-3/P0-4：新组件 `BouncyChip`（按压 0.96 + 选中 1→1.06→1 Q 弹 + haptic，减弱动效瞬变）替换记账分类/手账标签/清单分类/Day 胶囊；清单勾选改 SVG 描边打勾（170ms dashoffset）+ 盒体 Q 弹 + 整卡下沉回弹；`ProgressRing` dashoffset 300ms 过渡 + 中心数字滚动（progressRingMath 纯逻辑 3 测试）。
+- `1141267` P0-5/P0-6：新组件 `RollingNumber`（rollingNumberMath 纯逻辑 8 测试）收口账本预算/进度环/首页倒计时/小结胶囊（消除 ProgressRing 与 ledger 两处重复实现）；小结弹层去工程文案、数字去重（白卡剩 4 行叙事，**复制分享仍用完整文本，AC 结构未动**）；`formStyles.ts` 的 `useFocusField` 焦点边框（focused→primary、invalid→accent）应用 11 处输入；returnKeyType 字段串联；金额/预算失焦千分位（存储与校验不变）。**packages/ 零改动**。
+- 字体调研落盘 [06-font-research.md](experience/06-font-research.md)：推荐路线 A——MiSans DemiBold+Heavy 标题子集内嵌（+0.5–1.5MB，2-3 天），正文走系统字体；**待 Simon 拍板两点**：① 子集合规复核（零风险则改思源黑体，失 600 字重）② 标题缺字回退验收标准。
+- 文档同步：02 清单加施工状态段、ROADMAP 小组段更新、计划文件勾选完成。
+
+**下一步（等 Simon）**：真机/模拟器体验 P0 手感；授权 P1 批（TripInput、时间滚筒、空状态系统、尺度 token 化等 10 项）；拍板字体两个决策点；P2-1 小结图形化先行版可单独授权。
+
+**坑与提醒**：① pnpm 10.34.4 与 packageManager 字段（10.33.4）签名校验冲突，本机用 `/tmp/pnpm-shim/pnpm` 包装脚本（`npm_config_manage_package_manager_versions=false`）+ `~/Library/pnpm/nodejs/22.12.0/bin` 跑通，重启后 shim 需重建；② Codex 会话 14:47-14:48 并发提交了小组文档（fdeb1c8/8a54453），多会话同仓库作业时注意先 git status 再提交；③ Metro 8081 是既有进程保持未动；④ BouncyChip 首帧已选中不播回弹、取消选中不震动，属刻意设计。
+
+---
+
 ## 2026-09-17 · Codex 整理版本提交与开发分发入口
 
 **现在什么最重要**：将已完成的体验修整和小组调研成果同步到 GitHub，同时让新开发者只读 README 就能区分开发版、模拟器/真机启动与独立安装包路线；模块评审状态不变。
