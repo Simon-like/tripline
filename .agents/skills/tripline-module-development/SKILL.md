@@ -40,7 +40,7 @@ Read [project-structure.md](references/project-structure.md) before choosing fil
 1. Test pure domain and selection rules close to their implementation. Do not add tests that merely repeat rendering code.
 2. Run focused checks while iterating, then `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `git diff --check` once before handoff.
 3. Smoke-test affected flows on both iOS and Android development builds. Record exactly what was observed; do not claim a module passed when only the app shell loaded.
-4. Update `docs/CONTEXT.md` for global facts, add an ADR for a durable tradeoff, update the relevant module document, and always update `docs/ROADMAP.md` plus a new top entry in `docs/PROGRESS.md`.
+4. Update `docs/CONTEXT.md` for global facts, add an ADR for a durable tradeoff, update the relevant module document, and always update `docs/ROADMAP.md` plus a new top entry in `docs/PROGRESS.md`. Keep `README.md` in sync when delivered features, setup, debugging, native configuration, or packaging steps change.
 5. Commit coherent checkpoints with Chinese outcome-oriented messages. Leave a clean, runnable main branch or document the exact recovery path.
 
 Use the completion checklist in [module-playbook.md](references/module-playbook.md) when reporting the result.

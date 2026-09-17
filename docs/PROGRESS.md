@@ -8,7 +8,7 @@
 
 **现在什么最重要**：将已完成的体验修整和小组调研成果同步到 GitHub，同时让新开发者只读 README 就能区分开发版、模拟器/真机启动与独立安装包路线；模块评审状态不变。
 
-**本会话做了什么**：核对本地 `main` 与 `origin/main` 的提交关系，确认远端没有新增提交；将上次已提交的底部卡片体验修整、Kimi 未提交的体验小组文档分别保留为清晰的版本节点。README 从过期的 M01–M04 描述更新为当前本地优先基础功能，并给出固定 Node/pnpm、原生工程生成、Xcode/Android Studio 点击路径、Metro 日常开发、EAS APK/ad hoc/TestFlight 与本地测试签名的分界。保留既有预览中间文件，不把 110MB Maestro 输出、导出码文本和临时构建标记加入 Git。
+**本会话做了什么**：核对本地 `main` 与 `origin/main` 的提交关系，确认远端没有新增提交；将上次已提交的底部卡片体验修整、Kimi 未提交的体验小组文档分别保留为清晰的版本节点。README 从过期的 M01–M04 描述更新为当前本地优先基础功能，并给出固定 Node/pnpm、原生工程生成、Xcode/Android Studio 点击路径、Metro 日常开发、EAS APK/ad hoc/TestFlight 与本地测试签名的分界。AGENTS 与模块开发 Skill 加入 README 同步检查，方便之后每次环境、功能或分发步骤变化时顺手更新。保留既有预览中间文件，不把 110MB Maestro 输出、导出码文本和临时构建标记加入 Git。
 
 **验证与下一步**：本轮只改文档，不更动运行代码或模块契约。提交前执行 `pnpm lint`、`pnpm typecheck`、`pnpm test` 与 `git diff --check`；后续由 Simon 按 [体验提升方案](experience/05-improvement-plan.md) 决定下一批施工范围，M07/M08 继续原定独立验收。
 
