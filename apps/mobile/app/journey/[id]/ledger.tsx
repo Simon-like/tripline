@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
@@ -11,6 +11,7 @@ import {
   type Expense, type ExpenseCategory, type Journey,
 } from '@tripline/shared';
 import { BouncyButton } from '../../../src/components/BouncyButton';
+import { BottomSheet } from '../../../src/components/BottomSheet';
 import { CascadeIn } from '../../../src/components/CascadeIn';
 import { ConfettiCelebration } from '../../../src/components/ConfettiCelebration';
 import { Page } from '../../../src/components/Page';
@@ -315,19 +316,15 @@ export default function Ledger() {
       </BouncyButton>
       {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
 
-      <Modal visible={adding} transparent animationType="slide" onRequestClose={() => setAdding(false)}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
-          <Pressable onPress={() => setAdding(false)} style={{ position: 'absolute', inset: 0, backgroundColor: theme.shadow, opacity: 0.45 }} />
-          <View style={{ backgroundColor: theme.surface, borderTopLeftRadius: 32, borderTopRightRadius: 32, maxHeight: '80%', paddingTop: 15 }}>
-            <View style={{ width: 48, height: 5, borderRadius: 9, backgroundColor: theme.border, alignSelf: 'center' }} />
-            <ScrollView contentContainerStyle={{ padding: 24, gap: 14 }} keyboardShouldPersistTaps="handled">
+      <BottomSheet visible={adding} onClose={() => setAdding(false)} maxHeight="80%">
+            <ScrollView contentContainerStyle={{ padding: 24, gap: 14 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
                 <TripText size={24} weight="bold">记一笔</TripText>
                 <Icon name="sparkle" size={21} color={theme.accent} />
               </View>
               <View style={{ gap: 7 }}>
                 <TripText size={13} weight="semibold">金额（元）</TripText>
-                <TextInput value={amount} onChangeText={setAmount} autoFocus placeholder="比如：86" placeholderTextColor={theme.textSecondary} keyboardType="decimal-pad"
+                <TextInput value={amount} onChangeText={setAmount} placeholder="比如：86" placeholderTextColor={theme.textSecondary} keyboardType="decimal-pad"
                   style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }} />
               </View>
               <TripText size={13} weight="semibold">花在哪一类？</TripText>
@@ -351,27 +348,19 @@ export default function Ledger() {
                 <TripText size={16} weight="bold" style={{ color: theme.onAccent }}>存进账本</TripText>
               </BouncyButton>
             </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+      </BottomSheet>
 
-      <Modal visible={budgetEditing} transparent animationType="slide" onRequestClose={() => setBudgetEditing(false)}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
-          <Pressable onPress={() => setBudgetEditing(false)} style={{ position: 'absolute', inset: 0, backgroundColor: theme.shadow, opacity: 0.45 }} />
-          <View style={{ backgroundColor: theme.surface, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingTop: 15 }}>
-            <View style={{ width: 48, height: 5, borderRadius: 9, backgroundColor: theme.border, alignSelf: 'center' }} />
+      <BottomSheet visible={budgetEditing} onClose={() => setBudgetEditing(false)}>
             <View style={{ padding: 24, gap: 14 }}>
               <TripText size={24} weight="bold">修改总预算</TripText>
-              <TextInput value={budgetDraft} onChangeText={setBudgetDraft} autoFocus placeholder="例如 4500" placeholderTextColor={theme.textSecondary} keyboardType="decimal-pad"
+              <TextInput value={budgetDraft} onChangeText={setBudgetDraft} placeholder="例如 4500" placeholderTextColor={theme.textSecondary} keyboardType="decimal-pad"
                 style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }} />
               {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
               <BouncyButton onPress={() => { void saveBudget(); }} style={{ backgroundColor: theme.accent, borderRadius: 999, paddingVertical: 15, alignItems: 'center' }}>
                 <TripText size={16} weight="bold" style={{ color: theme.onAccent }}>保存预算</TripText>
               </BouncyButton>
             </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+      </BottomSheet>
 
       <Modal visible={!!removing} transparent animationType="fade" onRequestClose={() => setRemoving(null)}>
         <View style={{ flex: 1, justifyContent: 'center', padding: 28 }}>

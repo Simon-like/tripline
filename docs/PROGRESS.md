@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-09-17 · Codex 底部卡片、键盘与时间选择体验修整
+
+Simon 真机反馈授权的跨模块交互增量，未改变既有模块的正式评审状态。将首页旅程管理、旅程编辑、清单、行程、账本、手账、分享、导入、总结共 10 处上拉卡片接入共享 `BottomSheet`：原生 Modal 不再整体 slide，蒙层独立渐显，面板弹簧上浮；44dp 顶部抓手下拉超过 104dp 或在 28dp 以上以 900dp/s 向下甩动才关闭，否则回弹。日期选择器保留既有独立入场动画并补同样的抓手逻辑。居中确认框与全屏图片预览不属于上拉卡片，保持原行为。
+
+移除上拉表单全部 `autoFocus` 和外层 `KeyboardAvoidingView`；iOS 表单用 ScrollView 键盘 inset，Android 设置 `softwareKeyboardLayoutMode=pan`（需重编开发包才生效），卡片本身不随键盘缩高。行程的时间文本框改为 24 小时时/分选择器，仍输出 `HH:mm`；旅程创建/编辑的出发和返程日期已是 `DatePickerSheet`，其余时间戳为生成/展示字段，没有遗漏的日期输入框。首页紧凑清单数字缩小，倒计时太阳使用暖棕 `sun` 语义色；山峰装饰保持原形。
+
+验证：`pnpm lint`、`pnpm typecheck`、`pnpm test`（shared 49、mobile 29，含手势阈值 2 条）与 `git diff --check` 通过。iPhone 17 Pro / iOS 26.3 与 Pixel 8 / Android 16 模拟器打开行程新增卡片均无自动键盘；两端时间选择器已打开，iOS 确认 `09:30` 后回填表单；Android 上分别拖拽子/主卡片抓手均成功关闭。iOS 软件键盘弹出后卡片上边界保持原位、焦点输入框可见。Android `adjustPan` 已经 Expo prebuild 同步到原生 Manifest，Debug APK 重编安装成功；模拟器本次只显示物理键盘辅助栏，完整 Gboard 覆层的视觉效果需下一次真机复核。截图存于 `artifacts/preview/2026-09-17-*`；其他卡片沿用同一共享组件，未逐项人工拖拽。原有 `artifacts/preview/` 用户产物未触碰。
+
+---
+
 ## 2026-09-15 · Codex 本地Android/iOS安装包交付
 
 按Simon本次指令完成本地Release打包，未发布外部。业务源码基线2320814；Android APK55.3MiB（ARM64/32位ARM，API24+，现有测试签名），iOS开发签名IPA9.9MiB（iOS15.1+，仅登记1台设备，有效期至9月21日16:56北京时间）。文件与归档均在artifacts/build/2026-09-15，详见 [打包记录](releases/2026-09-15-local-build.md)。

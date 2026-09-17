@@ -6,6 +6,7 @@ import * as Crypto from 'expo-crypto';
 import { checklistProgress, deriveJourneyStatus, SCHEMA_VERSION, toLocalDateString, type Journey } from '@tripline/shared';
 import { darkJourneyPalettes, Icon, lightJourneyPalettes } from '@tripline/ui';
 import { BouncyButton } from '../src/components/BouncyButton';
+import { BottomSheet } from '../src/components/BottomSheet';
 import { ImportSheet } from '../src/components/ImportSheet';
 import { JourneyCarousel } from '../src/components/JourneyCarousel';
 import { JourneyForm, type JourneyDraft } from '../src/components/JourneyForm';
@@ -176,7 +177,7 @@ export default function Home() {
             <View style={{ flex: 1, flexShrink: 1, minWidth: 0, minHeight: 169, backgroundColor: theme.celebrate, borderRadius: 27, padding: 18, justifyContent: 'space-between', overflow: 'hidden' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <TripText size={13} weight="semibold" style={{ color: theme.text }}>出发倒计时</TripText>
-                <Icon name="sun" size={15} color={theme.text} />
+                <Icon name="sun" size={15} color={theme.sun} />
               </View>
               <View>
                 <TripText size={38} numbers style={{ color: theme.text }}>{status === 'preparing' ? countdown : status === 'traveling' ? 'GO' : '✓'}</TripText>
@@ -189,8 +190,8 @@ export default function Home() {
                 <Icon name="luggage" size={15} color={theme.textSecondary} />
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-                <View><TripText size={25} numbers>{progress.done}/{progress.total}</TripText><TripText size={11} muted>已准备</TripText></View>
-                <ProgressRing percent={progress.percent} size={70} />
+                <View><TripText size={21} numbers>{progress.done}/{progress.total}</TripText><TripText size={11} muted>已准备</TripText></View>
+                <ProgressRing percent={progress.percent} size={70} compact />
               </View>
             </BouncyButton>
           </View>
@@ -235,11 +236,7 @@ export default function Home() {
           </View>
         </View>
       </Modal>
-      <Modal visible={pickerVisible} transparent animationType="slide" onRequestClose={() => setPickerVisible(false)}>
-        <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-          <Pressable onPress={() => setPickerVisible(false)} style={{ position: 'absolute', inset: 0, backgroundColor: theme.shadow, opacity: 0.45 }} />
-          <View style={{ backgroundColor: theme.bg, borderTopLeftRadius: 32, borderTopRightRadius: 32, maxHeight: '76%', paddingTop: 18 }}>
-            <View style={{ width: 48, height: 5, borderRadius: 4, backgroundColor: theme.border, alignSelf: 'center' }} />
+      <BottomSheet visible={pickerVisible} onClose={() => setPickerVisible(false)} backgroundColor={theme.bg} maxHeight="76%">
             <ScrollView contentContainerStyle={{ padding: 22, gap: 18 }} showsVerticalScrollIndicator={false}>
               <View style={{ gap: 2 }}>
                 <TripText size={25} weight="bold">全部旅程</TripText>
@@ -263,9 +260,7 @@ export default function Home() {
                 </View>
               ))}
             </ScrollView>
-          </View>
-        </View>
-      </Modal>
+      </BottomSheet>
       <Modal visible={!!deleting} transparent animationType="fade" onRequestClose={() => setDeleting(null)}>
         <View style={{ flex: 1, justifyContent: 'center', padding: 28 }}>
           <Pressable onPress={() => setDeleting(null)} style={{ position: 'absolute', inset: 0, backgroundColor: theme.shadow, opacity: 0.45 }} />

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, TextInput, View } from 'react-native';
 import type { Journey } from '@tripline/shared';
 import { JourneySchema, toLocalDateString } from '@tripline/shared';
 import { Icon } from '@tripline/ui';
 import { BouncyButton } from './BouncyButton';
+import { BottomSheet } from './BottomSheet';
 import { DatePickerSheet, formatDateLabel } from './DatePickerSheet';
 import { TripText } from './TripText';
 import { chineseFont, useTriplineTheme } from '../theme';
@@ -85,12 +86,8 @@ export function JourneyForm({ visible, initial, onClose, onSave }: {
 
   return (
     <>
-      <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
-        <Pressable onPress={onClose} style={{ position: 'absolute', inset: 0, backgroundColor: theme.shadow, opacity: 0.45 }} />
-        <View style={{ backgroundColor: theme.surface, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingTop: 16, maxHeight: '88%', width: '100%', maxWidth: 560, alignSelf: 'center' }}>
-          <View style={{ width: 48, height: 5, borderRadius: 9, backgroundColor: theme.border, alignSelf: 'center', marginBottom: 18 }} />
-          <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 32, gap: 14 }} keyboardShouldPersistTaps="handled">
+      <BottomSheet visible={visible} onClose={onClose} maxHeight="88%" backgroundColor={theme.surface}>
+          <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 32, gap: 14 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
                 <TripText size={27} weight="bold">{initial ? '编辑旅程' : '新建旅程'}</TripText>
@@ -144,8 +141,6 @@ export function JourneyForm({ visible, initial, onClose, onSave }: {
               <TripText size={16} weight="bold" style={{ color: theme.onAccent }}>{saving ? '保存中…' : initial ? '保存修改' : '创建旅程'}</TripText>
             </BouncyButton>
           </ScrollView>
-        </View>
-      </KeyboardAvoidingView>
       {/* 日期选择器嵌套在表单 Modal 内，避免兄弟 Modal 叠层在 Android 上被压到底层导致动画截断 */}
       <DatePickerSheet
         visible={pickerVisible}
@@ -160,7 +155,7 @@ export function JourneyForm({ visible, initial, onClose, onSave }: {
           setPickerVisible(false);
         }}
       />
-      </Modal>
+      </BottomSheet>
     </>
   );
 }

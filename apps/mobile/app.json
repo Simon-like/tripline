@@ -19,6 +19,7 @@
     },
     "android": {
       "package": "app.tripline.mobile",
+      "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "backgroundColor": "#F4F2FB",
         "foregroundImage": "./assets/android-icon-foreground.png"

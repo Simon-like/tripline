@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { Modal, Platform, Pressable, ScrollView, View } from 'react-native';
+import { Platform, ScrollView, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { Icon } from '@tripline/ui';
 import { BouncyButton } from './BouncyButton';
+import { BottomSheet } from './BottomSheet';
 import { ConfettiCelebration } from './ConfettiCelebration';
 import { TripText } from './TripText';
 import { useTriplineTheme } from '../theme';
@@ -57,11 +58,7 @@ export function ShareSheet({ visible, text, journeyName, onClose }: Props) {
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-        <Pressable onPress={onClose} style={{ position: 'absolute', inset: 0, backgroundColor: theme.shadow, opacity: 0.45 }} />
-        <View style={{ backgroundColor: theme.bg, borderTopLeftRadius: 32, borderTopRightRadius: 32, maxHeight: '82%', paddingTop: 15 }}>
-          <View style={{ width: 48, height: 5, borderRadius: 9, backgroundColor: theme.border, alignSelf: 'center' }} />
+    <BottomSheet visible={visible} onClose={onClose} backgroundColor={theme.bg} maxHeight="82%">
           <View style={{ padding: 24, gap: 14 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
               <TripText size={24} weight="bold">把旅程分享出去</TripText>
@@ -85,8 +82,6 @@ export function ShareSheet({ visible, text, journeyName, onClose }: Props) {
               <TripText size={16} weight="bold" style={{ color: theme.onAccent }}>{copied ? '已复制，去粘贴吧 ✓' : '复制分享文案'}</TripText>
             </BouncyButton>
           </View>
-        </View>
-      </View>
-    </Modal>
+    </BottomSheet>
   );
 }

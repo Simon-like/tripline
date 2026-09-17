@@ -1,11 +1,12 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
 import { Icon, type IconName } from '@tripline/ui';
 import { ChecklistItemSchema, SCHEMA_VERSION, checklistProgress, type ChecklistItem, type Journey } from '@tripline/shared';
 import { BouncyButton } from './BouncyButton';
+import { BottomSheet } from './BottomSheet';
 import { CascadeIn } from './CascadeIn';
 import { ConfettiCelebration } from './ConfettiCelebration';
 import { ProgressRing } from './ProgressRing';
@@ -197,17 +198,13 @@ export function ChecklistPanel({ journeyId, phase, categories, copy, beforeLoad 
       </BouncyButton>
       {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
 
-      <Modal visible={adding} transparent animationType="slide" onRequestClose={() => setAdding(false)}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
-          <Pressable onPress={() => setAdding(false)} style={{ position: 'absolute', inset: 0, backgroundColor: theme.shadow, opacity: 0.45 }} />
-          <View style={{ backgroundColor: theme.surface, borderTopLeftRadius: 32, borderTopRightRadius: 32, maxHeight: '80%', paddingTop: 15 }}>
-            <View style={{ width: 48, height: 5, borderRadius: 9, backgroundColor: theme.border, alignSelf: 'center' }} />
-            <ScrollView contentContainerStyle={{ padding: 24, gap: 16 }} keyboardShouldPersistTaps="handled">
+      <BottomSheet visible={adding} onClose={() => setAdding(false)} maxHeight="80%">
+            <ScrollView contentContainerStyle={{ padding: 24, gap: 16 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
                 <TripText size={24} weight="bold">{copy.addTitle}</TripText>
                 <Icon name="sparkle" size={21} color={theme.accent} />
               </View>
-              <TextInput value={title} onChangeText={setTitle} autoFocus placeholder={copy.addPlaceholder} placeholderTextColor={theme.textSecondary} style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }} />
+              <TextInput value={title} onChangeText={setTitle} placeholder={copy.addPlaceholder} placeholderTextColor={theme.textSecondary} style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }} />
               <TripText size={13} weight="semibold">放在哪一类？</TripText>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {categories.map((entry) => (
@@ -223,9 +220,7 @@ export function ChecklistPanel({ journeyId, phase, categories, copy, beforeLoad 
                 <TripText size={16} weight="bold" style={{ color: theme.onAccent }}>加入清单</TripText>
               </BouncyButton>
             </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+      </BottomSheet>
 
       <Modal visible={!!removing} transparent animationType="fade" onRequestClose={() => setRemoving(null)}>
         <View style={{ flex: 1, justifyContent: 'center', padding: 28 }}>

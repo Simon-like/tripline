@@ -7,6 +7,7 @@ export const lightTheme = {
   accent: '#FF6B4A',
   accentSoft: '#FFE9E3',
   celebrate: '#FFC93C',
+  sun: '#9B5426',
   success: '#22C55E',
   text: '#17132B',
   textSecondary: '#6E6A85',
@@ -30,6 +31,7 @@ export const darkTheme: Record<keyof typeof lightTheme, string> = {
   accent: '#FF947B',
   accentSoft: '#563329',
   celebrate: '#FFD565',
+  sun: '#9B5426',
   success: '#51D987',
   text: '#F9F6FF',
   textSecondary: '#B5AEC9',
@@ -51,20 +53,21 @@ export type JourneyPalette = {
   backdrop: string;
   onCard: string;
   detail: string;
+  sun: string;
 };
 
 export const lightJourneyPalettes: readonly JourneyPalette[] = [
-  { card: '#5B4FE9', backdrop: '#F4F2FB', onCard: '#FFFFFF', detail: '#FFC93C' },
-  { card: '#168A82', backdrop: '#ECF8F6', onCard: '#FFFFFF', detail: '#9DE4D6' },
-  { card: '#E96349', backdrop: '#FFF1ED', onCard: '#FFFFFF', detail: '#FFD0C5' },
-  { card: '#B87508', backdrop: '#FFF7E5', onCard: '#FFFFFF', detail: '#FFE09A' },
+  { card: '#5B4FE9', backdrop: '#F4F2FB', onCard: '#FFFFFF', detail: '#FFC93C', sun: '#FFE2AE' },
+  { card: '#168A82', backdrop: '#ECF8F6', onCard: '#FFFFFF', detail: '#9DE4D6', sun: '#FFDEB4' },
+  { card: '#E96349', backdrop: '#FFF1ED', onCard: '#FFFFFF', detail: '#FFD0C5', sun: '#FFF0CD' },
+  { card: '#B87508', backdrop: '#FFF7E5', onCard: '#FFFFFF', detail: '#FFE09A', sun: '#FFF2D5' },
 ] as const;
 
 export const darkJourneyPalettes: readonly JourneyPalette[] = [
-  { card: '#A99EFF', backdrop: '#151221', onCard: '#17132B', detail: '#FFD565' },
-  { card: '#70D8CA', backdrop: '#10211F', onCard: '#10211F', detail: '#D0FFF7' },
-  { card: '#FF947B', backdrop: '#241614', onCard: '#17132B', detail: '#FFD9D0' },
-  { card: '#FFD565', backdrop: '#211B0D', onCard: '#17132B', detail: '#FFF0B6' },
+  { card: '#A99EFF', backdrop: '#151221', onCard: '#17132B', detail: '#FFD565', sun: '#FFE6B7' },
+  { card: '#70D8CA', backdrop: '#10211F', onCard: '#10211F', detail: '#D0FFF7', sun: '#FFE4AF' },
+  { card: '#FF947B', backdrop: '#241614', onCard: '#17132B', detail: '#FFD9D0', sun: '#FFF0CA' },
+  { card: '#FFD565', backdrop: '#211B0D', onCard: '#17132B', detail: '#FFF0B6', sun: '#FFF3D7' },
 ] as const;
 
 export const motion = {

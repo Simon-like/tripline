@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -10,10 +10,12 @@ import {
   type ItineraryItem, type Journey,
 } from '@tripline/shared';
 import { BouncyButton } from '../../../src/components/BouncyButton';
+import { BottomSheet } from '../../../src/components/BottomSheet';
 import { CascadeIn } from '../../../src/components/CascadeIn';
 import { ConfettiCelebration } from '../../../src/components/ConfettiCelebration';
 import { Page } from '../../../src/components/Page';
 import { TripText } from '../../../src/components/TripText';
+import { TimePickerSheet } from '../../../src/components/TimePickerSheet';
 import { addItineraryItem, deleteItineraryItem, getJourney, listItineraryItems, setItineraryState } from '../../../src/data/database';
 import { ensureDemoItinerary } from '../../../src/data/demo';
 import { chineseFont, useTriplineTheme } from '../../../src/theme';
@@ -57,6 +59,7 @@ export default function Itinerary() {
   const [dayIndex, setDayIndex] = useState(0);
   const [adding, setAdding] = useState(false);
   const [time, setTime] = useState('');
+  const [timePickerVisible, setTimePickerVisible] = useState(false);
   const [content, setContent] = useState('');
   const [note, setNote] = useState('');
   const [removing, setRemoving] = useState<ItineraryItem | null>(null);
@@ -216,12 +219,8 @@ export default function Itinerary() {
       </BouncyButton>
       {error ? <TripText size={13} style={{ color: theme.accent }}>{error}</TripText> : null}
 
-      <Modal visible={adding} transparent animationType="slide" onRequestClose={() => setAdding(false)}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
-          <Pressable onPress={() => setAdding(false)} style={{ position: 'absolute', inset: 0, backgroundColor: theme.shadow, opacity: 0.45 }} />
-          <View style={{ backgroundColor: theme.surface, borderTopLeftRadius: 32, borderTopRightRadius: 32, maxHeight: '80%', paddingTop: 15 }}>
-            <View style={{ width: 48, height: 5, borderRadius: 9, backgroundColor: theme.border, alignSelf: 'center' }} />
-            <ScrollView contentContainerStyle={{ padding: 24, gap: 14 }} keyboardShouldPersistTaps="handled">
+      <BottomSheet visible={adding} onClose={() => setAdding(false)} maxHeight="80%">
+            <ScrollView contentContainerStyle={{ padding: 24, gap: 14 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
                 <TripText size={24} weight="bold">安排 Day {dayIndex + 1}</TripText>
                 <Icon name="sparkle" size={21} color={theme.accent} />
@@ -229,8 +228,11 @@ export default function Itinerary() {
               <TripText size={13} muted>{selectedDate}，想去哪？</TripText>
               <View style={{ gap: 7 }}>
                 <TripText size={13} weight="semibold">时间</TripText>
-                <TextInput value={time} onChangeText={setTime} autoFocus placeholder="09:30" placeholderTextColor={theme.textSecondary} keyboardType="numbers-and-punctuation"
-                  style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, fontFamily: chineseFont, color: theme.text, fontSize: 16 }} />
+                <Pressable onPress={() => setTimePickerVisible(true)} accessibilityRole="button" accessibilityLabel={`选择时间，当前${time || '未选择'}`}
+                  style={{ backgroundColor: theme.bg, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <TripText size={16} numbers style={{ color: time ? theme.text : theme.textSecondary }}>{time || '选择时间'}</TripText>
+                  <View style={{ transform: [{ rotate: '-90deg' }] }}><Icon name="chevron-left" size={17} color={theme.textSecondary} /></View>
+                </Pressable>
               </View>
               <View style={{ gap: 7 }}>
                 <TripText size={13} weight="semibold">去做什么</TripText>
@@ -247,9 +249,9 @@ export default function Itinerary() {
                 <TripText size={16} weight="bold" style={{ color: theme.onAccent }}>加入时间轴</TripText>
               </BouncyButton>
             </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+            <TimePickerSheet visible={timePickerVisible} value={time} onClose={() => setTimePickerVisible(false)}
+              onConfirm={(next) => { setTime(next); setTimePickerVisible(false); }} />
+      </BottomSheet>
 
       <Modal visible={!!removing} transparent animationType="fade" onRequestClose={() => setRemoving(null)}>
         <View style={{ flex: 1, justifyContent: 'center', padding: 28 }}>

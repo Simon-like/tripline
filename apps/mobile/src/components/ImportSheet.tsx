@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { ScrollView, TextInput, View } from 'react-native';
 import { decodeExportCode, ExportCodeError, type JourneyBundle } from '@tripline/shared';
 import { Icon } from '@tripline/ui';
 import { BouncyButton } from './BouncyButton';
+import { BottomSheet } from './BottomSheet';
 import { TripText } from './TripText';
 import { importJourneyBundle } from '../data/database';
 import { chineseFont, useTriplineTheme } from '../theme';
@@ -72,18 +73,14 @@ export function ImportSheet({ visible, onClose, onImported }: Props) {
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
-        <Pressable onPress={onClose} style={{ position: 'absolute', inset: 0, backgroundColor: theme.shadow, opacity: 0.45 }} />
-        <View style={{ backgroundColor: theme.bg, borderTopLeftRadius: 32, borderTopRightRadius: 32, maxHeight: '86%', paddingTop: 15 }}>
-          <View style={{ width: 48, height: 5, borderRadius: 9, backgroundColor: theme.border, alignSelf: 'center' }} />
-          <ScrollView contentContainerStyle={{ padding: 24, gap: 14 }} keyboardShouldPersistTaps="handled">
+    <BottomSheet visible={visible} onClose={onClose} backgroundColor={theme.bg}>
+          <ScrollView contentContainerStyle={{ padding: 24, gap: 14 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" automaticallyAdjustKeyboardInsets>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
               <TripText size={24} weight="bold">导入朋友的旅程</TripText>
               <Icon name="sparkle" size={21} color={theme.primary} />
             </View>
             <TripText size={13} muted>把朋友发来的旅迹分享文案整段粘贴进来，自动识别。</TripText>
-            <TextInput value={text} onChangeText={handleChange} multiline autoFocus
+            <TextInput value={text} onChangeText={handleChange} multiline
               placeholder="粘贴分享文案（含 TL1. 开头的那一行码）" placeholderTextColor={theme.textSecondary}
               style={{ backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderRadius: 17, paddingHorizontal: 16, paddingVertical: 13, minHeight: 110, maxHeight: 180, textAlignVertical: 'top', fontFamily: chineseFont, color: theme.text, fontSize: 15, lineHeight: 22 }} />
             {preview ? (
@@ -104,8 +101,6 @@ export function ImportSheet({ visible, onClose, onImported }: Props) {
               <TripText size={16} weight="bold" style={{ color: theme.onAccent }}>确认导入</TripText>
             </BouncyButton>
           </ScrollView>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
+    </BottomSheet>
   );
 }

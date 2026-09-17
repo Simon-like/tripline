@@ -21,11 +21,11 @@ const NEXT_CARD_PEEK = 32;
 function CardScene({ palette }: { palette: JourneyPalette }) {
   return (
     <Svg width="100%" height="124" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice"
-      style={{ position: 'absolute', bottom: 0, left: 0, right: 0, opacity: 0.56 }}>
-      <Circle cx="315" cy="28" r="18" fill={palette.detail} />
-      <Path d="M0 142L62 72L92 103L159 24L240 132L282 82L340 143V170H0Z" fill={palette.detail} opacity={0.38} />
-      <Path d="M0 161L76 103L122 145L200 68L292 157L340 118V170H0Z" fill={palette.onCard} opacity={0.22} />
-      <Path d="M0 170L59 140L115 163L183 121L258 170Z" fill={palette.detail} opacity={0.30} />
+      style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
+      <Circle cx="315" cy="28" r="18" fill={palette.sun} opacity={0.76} />
+      <Path d="M0 142L62 72L92 103L159 24L240 132L282 82L340 143V170H0Z" fill={palette.detail} opacity={0.21} />
+      <Path d="M0 161L76 103L122 145L200 68L292 157L340 118V170H0Z" fill={palette.onCard} opacity={0.12} />
+      <Path d="M0 170L59 140L115 163L183 121L258 170Z" fill={palette.detail} opacity={0.17} />
     </Svg>
   );
 }

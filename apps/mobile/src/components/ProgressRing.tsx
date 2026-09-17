@@ -3,7 +3,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { TripText } from './TripText';
 import { useTriplineTheme } from '../theme';
 
-export function ProgressRing({ percent, size = 104 }: { percent: number; size?: number }) {
+export function ProgressRing({ percent, size = 104, compact = false }: { percent: number; size?: number; compact?: boolean }) {
   const { theme } = useTriplineTheme();
   const stroke = 10;
   const radius = (size - stroke) / 2;
@@ -18,7 +18,7 @@ export function ProgressRing({ percent, size = 104 }: { percent: number; size?: 
           strokeDashoffset={circumference * (1 - Math.min(100, Math.max(0, percent)) / 100)}
         />
       </Svg>
-      <TripText size={22} numbers style={{ color: theme.primary }}>{percent}%</TripText>
+      <TripText size={compact ? 17 : 22} numbers style={{ color: theme.primary }}>{percent}%</TripText>
     </View>
   );
 }

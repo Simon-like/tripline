@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Modal, Platform, Pressable, View, type ViewStyle } from 'react-native';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -22,6 +23,7 @@ import { Icon, motion } from '@tripline/ui';
 import { BouncyButton } from './BouncyButton';
 import { TripText } from './TripText';
 import { useTriplineTheme } from '../theme';
+import { shouldDismissSheet } from './sheetGesture';
 
 const WEEK_LABELS = ['一', '二', '三', '四', '五', '六', '日'] as const;
 // 入场：backdrop 淡入先行，面板延迟 ~60ms 弹簧上浮（轻微过冲，避免长距离上滑后大幅反弹）
@@ -93,6 +95,7 @@ export function DatePickerSheet({
   const closingRef = useRef(false);
   const afterCloseRef = useRef<(() => void) | null>(null);
   const sheetHeight = useRef(700);
+  const measuredHeight = useSharedValue(700);
 
   // 入场：backdrop 淡入，面板错开 60ms 上滑 + 轻微过冲；减弱动效时全部瞬时到位
   useEffect(() => {
@@ -137,6 +140,18 @@ export function DatePickerSheet({
     transform: [{ translateX: gridX.value }],
     opacity: gridOpacity.value,
   }));
+  const grabberGesture = Gesture.Pan().activeOffsetY([-8, 8])
+    .onUpdate((event) => {
+      sheetY.value = Math.max(0, event.translationY);
+      backdrop.value = Math.max(0.15, 1 - sheetY.value / Math.max(measuredHeight.value, 1));
+    })
+    .onEnd((event) => {
+      if (shouldDismissSheet(event.translationY, event.velocityY)) runOnJS(dismiss)();
+      else {
+        sheetY.value = reducedMotion ? 0 : withSpring(0, { duration: 260, dampingRatio: 0.86 });
+        backdrop.value = reducedMotion ? 1 : withTiming(1, { duration: 180 });
+      }
+    });
 
   // 每次打开时重置选中态与视图月
   useEffect(() => {
@@ -210,17 +225,21 @@ export function DatePickerSheet({
 
   return (
     <Modal visible={visible} transparent animationType="none" onShow={enter} onRequestClose={() => dismiss()}>
-      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+      <GestureHandlerRootView style={{ flex: 1, justifyContent: 'flex-end' }}>
         <Animated.View style={[{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: theme.shadow }, backdropStyle]}>
           <Pressable onPress={() => dismiss()} style={{ flex: 1 }} accessibilityLabel="关闭日期选择" />
         </Animated.View>
-        <Animated.View onLayout={(event) => { sheetHeight.current = event.nativeEvent.layout.height; }} style={[sheetStyle, {
+        <Animated.View onLayout={(event) => { sheetHeight.current = event.nativeEvent.layout.height; measuredHeight.value = sheetHeight.current; }} style={[sheetStyle, {
           backgroundColor: theme.surface,
           borderTopLeftRadius: 32, borderTopRightRadius: 32,
           paddingTop: 16, paddingHorizontal: 24, paddingBottom: 28,
           width: '100%', maxWidth: 560, alignSelf: 'center',
         }]}>
-          <View style={{ width: 48, height: 5, borderRadius: 9, backgroundColor: theme.border, alignSelf: 'center', marginBottom: 16 }} />
+          <GestureDetector gesture={grabberGesture}>
+            <View accessible accessibilityRole="button" accessibilityLabel="向下拖动关闭日期选择" style={{ height: 44, alignItems: 'center', justifyContent: 'center', marginTop: -12, marginBottom: 4 }}>
+              <View style={{ width: 48, height: 5, borderRadius: 9, backgroundColor: theme.border }} />
+            </View>
+          </GestureDetector>
 
           {title ? <TripText size={13} weight="semibold" muted style={{ textAlign: 'center', marginBottom: 8 }}>{title}</TripText> : null}
 
@@ -320,7 +339,7 @@ export function DatePickerSheet({
             </View>
           </View>
         </Animated.View>
-      </View>
+      </GestureHandlerRootView>
     </Modal>
   );
 }

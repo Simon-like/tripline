@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Modal, Pressable, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useReducedMotion } from 'react-native-reanimated';
 import * as Clipboard from 'expo-clipboard';
 import { toLocalDateString } from '@tripline/shared';
 import { getJourney, listExpenses, listItineraryItems, listJournalEntries } from '../data/database';
@@ -9,12 +8,12 @@ import { summarizeJourney } from '../data/journeySummary';
 import { useTriplineTheme } from '../theme';
 import { TripText } from './TripText';
 import { BouncyButton } from './BouncyButton';
+import { BottomSheet } from './BottomSheet';
 
 type Props = { journeyId: string; visible: boolean; onClose: () => void };
 export function JourneySummarySheet({ journeyId, visible, onClose }: Props) {
   const { theme } = useTriplineTheme();
   const insets = useSafeAreaInsets();
-  const reduced = useReducedMotion();
   const [summary, setSummary] = useState<ReturnType<typeof summarizeJourney> | null>(null);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
@@ -45,10 +44,7 @@ export function JourneySummarySheet({ journeyId, visible, onClose }: Props) {
     } catch { setError('复制失败，请再点一次复制'); }
   }
   return (
-    <Modal visible={visible} transparent animationType={reduced ? 'none' : 'slide'} onRequestClose={onClose}>
-      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-        <Pressable onPress={onClose} accessibilityLabel="关闭旅行总结" style={{ position: 'absolute', inset: 0, backgroundColor: theme.shadow, opacity: 0.45 }} />
-        <View style={{ backgroundColor: theme.bg, borderTopLeftRadius: 32, borderTopRightRadius: 32, maxHeight: '86%' }}>
+    <BottomSheet visible={visible} onClose={onClose} backgroundColor={theme.bg} accessibilityLabel="关闭旅行总结">
           <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: Math.max(insets.bottom, 20) + 12, gap: 18 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <TripText size={24} weight="bold">把这一程，收进回忆</TripText>
@@ -71,8 +67,6 @@ export function JourneySummarySheet({ journeyId, visible, onClose }: Props) {
               <TripText weight="bold" style={{ color: theme.onAccent }}>{copied ? '已复制，留住这一程' : '复制文字总结'}</TripText>
             </BouncyButton>
           </ScrollView>
-        </View>
-      </View>
-    </Modal>
+    </BottomSheet>
   );
 }
