@@ -33,6 +33,8 @@
 | [docs/adr/](docs/adr/) | 架构决策记录（只增不改） | 做重大取舍时 |
 | [docs/modules/README.md](docs/modules/README.md) | 模块文档模板与生命周期 | 起草任何模块文档前 |
 | [.agents/skills/tripline-module-development/SKILL.md](.agents/skills/tripline-module-development/SKILL.md) | 本仓库模块迭代流程、结构边界与交付清单 | 规划、施工、重构或验收模块时 |
+| [docs/experience/README.md](docs/experience/README.md) | 使用体验细节优化小组：走查、细节清单、对比报告、提升方案 | 做任何用户可感知的界面细节前 |
+| [.agents/skills/tripline-experience-details/SKILL.md](.agents/skills/tripline-experience-details/SKILL.md) | 体验细节施工守则（微交互参数、控件选型、资产规则） | 调整表单/选择/动画/空状态/呈现细节时 |
 | 原始 PRD | [旅迹TripLine_PRD_副本.md](旅迹TripLine_PRD_副本.md) | 回溯需求出处时 |
 | 调研底稿 | `deliverables/research/00–05` | 写技术调研段时引用 |
 

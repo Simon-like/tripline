@@ -1,68 +1,84 @@
 # 旅迹 TripLine
 
-从收拾行李，到安全回家。当前 **M00 工程基座、M01 旅程管理、M02 行前清单、M03 行程规划、M04 旅行账本基础**已有可操作的基础版：可创建旅程、管理行前清单、按日安排行程并打卡、记账和查看预算/分类/每日趋势，数据在本机保存。M03/M04 仍待产品评审和完整设备验收；手账、返程为后续模块占位页。
+从收拾行李，到安全回家。旅迹是一款本地优先的旅行管理 App：管理旅程、行前与返程清单、每日行程、旅行账本、手账、总结，以及导出码分享/导入。首页最多展示四趟未结束的旅程，历史旅程可在「全部旅程」查看。产品与模块验收状态以 [ROADMAP](docs/ROADMAP.md) 为准；AI、账号与服务端属于后续迭代。
 
-首页用风叶式横滑卡片展示最多四趟正在进行或未来旅程，切换时背景随旅程主题连续变化；历史旅程仍可从「全部旅程」按状态查看且不占额度。首页品牌旁的「设置」可选自动、白天、夜间外观。旅程内五个功能保留独立底栏，设置与未来账号功能从首页进入。
+## 开发环境与首次安装
 
-## 环境
+| 项目 | 要求 |
+|---|---|
+| 运行环境 | Node.js **20.19.4**（`.nvmrc` / `pnpm-workspace.yaml`）；pnpm **10.33.4** |
+| iOS | macOS、完整 Xcode、iOS Simulator；真机还需要 Apple Account 签名 |
+| Android | Android Studio、JDK 17、Android SDK Platform / Build Tools 36，以及模拟器或开启 USB 调试的手机 |
 
-- 项目固定使用 Node.js 20.19.4（pnpm-workspace.yaml 的 useNodeVersion，.nvmrc 同步标记）；pnpm 10.33.4。.npmrc 保留 Expo monorepo 所需的 hoisted 配置。
-- iOS 本地构建：macOS、完整 Xcode、可用的 iPhone 或模拟器。
-- Android 本地构建：JDK 17、Android SDK Platform 36/Build Tools 36、可用的手机或模拟器。
-- 此应用使用 MMKV、expo-blur 原生模块；请使用 development build，**不要用 Expo Go 验证**。新增 `expo-blur` 后，已安装的旧开发版需重新执行一次平台构建。
-
-## 安装与检查
+在仓库根目录执行：
 
 ```bash
+nvm use                         # 尚未安装固定版本时先 nvm install
+corepack enable                 # 若尚未启用 pnpm
 pnpm install
-pnpm lint
-pnpm typecheck
-pnpm test
+pnpm lint && pnpm typecheck && pnpm test
 ```
 
-## 网页预览
+`.npmrc` 的 hoisted 配置是 Expo monorepo 所需，安装时不要删除。原生工程 `apps/mobile/ios`、`apps/mobile/android` 为本机生成目录，Git 不跟踪；**新克隆后**第一次运行 `expo run:ios` / `expo run:android` 会生成对应工程。若要先用 IDE 打开工程，在根目录执行 `pnpm --filter @tripline/mobile exec expo prebuild --platform ios` 或 `--platform android`。不要随意运行 `prebuild --clean`：它会重建生成工程，覆盖其中手工修改。
 
-用于快速查看同一套 Expo 页面在手机尺寸的外观与基础交互；网页数据保存在浏览器本地，与手机中的 SQLite 数据互不相通。
+项目使用 MMKV 等原生模块，**必须用 development build，不使用 Expo Go**。首次安装开发版或原生依赖、插件、`app.json` 变更后需要重新编译；普通 JS/TS 与样式改动只需 Metro 热更新。
+
+## 模拟器与真机调试
+
+最快的首次安装方式（仓库根目录）：
+
+```bash
+pnpm ios:simulator              # iPhone 17 Pro 模拟器；先在 Xcode 安装对应 runtime
+pnpm android:emulator           # Android 模拟器；先在 Android Studio 启动虚拟设备
+pnpm ios:device                 # 接线、解锁并开启开发者模式的 iPhone；按提示选设备
+pnpm --filter @tripline/mobile android  # USB 调试已授权的 Android 真机；按提示选设备
+```
+
+也可以用 IDE：iOS 打开 `apps/mobile/ios/TripLine.xcworkspace`，在 Xcode 顶栏选择 **TripLine → 模拟器或 iPhone → ▶ Run**。iPhone 首次签名在 Target → **Signing & Capabilities** 勾选自动管理并选择自己的 Team。Android Studio 打开 `apps/mobile/android`，在 **Tools → Device Manager** 启动模拟器，或接入已授权 USB 调试的手机，再在顶栏选择 **app → 设备 → ▶ Run**。
+
+开发版装好后，日常在根目录运行 `pnpm start`，保持 Metro 终端开启，再点手机上的「旅迹」。Metro 终端可按 `i` / `a` 打开对应模拟器、按 `j` 打开调试工具。真机需能访问电脑的 **8081** 端口；换 Wi-Fi 后重启 Metro。Android USB 连接但无法访问时可运行 `adb reverse tcp:8081 tcp:8081`；iPhone 与 Mac 优先用同一可互访 Wi-Fi。development build 依赖 Metro，不能直接发给朋友当独立应用。
+
+网页预览仅用于快速看布局，浏览器本地数据与手机 SQLite 数据不互通，也不能代替原生验收：
 
 ```bash
 BROWSER=none pnpm --filter @tripline/mobile web
+# 打开 http://localhost:8081
 ```
 
-随后打开 http://localhost:8081。首次进入空库会生成一趟香格里拉演示旅程；删除后不会反复生成。网页预览不能代替 iOS/Android development build 的原生验收。
+设备点击路径和常见排障见 [一页调试速查](docs/DEVICE_DEBUGGING.md)；全新设备安装配置见 [完整版调试指南](docs/DEVICE_DEBUGGING_FULL.md)。
 
-## 在手机上运行
+## 打包与分发
 
-Xcode / Android Studio 的模拟器与真机点击路径、安装包路线见 [一页启动与打包速查](docs/DEVICE_DEBUGGING.md)；详细排障见 [完整版指南](docs/DEVICE_DEBUGGING_FULL.md)。
+| 目标 | 推荐操作 | 能否脱离 Metro |
+|---|---|---|
+| 自己调试 | 上面的 Xcode / Android Studio **▶ Run** 或 `pnpm ios:device` 等 | 否 |
+| 分享 Android 安装包 | EAS `preview` profile 生成 APK | 是 |
+| 分享给其他 iPhone | Apple Developer Program 下用 ad hoc 登记设备，或 TestFlight | 是 |
+| 正式上架 | Android AAB / iOS App Store 构建并提交商店审核 | 是 |
 
-本机已配置 Android SDK、JDK 17、Xcode 26.3 和 CocoaPods，原生工程也已生成。从项目根目录运行：
-
-```bash
-pnpm android:emulator  # Android 模拟器：编译、安装并启动
-pnpm ios:simulator     # iPhone 17 Pro 模拟器：编译、安装并启动
-pnpm ios:device        # iPhone 真机：编译、签名并安装
-pnpm start             # 两端已装开发版后，日常只需启动开发服务器
-```
-
-首次 iPhone 安装仍需在 Xcode 登录自己的 Apple Account，手机确认信任电脑并开启开发者模式。新增原生依赖或修改原生配置后，应按[调试速查](docs/DEVICE_DEBUGGING.md)重新 prebuild 和编译。
-
-没有本地原生工具链时，可在本人 Expo 账号登录后使用 EAS 云构建。`apps/mobile/eas.json` 已提供 development profile：
+**Android 快速分享 APK（EAS 云构建）：** 安装 EAS CLI 并登录自己的 Expo 账号；首次使用此项目时在 `apps/mobile` 运行 `eas init` 关联账号，然后构建：
 
 ```bash
+npm install --global eas-cli
 cd apps/mobile
 eas login
-eas init
-eas build --platform android --profile development
-eas build --platform ios --profile development
+eas init                       # 仅首次关联；已有项目 ID 时跳过
+eas build --platform android --profile preview
 ```
 
-EAS 的 iPhone 真机构建需要 Apple Developer 账号及设备签名。Android 的 development build 可从构建结果页下载安装。构建成功后在项目根目录运行 `pnpm start`，手机与电脑连接同一网络，通过 development build 打开开发服务器。
+构建完成从 EAS 页面下载 `.apk` 分享安装。当前 `apps/mobile/eas.json` 的 `preview` 已设置 `distribution: internal` 与 Android `buildType: apk`，此包包含 JS，无须 Metro。Google Play 正式版使用 `production` profile 生成 AAB，需完成商店账号、签名、版本号和上架准备。若要**完全本地**生成当前测试签名的 Android 包，可在 `apps/mobile/android` 运行 `./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a,armeabi-v7a`；输出在 `app/build/outputs/apk/release/`。当前生成工程的 release 仍使用 debug keystore，**仅供临时测试，正式分发前必须配置独立 release 签名并妥善保管密钥**。
 
-## 结构
+**iOS：** 免费 Personal Team 适合给自己的已连接 iPhone 安装开发版，不适合向朋友分发。向他人测试需 Apple Developer Program：可用 EAS `eas device:create` 登记测试设备，再在 `apps/mobile` 运行 `eas build --platform ios --profile preview` 获取 ad hoc 包；或在 Xcode 选择通用 iOS 设备，执行 **Product → Archive → Distribute App** 上传 TestFlight / App Store。`production` profile 的 EAS 命令是 `eas build --platform ios --profile production`。iOS 安装包能否安装取决于签名和描述文件，不是拿到 IPA 就能给任意 iPhone 安装。
 
-- `apps/mobile`：Expo SDK 55 / React Native 0.83 移动端。
-- `packages/shared`：五实体 Zod 契约与纯 TypeScript 导出码编解码。
-- `packages/ui`：明暗主题、四组旅程色板和动效 token。
-- `packages/config`：共享 TypeScript 配置。
-- `docs/`：需求、架构、模块状态与交接记录。
+历史本地安装包、签名范围和验证记录见 [2026-09-15 打包记录](docs/releases/2026-09-15-local-build.md)；构建产物、签名文件和密钥不入库。分发前还需双端真机回归与正式签名/商店配置，当前 README 的构建命令不代表已完成上架验收。
 
-V1 金额在数据契约与 SQLite 中统一用**人民币分的整数**，显示时再换算为元。所有领域记录带 UUID、毫秒时间戳、软删除字段与 `schemaVersion`。M00 的导出码只编码文本数据与照片相对路径；跨设备传输照片文件属于后续分享模块的方案范围。
+## 项目结构与协作
+
+- `apps/mobile`：Expo SDK 55 / React Native 0.83 App；页面、组件和双端本地数据实现。
+- `packages/shared`：Zod 契约、纯逻辑与导出码编解码。
+- `packages/ui`：明暗主题、旅程色板、图标与动效 token。
+- `docs/`：产品背景、模块状态、架构决策、设备指南与交接记录。
+
+参与开发先读 [AGENTS.md](AGENTS.md) 与 [项目上下文](docs/CONTEXT.md)；以 [ROADMAP](docs/ROADMAP.md) 查看模块状态，以 [PROGRESS](docs/PROGRESS.md) 接续工作。提交前运行 `pnpm lint && pnpm typecheck && pnpm test`，并将变更写进交接记录。界面体验工作可参考 [体验细节优化记录](docs/experience/README.md)。
+
+构建与分发路径依据 [Expo development build](https://docs.expo.dev/develop/development-builds/introduction/)、[Expo APK 构建](https://docs.expo.dev/build-reference/apk/)、[Expo 内部分发](https://docs.expo.dev/build/internal-distribution/) 与 [Apple 测试和发布](https://developer.apple.com/documentation/xcode/distributing-your-app-for-beta-testing-and-releases)。
