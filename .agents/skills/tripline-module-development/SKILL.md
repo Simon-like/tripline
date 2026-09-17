@@ -9,10 +9,9 @@ Use the repository as the source of truth. Do not reconstruct requirements from 
 
 ## Start from evidence
 
-1. Read root `AGENTS.md`, then `docs/CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `docs/WORKFLOW.md`, and the newest entry in `docs/PROGRESS.md`.
-2. Read `docs/MODULES.md` and the relevant `docs/modules/Mxx-*.md`. Use the original PRD or `deliverables/` only to trace a decision; keep both read-only.
-3. Inspect the current Git status and recent commits. Preserve existing user work and establish a tested checkpoint before a broad change when the working tree is not already clean.
-4. State the module phase and authorization. Do not promote a review status unless Simon explicitly passes that gate. A direct instruction to implement authorizes construction, but does not silently mark requirements or acceptance complete.
+1. Read root `AGENTS.md`, current Git status and recent commits, then the newest entry in `docs/PROGRESS.md` and the relevant row in `docs/ROADMAP.md`. Use `tripline-context-cost` when investigating a broad area or planning expensive device work.
+2. Read the relevant `docs/modules/Mxx-*.md`. Open only the needed sections of `docs/CONTEXT.md` for product/design, `docs/ARCHITECTURE.md` for technical boundaries, and `docs/WORKFLOW.md` for review/claim/handoff. Use `docs/MODULES.md` when choosing modules. Use the original PRD or `deliverables/` only to trace a decision; keep both read-only.
+3. Preserve existing user work and establish a tested checkpoint before a broad change when the working tree is not already clean. State the module phase and authorization. Do not promote a review status unless Simon explicitly passes that gate. A direct instruction to implement authorizes construction, but does not silently mark requirements or acceptance complete.
 
 Read [project-structure.md](references/project-structure.md) before choosing files. Read [module-playbook.md](references/module-playbook.md) before implementation or review.
 

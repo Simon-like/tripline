@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-09-17 · Codex 鸿蒙可行性与上下文成本治理
+
+**现在什么最重要**：继续以 iOS/Android 为交付基线；鸿蒙原生支持先做独立原型论证，不把卓易通 APK 体验当作 HAP 验收。Kimi 正在施工 P1 细节，本轮未碰其页面/组件代码或模块评审状态。
+
+**本会话做了什么**：按 RNOH 官方社区、Expo/RN 官方平台与字号文档核对兼容路线，写成 [鸿蒙可行性记录](platforms/harmonyos-feasibility.md)，列出 Expo 55/RN 0.83.10 与 RNOH 稳定线、Expo 原生模块、SQLite/MMKV、手势/字体的验证门槛，并把卓易通字号偏大明确标为待测假设。审计冷启动七份文档约 97KB，发现 HANDOFF 状态过期；将 HANDOFF 缩为静态导航，把 AGENTS 与模块 Skill 改为按任务读取，新增 [上下文与设备成本策略](engineering/context-cost-policy.md) 和项目 Skill `tripline-context-cost`。README 增加鸿蒙当前状态入口，PROGRESS 旧日志保持追加式不改写。
+
+**验证与下一步**：只修改文档/Skill。新 Skill 官方 validator 返回 `Skill is valid!`；所改文档的本地链接检查与 `git diff --check` 通过。没有鸿蒙设备实测、没有原生 HAP 构建，也没有宣称实际 token 缓存命中。后续若 Simon 决定推进，先取卓易通/Android 同机字体与 density/fontScale 数据，再做隔离 RNOH 最小原型；真正的 P1 双端回归仍由 Kimi 的施工安排负责。
+
+**坑与提醒**：RNOH 适配库有多个版本线，旧库存在不等于能接 TripLine 当前版本；Expo Modules API 未列 HarmonyOS 平台。Codex 桌面端没有由本仓库控制的 prompt-cache 开关，成本策略测文件/输出/构建/截图等代理指标，不能用它伪造缓存率。并行工作区存在 Kimi 未提交 UI 与 ROADMAP 改动，本轮提交须逐文件暂存，不能 `git add -A`。
+
+---
+
 ## 2026-09-17 · Kimi 体验 P0 批六项全部落地 + 字体成本调研
 
 **现在什么最重要**：Simon 已授权 P0 开工（"P0开工，后续规划都不错。字体方案可先调研一下成本再接入"）。P0 批六个事项全部完成并分三个 checkpoint 提交，lint/typecheck/test（40 用例）/diff-check 全绿；**双端模拟器回归未做**（本批纯呈现改动，Web 端 CDP 截图逐页目检代替），建议与 P1 批合并双端回归或 Simon 真机体验。模块评审状态不变。
